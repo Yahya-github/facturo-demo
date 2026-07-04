@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="company-name" content="{{COMPANY_NAME}}">
+  <title>Factures — {{COMPANY_NAME}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css?v=21">
+  <link rel="stylesheet" href="/static/css/filters.css?v=1">
+  <link rel="stylesheet" href="/static/css/payments.css?v=1">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>{{COMPANY_NAME}}</h1>
+        <div class="brand-sub">Facturation</div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-page="home" onclick="navigate('home')">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+          Accueil
+        </button>
+        <button class="nav-btn" data-page="clients" onclick="navigate('clients')">
+          <span class="material-symbols-outlined">groups</span>
+          Clients
+        </button>
+        <button class="nav-btn" data-page="facture" onclick="newFacture()">
+          <span class="material-symbols-outlined">receipt_long</span>
+          Nouvelle facture
+        </button>
+        <button class="nav-btn" data-page="history" onclick="navigate('history')">
+          <span class="material-symbols-outlined">history</span>
+          Historique
+        </button>
+        <button class="nav-btn" data-page="scans" onclick="openScans()">
+          <span class="material-symbols-outlined">document_scanner</span>
+          Factures scannées
+        </button>
+        <button class="nav-btn" data-page="payments" onclick="openPayments()">
+          <span class="material-symbols-outlined">payments</span>
+          Paiements
+        </button>
+        <button class="nav-btn" data-page="settings" onclick="navigate('settings')">
+          <span class="material-symbols-outlined">settings</span>
+          Paramètres
+          <span class="nav-dot" id="update-dot" hidden title="Mise à jour disponible"></span>
+        </button>
+      </nav>
+    </aside>
+    <main class="main-content" id="main-content">
+      <div class="page" style="display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--gray-400)">
+        <div class="loading-spinner" style="border-color:var(--gray-300);border-top-color:var(--blue-500);width:32px;height:32px"></div>
+      </div>
+    </main>
+  </div>
+  <script src="/static/js/util.js?v=2"></script>
+  <script src="/static/js/core.js?v=2x"></script>
+  <script src="/static/js/home.js?v=2"></script>
+  <script src="/static/js/clients.js?v=2"></script>
+  <script src="/static/js/discounts.js?v=1"></script>
+  <script src="/static/js/facture.js?v=2"></script>
+  <script src="/static/js/history.js?v=2"></script>
+  <script src="/static/js/scans.js?v=2"></script>
+  <script src="/static/js/payments.js?v=2"></script>
+  <script src="/static/js/settings.js?v=2x"></script>
+  <script src="/static/js/autocomplete.js?v=1"></script>
+  <script src="/static/js/boot.js?v=1"></script>
+</body>
+</html>
