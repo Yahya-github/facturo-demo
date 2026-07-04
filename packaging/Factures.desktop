@@ -1,0 +1,11 @@
+[Desktop Entry]
+# Linux launcher for a development checkout. Replace /path/to/facturo with the
+# absolute path of your clone before installing it (e.g. ~/.local/share/applications).
+Name=Factures - Facturo
+Comment=Système de facturation
+Path=/path/to/facturo
+Exec=/path/to/facturo/scripts/start.sh
+Terminal=true
+Type=Application
+Icon=x-office-spreadsheet
+Categories=Office;

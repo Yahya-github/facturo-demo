@@ -1,0 +1,18 @@
+# Export PDF requires LibreOffice installed on the system (paquet: libreoffice / libreoffice-calc)
+fastapi==0.115.12
+uvicorn==0.34.2
+openpyxl==3.1.5
+Pillow==12.2.0
+jinja2==3.1.6
+python-multipart==0.0.20
+# GitHub sync (pure-Python git so Git need not be installed on each PC)
+dulwich==1.2.6
+urllib3==2.7.0
+certifi==2026.6.17
+# Local AI-assisted billet extraction via Ollama (structured JSON output)
+ollama==0.6.2
+# HEIC/HEIF decode support (iPhone photos) for AI image extraction
+pillow-heif==1.4.0
+# Rasterizes scanned PDF billets into page images for the vision model.
+# Self-contained wheel (no Poppler/system binary), so it bundles into the exe.
+pypdfium2==5.13.0
