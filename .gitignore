@@ -1,0 +1,40 @@
+# ── App data (dev mode writes to data/; never part of the source repo) ──
+/data/
+# Anything the frozen app or old layouts may leave at the repo root
+/data.db*
+/output/
+/scans/
+/paiements/
+/backups/
+/company_logo.png
+/sync_config.json
+/update_config.json
+/ai_config.json
+/.sync_data/
+*.bak
+
+# ── Build outputs ──
+/dist/
+/build/
+/build_pyi/
+*.log
+*.spec.bak
+
+# ── Environments & caches ──
+/venv/
+/build_venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+/.server.pid
+
+# ── Local tooling ──
+/.claude/settings.local.json
+
+# Real client documents used by benchmarks/tests stay local (names, plates,
+# addresses). Scoring scripts and synthetic fixtures are tracked.
+/tests/billets/pages/
+/tests/fixtures/payments/pdf/
