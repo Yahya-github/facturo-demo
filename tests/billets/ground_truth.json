@@ -1,0 +1,74 @@
+[
+  {
+    "page": "3b4131_p1.jpg",
+    "source": "3b41311779264b3fb949d6c03db74220.pdf#1",
+    "layout": "RENTAL",
+    "verified_by": "vision + invoice inv035 line 4",
+    "numero_billet": "50742",
+    "chantier": "ROXDALE",
+    "plaque": "FK68113",
+    "quantite": 8.25,
+    "taux": 0,
+    "date_billet": "2026-06-25"
+  },
+  {
+    "page": "3b4131_p2.jpg",
+    "source": "3b41311779264b3fb949d6c03db74220.pdf#2",
+    "layout": "RENTAL",
+    "verified_by": "vision + invoice inv035 line 3",
+    "numero_billet": "34340",
+    "chantier": "M. RIVARD",
+    "plaque": "FK68873",
+    "quantite": 10.5,
+    "taux": 0,
+    "date_billet": "2026-06-25"
+  },
+  {
+    "page": "3b4131_p3.jpg",
+    "source": "3b41311779264b3fb949d6c03db74220.pdf#3",
+    "layout": "RENTAL",
+    "verified_by": "vision + invoice inv035 line 2",
+    "numero_billet": "34338",
+    "chantier": "NORIX",
+    "plaque": "FK68873",
+    "quantite": 8.5,
+    "taux": 0,
+    "date_billet": "2026-06-23"
+  },
+  {
+    "page": "3b4131_p4.jpg",
+    "source": "3b41311779264b3fb949d6c03db74220.pdf#4",
+    "layout": "LOC",
+    "verified_by": "vision + invoice inv035 line 5",
+    "numero_billet": "4211",
+    "chantier": "M. RIVARD",
+    "plaque": "FK68990",
+    "quantite": 6.5,
+    "taux": 0,
+    "date_billet": "2026-06-22"
+  },
+  {
+    "page": "73c2db_p1.jpg",
+    "source": "73c2db9e17414f1c948dc5983768060a.pdf#1",
+    "layout": "RENTAL",
+    "verified_by": "vision only",
+    "numero_billet": "50658",
+    "chantier": "M-RIVARD",
+    "plaque": "FK41571",
+    "quantite": 9.5,
+    "taux": 0,
+    "date_billet": "2026-06-29"
+  },
+  {
+    "page": "bc5361_p1.jpg",
+    "source": "bc536195feca4566b8cb3f919248e8ae.pdf#1",
+    "layout": "OWN",
+    "verified_by": "vision only",
+    "numero_billet": "1605",
+    "chantier": "PAVEX",
+    "plaque": "K864249",
+    "quantite": 11.75,
+    "taux": 0,
+    "date_billet": "2026-07-10"
+  }
+]
