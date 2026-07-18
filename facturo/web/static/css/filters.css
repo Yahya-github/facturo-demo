@@ -1,0 +1,221 @@
+/* History / home / scans filter toolbars.
+   Built on app.css tokens: the same uppercase green labels as .form-label, the
+   same inputs (.form-input/.form-select), gold for money owed, mono for sums. */
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Toolbar ──────────────────────────────────────────── */
+
+.flt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.flt-field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 150px; min-width: 0; }
+.flt-field-search { flex: 3 1 100%; }
+.flt-field-date { flex: 0 1 158px; }
+
+.flt-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.flt-bar .form-input,
+.flt-bar .form-select { padding: 9px 12px; font-size: 0.875rem; }
+.flt-bar .form-select { cursor: pointer; }
+.flt-bar .form-input:hover,
+.flt-bar .form-select:hover { border-color: var(--gray-400); }
+.flt-bar .form-input:focus,
+.flt-bar .form-select:focus { border-color: var(--primary); }
+
+.flt-search { position: relative; }
+.flt-search .material-symbols-outlined {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--gold);
+  pointer-events: none;
+}
+.flt-bar .flt-search .form-input {
+  padding: 11px 14px 11px 42px;
+  font-size: 0.95rem;
+  background: var(--gray-50);
+}
+.flt-bar .flt-search .form-input:focus { background: var(--surface); }
+
+.flt-reset { flex: 0 0 auto; align-self: flex-end; height: 38px; }
+.flt-reset.is-idle { opacity: 0.55; }
+.flt-reset.is-idle:hover { opacity: 1; }
+.flt-reset .material-symbols-outlined { font-size: 18px; }
+
+.flt-bar-compact { max-width: 440px; }
+.flt-bar-compact .flt-field-search { flex-basis: auto; }
+
+/* Keyboard focus: a clear ring on everything this module adds or reuses. */
+.flt-bar .btn:focus-visible,
+.flt-results .btn:focus-visible,
+.flt-results .status-chip:focus-visible,
+#home-recent .btn:focus-visible,
+#home-recent .status-chip:focus-visible,
+.home-flt .btn:focus-visible,
+.scan-folder:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── Summary ribbon ───────────────────────────────────── */
+
+.flt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 28px;
+  padding: 12px 20px;
+  margin-bottom: 14px;
+  background: var(--primary);
+  color: rgba(255, 255, 255, 0.78);
+  border-radius: var(--radius-lg);
+  font-size: 0.82rem;
+  box-shadow: var(--shadow-md);
+}
+.flt-summary-item strong { color: #fff; font-weight: 700; }
+.flt-summary-item:first-child strong {
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  margin-right: 2px;
+}
+.flt-num {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.flt-summary-item.is-owed strong { color: var(--gold-light); }
+
+/* ── Results table ────────────────────────────────────── */
+
+.flt-table .flt-amount {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.flt-table th.flt-amount { font-family: var(--font-body); font-size: 0.72rem; }
+.flt-client-cell { font-weight: 600; }
+.flt-date-cell { white-space: nowrap; }
+
+.flt-statut-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.flt-partial {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brown);
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+/* One line of actions; below 1280px the labels collapse to icons (see bottom).
+   Kept a real table cell (app.css makes .actions display:flex, which detaches
+   the cell's background/border from the rest of the row). */
+.data-table td.flt-actions { display: table-cell; text-align: right; white-space: nowrap; }
+.data-table td.flt-actions .btn + .btn { margin-left: 6px; }
+.flt-actions .btn { gap: 6px; padding: 6px 10px; }
+.flt-actions .material-symbols-outlined { font-size: 18px; }
+
+/* ── Empty (filters matched nothing) ──────────────────── */
+
+.flt-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--gray-500);
+}
+.flt-empty > .material-symbols-outlined { display: block; font-size: 44px; color: var(--gold); margin-bottom: 10px; }
+.flt-empty h3 {
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+.flt-empty p { font-size: 0.85rem; margin: 0 auto 16px; max-width: 340px; }
+.flt-empty-compact { padding: 24px; }
+.flt-empty-compact p { margin-bottom: 0; }
+.flt-empty-compact > .material-symbols-outlined { font-size: 32px; margin-bottom: 4px; }
+
+/* ── Home quick filters ───────────────────────────────── */
+
+.home-recent-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.home-recent-head h3 { font-size: 1rem; font-weight: 700; }
+
+.home-flt { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.home-flt-field { display: inline-flex; align-items: center; gap: 8px; }
+.home-flt-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.home-flt .form-select {
+  width: auto;
+  max-width: 220px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.home-flt .form-select:hover { border-color: var(--gray-400); }
+
+/* ── Scans ────────────────────────────────────────────── */
+
+/* .scan-folder sets display:flex, which would otherwise beat [hidden]. */
+.scan-folder[hidden] { display: none; }
+#scans-no-match[hidden] { display: none; }
+
+/* .main-content is a flex item: without min-width:0 a wide table stretches it
+   past the viewport and the whole page scrolls sideways (seen at 1024px). */
+.main-content { min-width: 0; }
+.flt-results .card { overflow-x: auto; }
+
+@media (max-width: 1280px) {
+  .flt-field-date { flex-basis: 140px; }
+  .flt-summary { gap: 4px 20px; }
+  .flt-btn-label { display: none; }
+  .flt-actions .btn { padding: 6px 8px; }
+  .flt-table td, .flt-table th { padding-left: 8px; padding-right: 8px; }
+  .flt-table td:first-child, .flt-table th:first-child { padding-left: 16px; }
+  .flt-table .status-chip { padding: 4px 9px; gap: 4px; }
+  .data-table td.flt-actions .btn + .btn { margin-left: 4px; }
+  .flt-table td.flt-amount { font-size: 0.78rem; }
+  .flt-table .flt-date-cell { font-size: 0.84rem; }
+}
