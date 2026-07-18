@@ -1,0 +1,194 @@
+/* Paiements tab — proofs of payment and their billet matching.
+   Builds on app.css tokens; status colour is semantic throughout:
+   green = linked, gold/brown = to check, red = duplicate. */
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.pay-muted { color: var(--gray-400); }
+.pay-mono { font-family: var(--font-mono); font-size: 0.84rem; letter-spacing: -0.01em; }
+.data-table .num, .data-table th.num { text-align: right; font-family: var(--font-mono); font-size: 0.84rem; white-space: nowrap; }
+.data-table th.num { font-family: var(--font-body); font-size: 0.72rem; }
+
+.pay-loading { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pay-spinner { border-color: var(--gray-200); border-top-color: var(--primary); width: 28px; height: 28px; }
+
+/* ── List ─────────────────────────────────────────────── */
+
+.pay-toolbar { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+
+.pay-search { position: relative; flex: 1 1 280px; display: block; }
+.pay-search .material-symbols-outlined {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  font-size: 20px; color: var(--gray-400); pointer-events: none;
+}
+.pay-search .form-input { padding-left: 40px; }
+
+.pay-status-seg .seg-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; font-size: 0.8rem; min-width: auto;
+}
+.pay-count {
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+  padding: 0 6px; border-radius: 999px; background: var(--gray-100); color: var(--gray-500);
+}
+.pay-status-btn.active .pay-count { background: rgba(255,255,255,0.18); color: white; }
+
+.seg-btn:focus-visible, .pay-ref:focus-visible, .pay-inline-link:focus-visible,
+.pay-icon-btn:focus-visible, .pay-suggestion:focus-visible, .billet-payment-badge:focus-visible {
+  outline: 2px solid var(--gold); outline-offset: 2px;
+}
+
+.pay-table tbody tr.payment-row { cursor: pointer; }
+.pay-table tbody tr.payment-row:hover .pay-ref { color: var(--primary); text-decoration-color: var(--gold); }
+.pay-date { font-family: var(--font-mono); font-size: 0.84rem; color: var(--gray-600); white-space: nowrap; }
+.pay-emetteur { font-weight: 600; color: var(--gray-800); max-width: 280px; }
+
+.pay-ref {
+  background: none; border: none; padding: 2px 0; cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.86rem; font-weight: 700; color: var(--gray-700);
+  text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px;
+  transition: all var(--transition);
+}
+
+.pay-mini-meter { display: flex; align-items: center; gap: 10px; }
+.pay-mini-bar { width: 72px; height: 6px; border-radius: 999px; background: var(--gray-200); overflow: hidden; }
+.pay-mini-bar > span { display: block; height: 100%; background: var(--green-600); border-radius: 999px; }
+.pay-mini-count { font-family: var(--font-mono); font-size: 0.8rem; color: var(--gray-600); }
+
+.pay-state {
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+}
+.pay-state .material-symbols-outlined { font-size: 16px; }
+.pay-state-complet { background: var(--green-100); color: var(--green-800); }
+.pay-state-partiel { background: var(--gray-100); color: var(--gray-600); }
+.pay-state-a_verifier { background: var(--gold-bg); color: var(--brown); }
+
+.pay-no-match { padding: 24px; text-align: center; color: var(--gray-500); font-size: 0.9rem; }
+.pay-no-match[hidden] { display: none; }
+
+/* ── Detail ───────────────────────────────────────────── */
+
+.pay-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.pay-title-ref { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--gray-800); letter-spacing: -0.03em; }
+.pay-head-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+.pay-detail-grid {
+  display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+  gap: 20px; margin-bottom: 20px; align-items: start;
+}
+.pay-header-card .form-group { margin-bottom: 14px; }
+.pay-notes { margin-bottom: 0 !important; }
+.pay-notes textarea { resize: vertical; min-height: 60px; font-family: var(--font-body); }
+.pay-file {
+  display: flex; align-items: center; gap: 6px; padding: 10px 0;
+  font-size: 0.86rem; color: var(--gray-600); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pay-file .material-symbols-outlined { color: var(--red-600); font-size: 20px; }
+
+/* The ledger reuses the invoice form's dark total card (.preview-total). */
+.pay-ledger { margin: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.pay-short {
+  margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.2);
+  font-size: 0.78rem; line-height: 1.45; color: var(--gold-light); position: relative;
+}
+
+/* Coverage strip: one segment per billet line, coloured by its status. */
+.pay-coverage { padding: 20px 24px 18px; border-bottom: 1px solid var(--gray-200); }
+.pay-coverage-text { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.9rem; color: var(--gray-600); }
+.pay-coverage-text strong { font-family: var(--font-headline); font-size: 1.35rem; font-weight: 800; color: var(--primary); }
+.pay-coverage-text span { color: var(--gray-500); font-size: 0.84rem; }
+.pay-coverage-strip { display: flex; gap: 3px; height: 10px; }
+.pay-coverage-strip > span { flex: 1 1 0; border-radius: 3px; min-width: 6px; }
+.pay-seg-lie { background: var(--green-600); }
+.pay-seg-non_lie { background: var(--gold); }
+.pay-seg-doublon { background: var(--red-500); }
+
+.pay-lignes .data-table td { vertical-align: top; }
+.pay-lignes .data-table th, .pay-lignes .data-table td:nth-child(-n+5) { white-space: nowrap; }
+.pay-lignes .data-table .actions { align-items: center; }
+.ligne-row.ligne-non_lie > td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+.ligne-row.ligne-doublon > td:first-child { box-shadow: inset 3px 0 0 var(--red-500); }
+
+.ligne-status {
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  font-size: 0.76rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1.5px solid transparent;
+}
+.ligne-status .material-symbols-outlined { font-size: 16px; }
+.ligne-status.status-lie { background: var(--green-100); color: var(--green-800); border-color: var(--green-200); }
+.ligne-status.status-a-verifier { background: var(--gold-bg); color: var(--brown); border-color: var(--gold-border); }
+.ligne-status.status-doublon { background: rgba(239,68,68,0.1); color: var(--red-600); border-color: rgba(239,68,68,0.3); }
+.ligne-detail { margin-top: 6px; font-size: 0.78rem; color: var(--gray-600); line-height: 1.4; }
+
+.pay-inline-link {
+  background: none; border: none; padding: 0; cursor: pointer; font: inherit; font-weight: 700;
+  color: var(--primary); text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 2px;
+}
+.pay-inline-link:hover { color: var(--primary-light); text-decoration-thickness: 2px; }
+
+.pay-icon-btn {
+  background: none; border: none; color: var(--gray-400); cursor: pointer; padding: 6px;
+  border-radius: var(--radius-sm); display: inline-flex; transition: all var(--transition);
+}
+.pay-icon-btn:hover { color: var(--red-500); background: rgba(239,68,68,0.1); }
+
+.pay-add-ligne {
+  display: flex; align-items: center; gap: 12px; padding: 16px 24px;
+  background: var(--gray-50); border-top: 1px solid var(--gray-200); flex-wrap: wrap;
+}
+.pay-add-ligne label { font-size: 0.84rem; font-weight: 600; color: var(--gray-600); }
+.pay-add-ligne .form-input { width: 180px; padding-top: 8px; padding-bottom: 8px; font-family: var(--font-mono); }
+
+.pay-delete-zone { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.pay-delete-btn:hover { color: var(--red-600); border-color: var(--red-500); background: rgba(239,68,68,0.06); }
+.pay-delete-zone.is-confirming {
+  padding: 14px 18px; border-radius: var(--radius-lg);
+  background: rgba(239,68,68,0.06); border: 1.5px solid rgba(239,68,68,0.3);
+}
+.pay-delete-zone.is-confirming span { flex: 1 1 320px; font-size: 0.86rem; color: var(--gray-700); }
+
+/* ── Link picker ──────────────────────────────────────── */
+
+.pay-picker { max-width: 600px; }
+.pay-picker-ligne {
+  font-size: 0.84rem; color: var(--gray-600); background: var(--gray-50);
+  border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px;
+}
+.pay-suggestions { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.pay-suggestion {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; text-align: left;
+  padding: 10px 14px; border-radius: var(--radius-md); cursor: pointer;
+  background: white; border: 1.5px solid var(--gray-200); font: inherit; font-size: 0.86rem;
+  transition: all var(--transition);
+}
+.pay-suggestion strong { font-family: var(--font-mono); color: var(--primary); }
+.pay-suggestion span { color: var(--gray-500); font-size: 0.8rem; }
+.pay-suggestion:hover { border-color: var(--gold); background: var(--gold-bg); }
+
+/* ── Invoice form badge ───────────────────────────────── */
+
+.billet-payment-badge {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; font: inherit; font-size: 0.74rem; font-weight: 700;
+  background: var(--green-100); color: var(--green-800); border: 1.5px solid var(--green-200);
+  transition: all var(--transition);
+}
+.billet-payment-badge .material-symbols-outlined { font-size: 16px; }
+.billet-payment-badge:hover { background: var(--green-200); }
+
+/* ── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 1180px) {
+  .pay-detail-grid { grid-template-columns: 1fr; }
+  .pay-emetteur { max-width: 200px; }
+}
+@media (max-width: 900px) {
+  .pay-lignes .data-table { display: block; overflow-x: auto; }
+  .pay-table { display: block; overflow-x: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pay-ref, .pay-suggestion, .billet-payment-badge, .pay-icon-btn { transition: none; }
+}
