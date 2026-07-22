@@ -1,0 +1,349 @@
+[
+  {
+    "name": "no_discount",
+    "billets": [
+      { "quantite": 5, "taux": 100 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [500.0],
+      "sous_total": 500.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 500.0,
+      "tps": 25.0,
+      "tvq": 49.875,
+      "total": 574.875
+    }
+  },
+  {
+    "name": "billet_percent_only",
+    "billets": [
+      { "quantite": 10, "taux": 100, "remise_pct": 10 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [900.0],
+      "sous_total": 900.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 900.0,
+      "tps": 45.0,
+      "tvq": 89.775,
+      "total": 1034.775
+    }
+  },
+  {
+    "name": "billet_montant_only",
+    "billets": [
+      { "quantite": 5, "taux": 100, "remise_montant": 50 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [450.0],
+      "sous_total": 450.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 450.0,
+      "tps": 22.5,
+      "tvq": 44.8875,
+      "total": 517.3875
+    }
+  },
+  {
+    "name": "billet_both_order_uses_gross_for_percent",
+    "comment": "pct is always a share of the ORIGINAL gross, not of (gross - montant): 10% of 1000 = 100, so net = 1000 - 100 - 100 = 800, never 1000 - 100 - (900*10%) = 810.",
+    "billets": [
+      { "quantite": 10, "taux": 100, "remise_pct": 10, "remise_montant": 100 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [800.0],
+      "sous_total": 800.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 800.0,
+      "tps": 40.0,
+      "tvq": 79.80000000000001,
+      "total": 919.8
+    }
+  },
+  {
+    "name": "billet_clamp_never_negative",
+    "billets": [
+      { "quantite": 1, "taux": 100, "remise_pct": 50, "remise_montant": 80 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [0.0],
+      "sous_total": 0.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 0.0,
+      "tps": 0.0,
+      "tvq": 0.0,
+      "total": 0.0
+    }
+  },
+  {
+    "name": "billet_percent_over_100_defensive_clamp",
+    "billets": [
+      { "quantite": 1, "taux": 100, "remise_pct": 150 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [0.0],
+      "sous_total": 0.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 0.0,
+      "tps": 0.0,
+      "tvq": 0.0,
+      "total": 0.0
+    }
+  },
+  {
+    "name": "billet_legacy_percent_normalizes",
+    "billets": [
+      { "quantite": 4, "taux": 50, "remise_type": "percent", "remise_valeur": 20 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [160.0],
+      "sous_total": 160.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 160.0,
+      "tps": 8.0,
+      "tvq": 15.96,
+      "total": 183.96
+    }
+  },
+  {
+    "name": "billet_legacy_montant_normalizes",
+    "billets": [
+      { "quantite": 4, "taux": 50, "remise_type": "montant", "remise_valeur": 30 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [170.0],
+      "sous_total": 170.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 170.0,
+      "tps": 8.5,
+      "tvq": 16.9575,
+      "total": 195.4575
+    }
+  },
+  {
+    "name": "billet_v2_overrides_legacy",
+    "comment": "remise_pct/remise_montant are nonzero, so the legacy remise_type/remise_valeur pair (which would give a very different 99% cut) must be ignored entirely.",
+    "billets": [
+      { "quantite": 4, "taux": 50, "remise_type": "percent", "remise_valeur": 99, "remise_pct": 10, "remise_montant": 0 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [180.0],
+      "sous_total": 180.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 180.0,
+      "tps": 9.0,
+      "tvq": 17.955000000000002,
+      "total": 206.955
+    }
+  },
+  {
+    "name": "invoice_percent_only",
+    "billets": [
+      { "quantite": 5, "taux": 100 },
+      { "quantite": 5, "taux": 100 }
+    ],
+    "facture": { "remise_pct": 10 },
+    "expected": {
+      "billet_nets": [500.0, 500.0],
+      "sous_total": 1000.0,
+      "remise": 100.0,
+      "remise_pct_amount": 100.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 900.0,
+      "tps": 45.0,
+      "tvq": 89.775,
+      "total": 1034.775
+    }
+  },
+  {
+    "name": "invoice_montant_applies_once_not_per_billet",
+    "comment": "The v1 bug this guards against: legacy invoice-level montant was applied IN FULL to every billet independently. Here 3 billets of 500 with a $30 invoice discount must remove exactly $30 total (sous_total 1500 -> base 1470), never $30 x 3 = $90 (which would give base 1410).",
+    "billets": [
+      { "quantite": 5, "taux": 100 },
+      { "quantite": 5, "taux": 100 },
+      { "quantite": 5, "taux": 100 }
+    ],
+    "facture": { "remise_montant": 30 },
+    "expected": {
+      "billet_nets": [500.0, 500.0, 500.0],
+      "sous_total": 1500.0,
+      "remise": 30.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 30.0,
+      "base_taxable": 1470.0,
+      "tps": 73.5,
+      "tvq": 146.63250000000002,
+      "total": 1690.1325
+    }
+  },
+  {
+    "name": "invoice_percent_then_montant",
+    "billets": [
+      { "quantite": 10, "taux": 100 }
+    ],
+    "facture": { "remise_pct": 10, "remise_montant": 20 },
+    "expected": {
+      "billet_nets": [1000.0],
+      "sous_total": 1000.0,
+      "remise": 120.0,
+      "remise_pct_amount": 100.0,
+      "remise_montant_amount": 20.0,
+      "base_taxable": 880.0,
+      "tps": 44.0,
+      "tvq": 87.78,
+      "total": 1011.78
+    }
+  },
+  {
+    "name": "invoice_montant_clamped_to_remaining_base",
+    "billets": [
+      { "quantite": 1, "taux": 100 }
+    ],
+    "facture": { "remise_pct": 0, "remise_montant": 150 },
+    "expected": {
+      "billet_nets": [100.0],
+      "sous_total": 100.0,
+      "remise": 100.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 100.0,
+      "base_taxable": 0.0,
+      "tps": 0.0,
+      "tvq": 0.0,
+      "total": 0.0
+    }
+  },
+  {
+    "name": "invoice_percent_and_montant_both_clamped",
+    "billets": [
+      { "quantite": 1, "taux": 100 }
+    ],
+    "facture": { "remise_pct": 80, "remise_montant": 50 },
+    "expected": {
+      "billet_nets": [100.0],
+      "sous_total": 100.0,
+      "remise": 100.0,
+      "remise_pct_amount": 80.0,
+      "remise_montant_amount": 20.0,
+      "base_taxable": 0.0,
+      "tps": 0.0,
+      "tvq": 0.0,
+      "total": 0.0
+    }
+  },
+  {
+    "name": "invoice_legacy_percent_normalizes",
+    "billets": [
+      { "quantite": 5, "taux": 100 }
+    ],
+    "facture": { "remise_type": "percent", "remise_valeur": 15 },
+    "expected": {
+      "billet_nets": [500.0],
+      "sous_total": 500.0,
+      "remise": 75.0,
+      "remise_pct_amount": 75.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 425.0,
+      "tps": 21.25,
+      "tvq": 42.393750000000004,
+      "total": 488.64375
+    }
+  },
+  {
+    "name": "invoice_legacy_montant_normalizes",
+    "billets": [
+      { "quantite": 5, "taux": 100 }
+    ],
+    "facture": { "remise_type": "montant", "remise_valeur": 40 },
+    "expected": {
+      "billet_nets": [500.0],
+      "sous_total": 500.0,
+      "remise": 40.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 40.0,
+      "base_taxable": 460.0,
+      "tps": 23.0,
+      "tvq": 45.885000000000005,
+      "total": 528.885
+    }
+  },
+  {
+    "name": "combined_billet_and_invoice_discounts",
+    "billets": [
+      { "quantite": 10, "taux": 100, "remise_pct": 10 },
+      { "quantite": 5, "taux": 80, "remise_montant": 20 }
+    ],
+    "facture": { "remise_pct": 5, "remise_montant": 10 },
+    "expected": {
+      "billet_nets": [900.0, 380.0],
+      "sous_total": 1280.0,
+      "remise": 74.0,
+      "remise_pct_amount": 64.0,
+      "remise_montant_amount": 10.0,
+      "base_taxable": 1206.0,
+      "tps": 60.300000000000004,
+      "tvq": 120.2985,
+      "total": 1386.5985
+    }
+  },
+  {
+    "name": "empty_billets_no_crash",
+    "billets": [],
+    "facture": { "remise_pct": 10, "remise_montant": 5 },
+    "expected": {
+      "billet_nets": [],
+      "sous_total": 0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 0.0,
+      "tps": 0.0,
+      "tvq": 0.0,
+      "total": 0.0
+    }
+  },
+  {
+    "name": "zero_gross_billet_no_crash",
+    "billets": [
+      { "quantite": 0, "taux": 100, "remise_pct": 10, "remise_montant": 5 }
+    ],
+    "facture": {},
+    "expected": {
+      "billet_nets": [0.0],
+      "sous_total": 0.0,
+      "remise": 0.0,
+      "remise_pct_amount": 0.0,
+      "remise_montant_amount": 0.0,
+      "base_taxable": 0.0,
+      "tps": 0.0,
+      "tvq": 0.0,
+      "total": 0.0
+    }
+  }
+]
