@@ -1,0 +1,147 @@
+name: Release
+
+# Pushing a tag vX.Y.Z (or vX.Y.Z-rcN) — normally via scripts/release.sh —
+# tests, builds Factures.exe, proves the in-app update swap + rollback on a
+# real Windows machine, then publishes the GitHub Release the app updates from.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  unit-tests:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Unit tests (browser e2e run in ci.yml)
+        run: python -m pytest -p no:cacheprovider --ignore=tests/e2e
+
+  build:
+    needs: unit-tests
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build dependencies (pinned PyInstaller)
+        run: pip install -r requirements-build.txt
+      - name: Tag must match facturo/version.py
+        shell: bash
+        run: |
+          code_version=$(python -c "from facturo.version import __version__; print(__version__)")
+          test "v$code_version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != version.py $code_version"; exit 1; }
+      - name: Build Factures.exe
+        run: pyinstaller --noconfirm --clean packaging/Factures.spec
+      - name: Smoke test
+        run: dist\Factures.exe --smoke-test
+      - name: Factures.exe.sha256 (sha256sum format)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, pathlib
+          exe = pathlib.Path("dist/Factures.exe")
+          digest = hashlib.sha256(exe.read_bytes()).hexdigest()
+          pathlib.Path("dist/Factures.exe.sha256").write_bytes(f"{digest}  Factures.exe\n".encode("ascii"))
+          PY
+          cat dist/Factures.exe.sha256
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: factures-exe
+          path: |
+            dist/Factures.exe
+            dist/Factures.exe.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  swap-rollback:
+    needs: unit-tests
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build dependencies (pinned PyInstaller)
+        run: pip install -r requirements-build.txt
+      - name: Build N, healthy N+1 and broken N+2
+        shell: bash
+        run: |
+          set -euo pipefail
+          build() {  # $1 = version, $2 = dist dir, $3 = 1 for the broken build
+            printf '__version__ = "%s"\n' "$1" > facturo/version.py
+            FACTURO_BUILD_BROKEN="$3" pyinstaller --noconfirm --clean \
+              --distpath "$2" --workpath "build-$2" packaging/Factures.spec
+          }
+          build 0.0.1 dist-n 0
+          build 0.0.2 dist-next 0
+          build 0.0.3 dist-broken 1
+          git checkout -- facturo/version.py
+      - name: Broken build really fails at startup
+        shell: bash
+        run: |
+          if ./dist-broken/Factures.exe --smoke-test; then echo "broken build started"; exit 1; fi
+      - name: Swap and rollback end-to-end
+        run: >-
+          python packaging/ci_swap_rollback.py
+          --n dist-n/Factures.exe --n-version 0.0.1
+          --next dist-next/Factures.exe --next-version 0.0.2
+          --broken dist-broken/Factures.exe --broken-version 0.0.3
+
+  release:
+    # Published to a separate private releases repo (RELEASES_REPO below),
+    # which holds only exes + notes: the client's read-only update token is
+    # scoped to it and can never read this source repo. Needs the repo secret
+    # RELEASES_TOKEN (fine-grained PAT, Contents: Read and write, on
+    # facturo-releases only); facturo-releases needs one initial commit so
+    # gh can create the tag there.
+    # PLACEHOLDER: a fork must set RELEASES_REPO to its own owner/repo, matching
+    # RELEASES_OWNER / RELEASES_REPO in facturo/services/updater.py.
+    needs: [build, swap-rollback]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RELEASES_REPO: your-github-user/facturo-releases
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/download-artifact@v4.3.0
+        with:
+          name: factures-exe
+          path: dist
+      - name: Verify checksum before publishing
+        working-directory: dist
+        run: sha256sum --check Factures.exe.sha256
+      - name: Release notes from CHANGELOG.md
+        run: python3 packaging/release_notes.py "$GITHUB_REF_NAME" > release_notes.md
+      - name: Create the release in facturo-releases (-rc tags are prereleases)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Repository secret RELEASES_TOKEN is missing (see comment above)."
+            exit 1
+          fi
+          flags=()
+          if [[ "$GITHUB_REF_NAME" == *-rc* ]]; then flags+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" dist/Factures.exe dist/Factures.exe.sha256 \
+            --repo "$RELEASES_REPO" --title "Factures $GITHUB_REF_NAME" \
+            --notes-file release_notes.md "${flags[@]}"
