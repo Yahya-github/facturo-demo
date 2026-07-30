@@ -1,0 +1,18 @@
+1234-5678 QUEBEC INC. INVOICE
+On Time. Every Time
+100 Fictive Boulevard, Suite 100 DATE: August 3, 2026
+Faux Ville, QC H0H 0H0 INVOICE #: 260803-07
+BILL TO:
+DEMO TRANSPORT INC.
+1 rue Fictive
+Montréal, QC H0H 1A1
+DESCRIPTION AMOUNT
+Transportation Services $2,600.00
+SUBTOTAL $2,600.00
+TPS 000000000RT0001 $130.00
+TVQ 0000000000TQ0001 $259.35
+OTHER $0.00
+TOTAL $2,989.35
+THANK YOU FOR YOUR BUSINESS!
+Total due in 15 days. Overdue accounts subject to a service charge of 1% per month.
+Make all checks payable to 1234-5678 QUEBEC INC..
