@@ -1,0 +1,35 @@
+21-09-2026
+Vrac Horizon (1234-5678 Qc inc.)
+88 rue Exemple
+Villefictive, QC J0J 0J0
+CA
+Tél.: 450-555-0100
+Quittance # 220-451
+Page 1
+BILLET DATE IMMAT CLIENT / CHANTIER / NOTES QTÉ PRIX EXT
+DEMO TRANSPORT INC.
+100 rue Fictive
+Montreal,Quebec, Quebec H0H0H0
+Tél.: (000) 000-0000
+T.P.S. / G.S.T.: 000 000 000
+T.V.Q. / Q.S.T.: 0000000000
+CEDAR RIDGE CONSTRUCTION INC. / Ch. Du 4 250,00 $ 1 000,00 $
+Secteur Nord surcharge diésel 10% septembre
+2026
+50210 12-09-2026 g123456
+M.N EXEMPLE / Paul Fictif ADM/Julie Exemple 5 200,00 $ 1 000,00 $
+Nord-Est/12 roues/Simple
+50211 12-09-2026 g123456
+3
+LAKESIDE PAVING INC. / 12 roues/Planage- 8,5 100,00 $ 850,00 $
+Excavation/surcharge diésel 10% septembre 2026
+50212 13-09-2026 le99999
+LAKESIDE PAVING INC. / 12 roues/Planage- 10 115,00 $ 1 150,00 $
+Excavation/surcharge diésel 10% septembre 2026
+50213 14-09-2026 le99999
+TOTAL: 4 369,05 $
+T.V.Q. / Q.S.T. 379,05 $
+T.P.S. / G.S.T. 190,00 $
+S-T. escompté 3 800,00 $
+Escompte 5% (200,00 $)
+Sous-Total: 4 000,00 $
