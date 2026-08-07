@@ -1,0 +1,3 @@
+-r requirements.txt
+# Frozen-exe build (packaging/build.sh, build.bat, .github/workflows/release.yml)
+pyinstaller==6.22.3
