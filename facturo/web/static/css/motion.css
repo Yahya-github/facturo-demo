@@ -1,0 +1,49 @@
+/* Motion: keyframes, transitions, page-in, skeleton shimmer, spotlight-card
+   glow, and the prefers-reduced-motion off-switch. */
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* core.js toast() reverses this one to dismiss. */
+@keyframes slideIn { from { opacity: 0; transform: translateY(0.75rem) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.page { animation: pageIn 260ms var(--ease-out); }
+.modal-overlay { animation: fadeIn var(--dur) ease-out; }
+.modal { animation: scaleIn var(--dur) var(--ease-out); }
+.toast { animation: slideIn 300ms var(--ease-out); }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--muted) 30%, color-mix(in srgb, var(--muted) 55%, var(--background)) 50%, var(--muted) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Spotlight card: a soft radial glow follows the pointer.
+   js/ui/spotlight.js (later phase) sets --mx / --my; without it the glow sits top-left. */
+.spotlight { position: relative; isolation: isolate; }
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(18rem circle at var(--mx, 20%) var(--my, 0%),
+    color-mix(in srgb, var(--gold) 22%, transparent), transparent 60%);
+  transition: opacity var(--dur-slow);
+  pointer-events: none;
+}
+.spotlight:hover::before { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .loading-spinner { animation-duration: 1.5s !important; animation-iteration-count: infinite !important; }
+  .skeleton { animation: none !important; }
+}
