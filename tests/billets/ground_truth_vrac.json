@@ -1,0 +1,50 @@
+[
+  {
+    "page": "VRAC_p1.jpg",
+    "source": "f31ca04bc595492bb11dea5320400489.pdf#1",
+    "layout": "VRAC",
+    "verified_by": "user manual invoice inv043 line 1",
+    "numero_billet": "04231",
+    "chantier": "La Henard",
+    "plaque": "K864245",
+    "quantite": 9.25,
+    "taux": 0,
+    "date_billet": "2026-08-09"
+  },
+  {
+    "page": "VRAC_p2.jpg",
+    "source": "f31ca04bc595492bb11dea5320400489.pdf#2",
+    "layout": "VRAC",
+    "verified_by": "user manual invoice inv043 line 2",
+    "numero_billet": "05293",
+    "chantier": "La Henard",
+    "plaque": "FK68113",
+    "quantite": 9.25,
+    "taux": 0,
+    "date_billet": "2026-08-09"
+  },
+  {
+    "page": "VRAC_p3.jpg",
+    "source": "f31ca04bc595492bb11dea5320400489.pdf#3",
+    "layout": "VRAC",
+    "verified_by": "user manual invoice inv043 line 3",
+    "numero_billet": "04540",
+    "chantier": "La Henard",
+    "plaque": "FK68873",
+    "quantite": 7,
+    "taux": 0,
+    "date_billet": "2026-08-07"
+  },
+  {
+    "page": "VRAC_p4.jpg",
+    "source": "f31ca04bc595492bb11dea5320400489.pdf#4",
+    "layout": "VRAC",
+    "verified_by": "user correction: manual invoice said FK94724, actual plate is FK93724",
+    "numero_billet": "04541",
+    "chantier": "La Henard",
+    "plaque": "FK93724",
+    "quantite": 7,
+    "taux": 0,
+    "date_billet": "2026-08-07"
+  }
+]
