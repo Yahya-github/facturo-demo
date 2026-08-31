@@ -1,0 +1,315 @@
+/* Design tokens — shadcn/ui variable set (zinc neutrals) with the Facturo brand
+   green as --primary and gold as the highlight colour.
+
+   Theme: <html data-theme="light|dark"> is set by js/ui/theme.js before first
+   paint. With no attribute (script blocked), prefers-color-scheme decides.
+   A `.dark` class is honoured too, for shadcn-style snippets.
+
+   Fonts: Geist + Geist Mono (SIL OFL 1.1), self-hosted in /static/fonts. */
+
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/geist-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/geist-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/geist-mono-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/fonts/geist-mono-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ── Light (default) ─────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
+  --primary: #1a4d2e;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #63636b;
+  --accent: #f0f4f1;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #2f7d4a;
+
+  /* Secondary text between --foreground and --muted-foreground. */
+  --text-2: #3f3f46;
+
+  /* Brand extras: primary tints, gold highlight, semantic states. */
+  --primary-hover: #25663e;
+  --primary-subtle: #f1f7f3;
+  --primary-muted: #dcefe3;
+  --primary-border: #b7d8c3;
+
+  --gold: #d4a853;
+  --gold-light: #e8c97a;
+  --gold-foreground: #3a2a08;
+  --gold-fg: #7a4a12;
+  --gold-bg: #fbf3e0;
+  --gold-border: #ecd6a0;
+
+  --success: #16a34a;
+  --success-fg: #166534;
+  --success-bg: #dcfce7;
+  --success-border: #bbf7d0;
+  --warning: #d97706;
+  --danger-fg: #b91c1c;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+  --info: #2563eb;
+  --info-fg: #1d4ed8;
+  --info-bg: #eff6ff;
+  --info-border: #bfdbfe;
+
+  --chart-1: #1a4d2e;
+  --chart-2: #d4a853;
+  --chart-3: #4f9d69;
+  --chart-4: #8b4513;
+  --chart-5: #71717a;
+
+  --sidebar: #fafafa;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: #1a4d2e;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f0f0f2;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #2f7d4a;
+
+  --overlay: rgba(9, 9, 11, 0.5);
+
+  /* Brand surface: hero banner and invoice total card (always dark green). */
+  --brand-deep: #1a4d2e;
+  --brand-deep-2: #256b41;
+  --on-brand: #fafafa;
+
+  /* Shape */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-full: 999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(9, 9, 11, 0.05);
+  --shadow-sm: 0 1px 3px rgba(9, 9, 11, 0.08), 0 1px 2px rgba(9, 9, 11, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(9, 9, 11, 0.08), 0 2px 4px -2px rgba(9, 9, 11, 0.05);
+  --shadow-lg: 0 12px 24px -6px rgba(9, 9, 11, 0.12), 0 4px 8px -4px rgba(9, 9, 11, 0.06);
+  --shadow-xl: 0 24px 48px -12px rgba(9, 9, 11, 0.22);
+
+  /* Type */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-body: var(--font-sans);
+  --font-headline: var(--font-sans);
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+  --transition: var(--dur) var(--ease-in-out);
+
+  /* Layers */
+  --z-sidebar: 50;
+  --z-modal: 1000;
+  --z-popover: 1100;
+  --z-toast: 1200;
+}
+
+/* ── Dark ────────────────────────────────────────────── */
+:root[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #101012;
+  --card-foreground: #fafafa;
+  --popover: #141416;
+  --popover-foreground: #fafafa;
+
+  --primary: #4ea672;
+  --primary-foreground: #04150b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #1c1c1f;
+  --muted-foreground: #a1a1aa;
+  --accent: #1f2622;
+  --accent-foreground: #fafafa;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+
+  --border: #27272a;
+  --input: #3a3a3f;
+  --ring: #4ea672;
+
+  --text-2: #d4d4d8;
+
+  --primary-hover: #63b985;
+  --primary-subtle: #0f1f16;
+  --primary-muted: #16301f;
+  --primary-border: #24523a;
+
+  --gold-foreground: #1c1405;
+  --gold-fg: #e8c97a;
+  --gold-bg: #231b0a;
+  --gold-border: #4a3a17;
+
+  --success: #4ade80;
+  --success-fg: #86efac;
+  --success-bg: #0f2a1a;
+  --success-border: #1d4a2f;
+  --warning: #f59e0b;
+  --danger-fg: #fca5a5;
+  --danger-bg: #2a1214;
+  --danger-border: #5c2226;
+  --info: #60a5fa;
+  --info-fg: #93c5fd;
+  --info-bg: #0f1c33;
+  --info-border: #1e3a66;
+
+  --chart-1: #4ea672;
+  --chart-3: #86efac;
+  --chart-4: #c9824a;
+  --chart-5: #a1a1aa;
+
+  --sidebar: #0c0c0e;
+  --sidebar-foreground: #d4d4d8;
+  --sidebar-primary: #4ea672;
+  --sidebar-primary-foreground: #04150b;
+  --sidebar-accent: #1c1c1f;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #232326;
+  --sidebar-ring: #4ea672;
+
+  --overlay: rgba(0, 0, 0, 0.66);
+
+  --brand-deep: #14382a;
+  --brand-deep-2: #1d5138;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.55), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.65), 0 4px 8px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.8);
+}
+
+/* No explicit choice (theme.js absent): follow the OS. Mirrors the dark block. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --background: #09090b; --foreground: #fafafa;
+    --card: #101012; --card-foreground: #fafafa;
+    --popover: #141416; --popover-foreground: #fafafa;
+    --primary: #4ea672; --primary-foreground: #04150b;
+    --secondary: #27272a; --secondary-foreground: #fafafa;
+    --muted: #1c1c1f; --muted-foreground: #a1a1aa;
+    --accent: #1f2622; --accent-foreground: #fafafa;
+    --destructive: #dc2626; --destructive-foreground: #fafafa;
+    --border: #27272a; --input: #3a3a3f; --ring: #4ea672;
+    --text-2: #d4d4d8;
+    --primary-hover: #63b985; --primary-subtle: #0f1f16;
+    --primary-muted: #16301f; --primary-border: #24523a;
+    --gold-foreground: #1c1405; --gold-fg: #e8c97a;
+    --gold-bg: #231b0a; --gold-border: #4a3a17;
+    --success: #4ade80; --success-fg: #86efac;
+    --success-bg: #0f2a1a; --success-border: #1d4a2f;
+    --warning: #f59e0b;
+    --danger-fg: #fca5a5; --danger-bg: #2a1214; --danger-border: #5c2226;
+    --info: #60a5fa; --info-fg: #93c5fd;
+    --info-bg: #0f1c33; --info-border: #1e3a66;
+    --chart-1: #4ea672; --chart-3: #86efac; --chart-4: #c9824a; --chart-5: #a1a1aa;
+    --sidebar: #0c0c0e; --sidebar-foreground: #d4d4d8;
+    --sidebar-primary: #4ea672; --sidebar-primary-foreground: #04150b;
+    --sidebar-accent: #1c1c1f; --sidebar-accent-foreground: #fafafa;
+    --sidebar-border: #232326; --sidebar-ring: #4ea672;
+    --overlay: rgba(0, 0, 0, 0.66);
+    --brand-deep: #14382a; --brand-deep-2: #1d5138;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.55), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.65), 0 4px 8px -4px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* ── Compatibility aliases ───────────────────────────────
+   Pre-redesign stylesheets and a few inline styles used these names. They
+   resolve to the tokens above so nothing breaks while pages migrate.
+   Do not use them in new code. */
+:root {
+  --bg: var(--background);
+  --surface: var(--card);
+  --primary-light: var(--primary-hover);
+  --primary-dark: var(--primary);
+  --brown: var(--gold-fg);
+  --brown-light: var(--accent);
+
+  --green-50: var(--primary-subtle);
+  --green-100: var(--success-bg);
+  --green-200: var(--success-border);
+  --green-500: var(--success);
+  --green-600: var(--success);
+  --green-700: var(--success-fg);
+  --green-800: var(--success-fg);
+  --green-900: var(--success-fg);
+
+  --red-500: var(--destructive);
+  --red-600: var(--danger-fg);
+  --blue-500: var(--info);
+
+  --gray-50: var(--muted);
+  --gray-100: var(--muted);
+  --gray-200: var(--border);
+  --gray-300: var(--input);
+  --gray-400: var(--muted-foreground);
+  --gray-500: var(--muted-foreground);
+  --gray-600: var(--text-2);
+  --gray-700: var(--text-2);
+  --gray-800: var(--foreground);
+  --gray-900: var(--foreground);
+}
