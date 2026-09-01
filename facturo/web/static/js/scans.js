@@ -48,7 +48,7 @@ function renderScans() {
       <div class="flt-field flt-field-search">
         <label class="flt-label" for="scans-search">Client</label>
         <div class="flt-search">
-          <span class="material-symbols-outlined" aria-hidden="true">search</span>
+          ${icon('search')}
           <input id="scans-search" type="search" class="form-input" value="${escAttr(state.scansQuery)}"
             placeholder="Rechercher un client…" autocomplete="off" spellcheck="false" oninput="scansOnSearchInput(this.value)">
         </div>

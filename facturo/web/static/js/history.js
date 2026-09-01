@@ -217,7 +217,7 @@ function renderHistoryToolbar(f) {
     <div class="flt-field flt-field-search">
       <label class="flt-label" for="flt-q">Recherche</label>
       <div class="flt-search">
-        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        ${icon('search')}
         <input id="flt-q" type="search" class="form-input" value="${escAttr(f.q)}" maxlength="${HIST_QUERY_MAX}"
           placeholder="N° facture, client, chantier, plaque, N° billet…" autocomplete="off" spellcheck="false"
           oninput="histOnQueryInput()">

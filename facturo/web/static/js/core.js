@@ -151,9 +151,10 @@ function initialPage() {
   return 'history';
 }
 
+// Legacy wrapper: page code still says micon('check_circle'). The old Material
+// Symbol name is mapped to a Lucide icon by lucideName() (js/icons.js).
 function micon(name, fill) {
-  const style = fill ? "font-variation-settings: 'FILL' 1;" : '';
-  return `<span class="material-symbols-outlined" style="${style}">${name}</span>`;
+  return icon(lucideName(name), { fill: !!fill });
 }
 
 const icons = {

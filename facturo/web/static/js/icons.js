@@ -140,6 +140,10 @@
   attach_file: 'paperclip',
   add_link: 'link-2',
   radio_button_unchecked: 'circle',
+  task_alt: 'circle-check',
+  timelapse: 'clock',
+  help: 'circle-help',
+  content_copy: 'copy',
   };
 
   const SIZES = { xs: 'icon-xs', sm: 'icon-sm', md: '', lg: 'icon-lg', xl: 'icon-xl' };
@@ -166,7 +170,20 @@
     return MATERIAL_TO_LUCIDE[materialName] || materialName;
   }
 
-  const api = { icon, lucideName, PATHS, MATERIAL_TO_LUCIDE };
+  /**
+   * Replace static placeholders (<i data-icon="search"></i>) in server-rendered
+   * markup with their inline SVG. Optional data-icon-size sets the size.
+   */
+  function hydrateIcons(scope) {
+    if (typeof document === 'undefined') return;
+    (scope || document).querySelectorAll('i[data-icon]').forEach(function (el) {
+      el.outerHTML = icon(el.getAttribute('data-icon'), { size: el.getAttribute('data-icon-size') || undefined });
+    });
+  }
+
+  const api = { icon, lucideName, hydrateIcons, PATHS, MATERIAL_TO_LUCIDE };
+  root.hydrateIcons = hydrateIcons;
+  hydrateIcons();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.icon = icon;
   root.lucideName = lucideName;
