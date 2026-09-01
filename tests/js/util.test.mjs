@@ -20,7 +20,9 @@ function test(name, fn) {
 
 function scanTemplates(pattern, allowed) {
   const offenders = [];
-  for (const f of readdirSync(jsDir).filter(n => n.endsWith('.js') && n !== 'util.js')) {
+  // Recurses into js/ui/ so the primitives obey the same escaping rules.
+  const files = readdirSync(jsDir, { recursive: true }).filter(n => n.endsWith('.js') && n !== 'util.js');
+  for (const f of files) {
     readFileSync(path.join(jsDir, f), 'utf8').split('\n').forEach((line, i) => {
       if (pattern.test(line) && !(allowed && allowed.test(line))) offenders.push(`${f}:${i + 1}: ${line.trim()}`);
     });
