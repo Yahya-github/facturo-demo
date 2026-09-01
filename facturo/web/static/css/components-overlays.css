@@ -50,7 +50,33 @@
   gap: 0.5rem;
   padding: 0.5rem 1.5rem 1.25rem;
 }
-.confirm-text { font-size: var(--text-sm); color: var(--muted-foreground); line-height: 1.6; padding: 0.25rem 0; }
+.confirm-text { font-size: var(--text-sm); color: var(--muted-foreground); line-height: 1.6; padding: 0.25rem 0; white-space: pre-line; }
+.modal-desc { padding: 0.25rem 1.5rem 0; font-size: var(--text-sm); color: var(--muted-foreground); line-height: 1.5; }
+.modal-sm { max-width: 26rem; }
+.modal-lg { max-width: 44rem; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%; }
+.modal-destructive .modal-header h3 { color: var(--danger-fg); }
+
+/* ── Sheet / Drawer: same overlay + focus trap, docked to an edge ── */
+.sheet-overlay { padding: 0; }
+.sheet-left { justify-content: flex-start; align-items: stretch; }
+.sheet-right { justify-content: flex-end; align-items: stretch; }
+.sheet-bottom { justify-content: center; align-items: flex-end; }
+.modal.sheet {
+  max-width: min(26rem, 100vw);
+  height: 100%;
+  max-height: none;
+  border-radius: 0;
+  border-width: 0;
+  box-shadow: var(--shadow-xl);
+}
+.sheet-left .modal.sheet { border-right-width: 1px; animation: sheetInLeft var(--dur-slow) var(--ease-out); }
+.sheet-right .modal.sheet { border-left-width: 1px; animation: sheetInRight var(--dur-slow) var(--ease-out); }
+.sheet-bottom .modal.sheet {
+  width: 100%; max-width: 40rem; height: auto; max-height: 85vh;
+  border-top-width: 1px; border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  animation: sheetInBottom var(--dur-slow) var(--ease-out);
+}
 
 /* ── Toast (sonner-like stack) ────────────────────────── */
 .toast-container {

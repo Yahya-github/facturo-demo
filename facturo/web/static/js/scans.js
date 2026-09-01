@@ -163,7 +163,12 @@ async function uploadScans(input, clientId) {
 }
 
 async function deleteScan(id) {
-  if (!confirm('Supprimer cette facture scannée ?')) return;
+  const ok = await ui.alertDialog({
+    title: 'Supprimer le document',
+    description: 'Supprimer cette facture scannée ?',
+    confirmLabel: 'Supprimer', destructive: true,
+  });
+  if (!ok) return;
   try {
     await api('DELETE', `/api/scans/${id}`);
     toast('Document supprimé');

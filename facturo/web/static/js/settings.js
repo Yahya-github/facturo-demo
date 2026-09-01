@@ -94,7 +94,10 @@ async function addKnownValue() {
 
 async function renameKnownValue(id) {
   const current = (state.kvAll || []).find(v => v.id === id);
-  const valeur = prompt('Nouvelle orthographe :', current ? current.valeur : '');
+  const valeur = await ui.promptDialog({
+    title: 'Renommer la valeur', label: 'Nouvelle orthographe',
+    value: current ? current.valeur : '', confirmLabel: 'Renommer',
+  });
   if (valeur === null || !valeur.trim()) return;
   try {
     await api('PUT', `/api/known-values/${id}`, { valeur: valeur.trim() });
@@ -111,7 +114,12 @@ async function toggleKnownValue(id, hidden) {
 
 async function deleteKnownValue(id) {
   const v = (state.kvAll || []).find(x => x.id === id);
-  if (!confirm(`Supprimer « ${v ? v.valeur : ''} » de la liste ?\n\nLes factures déjà générées ne changent pas.`)) return;
+  const ok = await ui.alertDialog({
+    title: 'Supprimer la valeur',
+    description: `Supprimer « ${v ? v.valeur : ''} » de la liste ?\n\nLes factures déjà générées ne changent pas.`,
+    confirmLabel: 'Supprimer', destructive: true,
+  });
+  if (!ok) return;
   try {
     await api('DELETE', `/api/known-values/${id}`);
     await reloadKnownValues();
@@ -211,7 +219,12 @@ async function syncPush() {
 }
 
 async function syncPull() {
-  if (!confirm('Recevoir remplacera les données de cet appareil par celles de GitHub. Une sauvegarde locale sera créée. Continuer ?')) return;
+  const ok = await ui.alertDialog({
+    title: 'Recevoir les données de GitHub',
+    description: 'Recevoir remplacera les données de cet appareil par celles de GitHub. Une sauvegarde locale sera créée. Continuer ?',
+    confirmLabel: 'Recevoir',
+  });
+  if (!ok) return;
   await runSync('sync-pull-btn', 'Réception…', '/api/sync/pull', 'Données reçues de GitHub ✓');
 }
 
@@ -237,7 +250,12 @@ async function runSync(btnId, label, endpoint, okMsg) {
 }
 
 async function disconnectSync() {
-  if (!confirm('Déconnecter la synchronisation sur cet appareil ? Vos données et l\'historique restent intacts.')) return;
+  const ok = await ui.alertDialog({
+    title: 'Déconnecter la synchronisation',
+    description: 'Déconnecter la synchronisation sur cet appareil ? Vos données et l\'historique restent intacts.',
+    confirmLabel: 'Déconnecter', destructive: true,
+  });
+  if (!ok) return;
   try {
     await api('POST', '/api/sync/disconnect');
     await loadSyncStatus();
@@ -249,7 +267,12 @@ async function disconnectSync() {
 }
 
 async function removeLogo() {
-  if (!confirm('Retirer le logo de l\'entreprise ?')) return;
+  const ok = await ui.alertDialog({
+    title: 'Retirer le logo',
+    description: 'Retirer le logo de l\'entreprise ?',
+    confirmLabel: 'Retirer', destructive: true,
+  });
+  if (!ok) return;
   try {
     await api('DELETE', '/api/logo');
     state.hasLogo = false;

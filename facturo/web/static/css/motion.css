@@ -7,6 +7,9 @@
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 /* core.js toast() reverses this one to dismiss. */
 @keyframes slideIn { from { opacity: 0; transform: translateY(0.75rem) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes sheetInLeft { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes sheetInRight { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes sheetInBottom { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
 .page { animation: pageIn 260ms var(--ease-out); }

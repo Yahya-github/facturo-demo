@@ -43,69 +43,22 @@ async function api(method, path, body) {
 }
 
 // ── Modals ──────────────────────────────────────────────
-// One implementation of the dialog contract for every modal: role=dialog,
-// aria-modal, labelled by its heading, Escape closes, Tab stays inside, and
-// focus returns to whatever opened it.
-
-const MODAL_FOCUSABLE = 'button, select, input, textarea, a[href], [tabindex]:not([tabindex="-1"])';
-let modalSeq = 0;
+// The implementation lives in js/ui/dialog.js (role=dialog, aria-modal, labelled
+// by its heading, Escape closes, Tab stays inside, focus returns to the opener).
+// These globals stay for the hand-built `.modal-overlay` callers.
 
 /**
  * Attach a built overlay to the page as an accessible modal.
  * @param {HTMLElement} overlay  the .modal-overlay element (not yet in the DOM)
  * @param {{initialFocus?: string, onClose?: Function}} [opts]
- *   initialFocus: selector to focus first (default: first focusable in the modal)
- *   onClose(restoreFocus, trigger): replaces the default focus restore
  */
-function openModal(overlay, opts = {}) {
-  const heading = $('.modal-header h3, .modal-header h2', overlay);
-  if (heading && !heading.id) heading.id = `modal-title-${++modalSeq}`;
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  if (heading) overlay.setAttribute('aria-labelledby', heading.id);
-  $$('.modal-close', overlay).forEach(b => { if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', 'Fermer'); });
-
-  const trigger = document.activeElement;
-  const onKeydown = e => {
-    if (!overlay.isConnected) { document.removeEventListener('keydown', onKeydown); return; }
-    // Only the topmost modal reacts.
-    const all = $$('.modal-overlay');
-    if (all[all.length - 1] !== overlay) return;
-    if (e.key === 'Escape') { e.preventDefault(); closeModal(overlay); return; }
-    if (e.key !== 'Tab') return;
-    const focusable = $$(MODAL_FOCUSABLE, overlay).filter(el => !el.disabled && el.offsetParent !== null);
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
-    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  };
-  overlay._modal = { trigger, onKeydown, onClose: opts.onClose };
-  document.addEventListener('keydown', onKeydown);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(overlay); });
-  document.body.appendChild(overlay);
-  const target = (opts.initialFocus && $(opts.initialFocus, overlay))
-    || $$(MODAL_FOCUSABLE, overlay).find(el => !el.disabled);
-  if (target) target.focus();
-}
+function openModal(overlay, opts = {}) { ui.dialog.open(overlay, opts); }
 
 /** Close a modal opened with openModal(); restores focus to its opener. */
-function closeModal(overlay, restoreFocus = true) {
-  if (!overlay) return;
-  const m = overlay._modal;
-  if (m) document.removeEventListener('keydown', m.onKeydown);
-  overlay.remove();
-  if (!m) return;
-  overlay._modal = null;
-  if (m.onClose) m.onClose(restoreFocus, m.trigger);
-  else if (restoreFocus && m.trigger && m.trigger.isConnected) m.trigger.focus();
-}
+function closeModal(overlay, restoreFocus = true) { ui.dialog.close(overlay, restoreFocus); }
 
 /** Close every open modal (e.g. before navigating away). */
-function closeAllModals() {
-  $$('.modal-overlay').forEach(o => closeModal(o, false));
-}
+function closeAllModals() { ui.dialog.closeAll(); }
 
 function toast(msg, type = 'success') {
   let container = $('.toast-container');
@@ -278,7 +231,12 @@ function bindEvents() {
 }
 
 async function resetDatabase() {
-  if (!confirm('Supprimer tous les clients et toutes les factures? Cette action est irréversible.')) return;
+  const ok = await ui.alertDialog({
+    title: 'Réinitialiser la base de données',
+    description: 'Supprimer tous les clients et toutes les factures? Cette action est irréversible.',
+    confirmLabel: 'Tout supprimer', destructive: true,
+  });
+  if (!ok) return;
   try {
     await api('POST', '/api/reset');
     toast('Base de données réinitialisée');
