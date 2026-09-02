@@ -60,21 +60,9 @@ function closeModal(overlay, restoreFocus = true) { ui.dialog.close(overlay, res
 /** Close every open modal (e.g. before navigating away). */
 function closeAllModals() { ui.dialog.closeAll(); }
 
-function toast(msg, type = 'success') {
-  let container = $('.toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-  }
-  const el = document.createElement('div');
-  el.className = `toast toast-${type}`;
-  el.textContent = msg;
-  container.appendChild(el);
-  setTimeout(() => {
-    el.style.animation = 'slideIn 300ms ease-out reverse forwards';
-    setTimeout(() => el.remove(), 300);
-  }, 3000);
+/** Stacked notification (js/ui/toast.js). type: 'success' | 'error' | 'info'. */
+function toast(msg, type = 'success', opts) {
+  return ui.toast(msg, type, opts);
 }
 
 function navigate(page, params) {

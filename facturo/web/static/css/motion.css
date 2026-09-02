@@ -5,11 +5,12 @@
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-/* core.js toast() reverses this one to dismiss. */
+
 @keyframes slideIn { from { opacity: 0; transform: translateY(0.75rem) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes sheetInLeft { from { transform: translateX(-100%); } to { transform: none; } }
 @keyframes sheetInRight { from { transform: translateX(100%); } to { transform: none; } }
 @keyframes sheetInBottom { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
 .page { animation: pageIn 260ms var(--ease-out); }
