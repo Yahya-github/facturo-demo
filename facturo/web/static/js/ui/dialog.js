@@ -43,6 +43,8 @@
       if (list[list.length - 1] !== overlay) return;
       if (e.key === 'Escape') { if (e.defaultPrevented) return; e.preventDefault(); close(overlay); return; }
       if (e.key !== 'Tab') return;
+      // A popover/menu opened from inside the dialog owns its own Tab handling.
+      if (document.activeElement && document.activeElement.closest('[data-ui-layer]')) return;
       const items = ui.focusable(overlay);
       if (!items.length) return;
       const first = items[0];
