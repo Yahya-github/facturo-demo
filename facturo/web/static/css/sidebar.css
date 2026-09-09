@@ -1,0 +1,85 @@
+/* Collapsible sidebar (icon rail), search trigger and the mobile top bar / sheet.
+   Driven by js/ui/sidebar.js: <html data-sidebar="collapsed"> on desktop, and the
+   real <aside> is moved into a left Sheet below 768px. Tokens only. */
+
+.sidebar-brand { position: relative; }
+.sidebar-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  padding: 0.4rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+.sidebar-toggle:hover { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+.sidebar-toggle:focus-visible { outline: 2px solid var(--sidebar-ring); }
+
+.sidebar-search {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 2.25rem;
+  margin: 0 0.625rem 0.25rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), color var(--dur-fast);
+}
+.sidebar-search:hover { border-color: var(--input); color: var(--foreground); }
+.sidebar-search:focus-visible { outline: 2px solid var(--sidebar-ring); outline-offset: 1px; }
+.sidebar-search .nav-label { text-align: left; }
+.sidebar-search-kbd { display: inline-flex; gap: 0.15rem; }
+.sidebar-search-kbd kbd { min-width: 1.15rem; height: 1.15rem; }
+
+.mobile-bar { display: none; }
+
+/* ── Desktop: icon rail ───────────────────────────────── */
+@media (min-width: 768px) {
+  .sidebar { transition: width var(--dur-slow) var(--ease-out); overflow-x: hidden; }
+  html[data-sidebar="collapsed"] .sidebar { width: 3.75rem; }
+  html[data-sidebar="collapsed"] .sidebar-brand { justify-content: center; padding-inline: 0; }
+  html[data-sidebar="collapsed"] .brand-mark,
+  html[data-sidebar="collapsed"] .brand-text,
+  html[data-sidebar="collapsed"] .nav-label,
+  html[data-sidebar="collapsed"] .nav-group-label,
+  html[data-sidebar="collapsed"] .sidebar-search-kbd,
+  html[data-sidebar="collapsed"] .sidebar-version { display: none; }
+  html[data-sidebar="collapsed"] .sidebar-toggle { margin: 0; }
+  html[data-sidebar="collapsed"] .sidebar-toggle .icon { transform: scaleX(-1); }
+  html[data-sidebar="collapsed"] .sidebar-search { margin-inline: 0.625rem; justify-content: center; padding: 0; }
+  html[data-sidebar="collapsed"] .nav-btn { justify-content: center; padding: 0; }
+  html[data-sidebar="collapsed"] .nav-btn.active::before { left: -0.625rem; }
+  html[data-sidebar="collapsed"] .nav-dot { position: absolute; top: 0.4rem; right: 0.45rem; margin: 0; }
+  html[data-sidebar="collapsed"] .sidebar-footer { padding-inline: 0.5rem; }
+  html[data-sidebar="collapsed"] .theme-toggle { flex-direction: column; }
+}
+
+/* ── Mobile: slim top bar + left Sheet ────────────────── */
+@media (max-width: 767.98px) {
+  .app-shell { flex-direction: column; }
+  .app-shell > .sidebar { display: none; }
+  .mobile-bar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: var(--z-sidebar);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 3rem;
+    padding: 0 0.5rem;
+    background: var(--sidebar);
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+  .mobile-bar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); font-weight: 600; }
+  .modal.sheet-nav { width: min(17rem, 85vw); padding: 0; overflow: hidden; background: var(--sidebar); }
+  .sheet-nav .sidebar { display: flex; position: static; width: 100%; height: 100%; }
+  .sheet-nav .sidebar-toggle { display: none; }
+}

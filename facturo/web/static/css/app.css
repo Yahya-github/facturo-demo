@@ -714,12 +714,4 @@
   .form-row-2, .form-row-3, .form-row-4 { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 640px) {
-  .app-shell { flex-direction: column; }
-  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--sidebar-border); }
-  .sidebar-brand, .sidebar-footer, .nav-group-label { display: none; }
-  .sidebar-nav { flex-direction: row; gap: 0.25rem; padding: 0.5rem; }
-  .nav-group { flex-direction: row; }
-  .nav-btn { width: auto; padding: 0 0.75rem; white-space: nowrap; }
-  .nav-btn.active::before { display: none; }
-}
+/* Below 768px the sidebar becomes a left Sheet: see sidebar.css. */
