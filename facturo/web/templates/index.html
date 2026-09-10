@@ -6,6 +6,7 @@
   <meta name="company-name" content="{{COMPANY_NAME}}">
   <meta name="color-scheme" content="light dark">
   <title>Factures — {{COMPANY_NAME}}</title>
+  <script>try{if(localStorage.getItem('facturo-sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
   <script src="/static/js/ui/theme.js?v=1"></script>
   <link rel="preload" href="/static/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/css/tokens.css?v=1">
@@ -13,20 +14,34 @@
   <link rel="stylesheet" href="/static/css/components.css?v=1">
   <link rel="stylesheet" href="/static/css/components-overlays.css?v=5">
   <link rel="stylesheet" href="/static/css/motion.css?v=3">
-  <link rel="stylesheet" href="/static/css/app.css?v=22">
+  <link rel="stylesheet" href="/static/css/app.css?v=23">
+  <link rel="stylesheet" href="/static/css/sidebar.css?v=1">
   <link rel="stylesheet" href="/static/css/filters.css?v=2">
   <link rel="stylesheet" href="/static/css/payments.css?v=2">
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
+    <header class="mobile-bar">
+      <button type="button" class="btn btn-ghost btn-icon" id="sidebar-open" data-sidebar-toggle aria-label="Ouvrir le menu" aria-haspopup="dialog"><i data-icon="menu"></i></button>
+      <span class="mobile-bar-title">{{COMPANY_NAME}}</span>
+      <button type="button" class="btn btn-ghost btn-icon" data-cmd-open aria-label="Rechercher"><i data-icon="search"></i></button>
+    </header>
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <span class="brand-mark" aria-hidden="true"><i data-icon="receipt"></i></span>
         <div class="brand-text">
           <h1>{{COMPANY_NAME}}</h1>
           <div class="brand-sub">Facturation</div>
         </div>
+        <button type="button" class="sidebar-toggle" id="sidebar-toggle" data-sidebar-toggle
+          data-tip="Réduire le menu" data-tip-side="right" data-kbd="Ctrl+B"
+          aria-label="Réduire le menu" aria-expanded="true" aria-controls="sidebar"><i data-icon="panel-left"></i></button>
       </div>
+      <button type="button" class="sidebar-search" id="cmd-open" data-cmd-open aria-keyshortcuts="Control+K Meta+K">
+        <i data-icon="search"></i>
+        <span class="nav-label">Rechercher…</span>
+        <span class="sidebar-search-kbd" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+      </button>
       <nav class="sidebar-nav" aria-label="Navigation principale">
         <div class="nav-group">
           <div class="nav-group-label">Facturation</div>
@@ -97,6 +112,7 @@
   <script src="/static/js/ui/tabs.js?v=1"></script>
   <script src="/static/js/ui/fuzzy.js?v=1"></script>
   <script src="/static/js/ui/command.js?v=1"></script>
+  <script src="/static/js/ui/sidebar.js?v=1"></script>
   <script src="/static/js/core.js?v=5"></script>
   <script src="/static/js/home.js?v=2"></script>
   <script src="/static/js/clients.js?v=2"></script>
