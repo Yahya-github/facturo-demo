@@ -81,3 +81,40 @@ def test_theme_toggle_persists_after_reload(page):
     page.click('#theme-toggle [data-theme-set="light"]')
     assert page.evaluate("document.documentElement.dataset.theme") == "light"
     _no_errors(page)
+
+
+# ── Sidebar ─────────────────────────────────────────────
+
+def test_sidebar_collapse_persists_after_reload(page):
+    assert page.evaluate("document.documentElement.dataset.sidebar") is None
+    width_open = page.locator("#sidebar").bounding_box()["width"]
+    page.click("#sidebar-toggle")
+    assert page.evaluate("document.documentElement.dataset.sidebar") == "collapsed"
+    page.wait_for_function("document.querySelector('#sidebar').getBoundingClientRect().width < 80")
+    assert page.locator("#sidebar").bounding_box()["width"] < width_open
+    # Nav buttons keep their contract while collapsed and labels become tooltips.
+    assert page.locator('.nav-btn[data-page="history"]').get_attribute("data-tip") == "Historique"
+    page.reload()
+    page.wait_for_selector(".page")
+    assert page.evaluate("document.documentElement.dataset.sidebar") == "collapsed"
+    page.keyboard.press("Control+b")
+    assert page.evaluate("document.documentElement.dataset.sidebar") is None
+    page.reload()
+    page.wait_for_selector(".page")
+    assert page.evaluate("document.documentElement.dataset.sidebar") is None
+    _no_errors(page)
+
+
+def test_sidebar_becomes_a_sheet_on_mobile(page):
+    page.set_viewport_size({"width": 390, "height": 800})
+    assert not page.locator("#sidebar").is_visible()
+    page.click("#sidebar-open")
+    page.wait_for_selector(".sheet-nav #sidebar")
+    assert page.locator('.sheet-nav .nav-btn[data-page="clients"]').is_visible()
+    assert page.locator("#update-dot").count() == 1
+    page.click('.sheet-nav .nav-btn[data-page="clients"]')
+    page.wait_for_selector(".sheet-nav", state="detached")
+    assert page.locator("h2", has_text="Clients").first.is_visible()
+    assert page.locator("#sidebar").count() == 1
+    assert page.evaluate("document.activeElement.id") == "sidebar-open"
+    _no_errors(page)
