@@ -118,3 +118,53 @@ def test_sidebar_becomes_a_sheet_on_mobile(page):
     assert page.locator("#sidebar").count() == 1
     assert page.evaluate("document.activeElement.id") == "sidebar-open"
     _no_errors(page)
+
+
+# ── Charts and count-up ─────────────────────────────────
+
+MOUNT = """() => {
+  const host = document.createElement('div');
+  host.id = 'chart-host';
+  host.style.cssText = 'position:fixed;left:20px;top:20px;width:640px;background:#fff;z-index:5';
+  document.body.appendChild(host);
+  const bar = document.createElement('div'); bar.id = 'c-bar';
+  const donut = document.createElement('div'); donut.id = 'c-donut';
+  const hbar = document.createElement('div'); hbar.id = 'c-hbar';
+  host.append(bar, donut, hbar);
+  ui.chart.bar(bar, ui.chartData.groupByMonth(state.factures));
+  ui.chart.donut(donut, ui.chartData.paidSplit(state.factures));
+  ui.chart.hbar(hbar, ui.chartData.topClients(state.factures, 5));
+}"""
+
+
+def test_charts_render_with_tooltip_and_table_fallback(page):
+    page.evaluate(MOUNT)
+    for cid in ("c-bar", "c-donut", "c-hbar"):
+        svg = page.locator(f"#{cid} svg[role=img]")
+        assert svg.count() == 1
+        assert svg.get_attribute("aria-label")
+        assert page.locator(f"#{cid} table.sr-only tbody tr").count() >= 1
+    assert page.locator("#c-bar .chart-bar-rect").count() == 6
+    # Hover a bar column: tooltip names the month and the amount.
+    hits = page.locator("#c-bar .chart-hit")
+    hits.nth(5).hover()
+    tip = page.locator("#c-bar .chart-tip")
+    tip.wait_for(state="visible")
+    assert "sept. 2026" in tip.inner_text()
+    page.locator("#c-hbar .chart-hit").first.hover()
+    assert "CLIENT TEST INC" in page.locator("#c-hbar .chart-tip").inner_text()
+    _no_errors(page)
+
+
+def test_countup_lands_on_the_final_money_value(page):
+    page.evaluate("""() => { const s = document.createElement('span'); s.id = 'cu';
+      document.body.appendChild(s); ui.countup.run(s, 1234.5, { format: 'money', duration: 200 }); }""")
+    page.wait_for_function("document.getElementById('cu').textContent === money(1234.5)")
+    _no_errors(page)
+
+
+def test_countup_respects_reduced_motion(page):
+    page.emulate_media(reduced_motion="reduce")
+    page.evaluate("""() => { const s = document.createElement('span'); s.id = 'cu2';
+      document.body.appendChild(s); ui.countup.run(s, 99, { format: 'money', duration: 5000 }); }""")
+    assert page.locator("#cu2").inner_text() == page.evaluate("money(99)")

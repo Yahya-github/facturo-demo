@@ -1,0 +1,47 @@
+/* SVG charts (js/ui/chart.js). Colours come from --chart-1..5 in tokens.css. */
+.chart { position: relative; margin: 0; }
+.chart-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
+.chart-axis { fill: var(--muted-foreground); font-size: 11px; font-family: var(--font-sans); }
+.chart-label { fill: var(--foreground); font-size: 13px; font-weight: 500; font-family: var(--font-sans); }
+.chart-value { fill: var(--muted-foreground); font-size: 12px; font-family: var(--font-mono); }
+.chart-track { fill: var(--muted); }
+.chart-bar-rect { transition: opacity var(--dur-fast), filter var(--dur-fast); }
+.chart:has(.is-hover) .chart-bar-rect:not(.is-hover) { opacity: 0.55; }
+.chart-hit { cursor: default; }
+
+/* draw-in (motion.css zeroes these under prefers-reduced-motion) */
+.chart-bar-rect { transform-box: fill-box; transform-origin: 50% 100%; animation: chartRise 700ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms); }
+.chart-hbar-rect { transform-box: fill-box; transform-origin: 0 50%; animation: chartGrow 700ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.chart-donut-seg { animation: chartDraw 900ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 150ms); }
+@keyframes chartRise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes chartGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes chartDraw { from { stroke-dasharray: 0 999; } }
+
+.chart-donut { display: grid; grid-template-columns: minmax(8rem, 12rem) 1fr; align-items: center; gap: 1rem; }
+.chart-donut-track { stroke: var(--muted); }
+.chart-donut-value { fill: var(--foreground); font-size: 26px; font-weight: 600; font-family: var(--font-sans); }
+.chart-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: var(--text-sm); }
+.chart-legend li { display: flex; align-items: center; gap: 0.5rem; }
+.chart-swatch { width: 0.75rem; height: 0.75rem; border-radius: 3px; flex: none; }
+.chart-legend-label { color: var(--muted-foreground); }
+.chart-legend-value { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; }
+@media (max-width: 480px) { .chart-donut { grid-template-columns: 1fr; } .chart-donut .chart-svg { max-width: 12rem; margin: 0 auto; } }
+
+.chart-tip {
+  position: absolute;
+  z-index: 2;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.chart-tip[hidden] { display: none; }
+.chart-tip strong { font-weight: 600; }
+.chart-tip-sub { color: var(--muted-foreground); }
