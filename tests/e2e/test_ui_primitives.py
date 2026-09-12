@@ -455,3 +455,42 @@ def test_spotlight_tracks_the_pointer(page):
     page.mouse.move(680, 150)
     page.wait_for_function("document.getElementById('sp').style.getPropertyValue('--mx') === '80px'")
     assert page.evaluate("document.getElementById('sp').style.getPropertyValue('--my')") == "50px"
+
+
+def test_submenu_opens_with_arrow_right_and_closes_with_arrow_left(page):
+    page.evaluate("""() => {
+      document.body.insertAdjacentHTML('beforeend', '<button id="s-btn" style="position:fixed;left:500px;top:300px">Plus</button>');
+      window.__sub = '';
+      ui.menu.attach(document.getElementById('s-btn'), [
+        { label: 'Exporter', submenu: [{ label: 'PDF', onSelect: () => { window.__sub = 'pdf'; } }, { label: 'Excel' }] },
+        { label: 'Fermer' },
+      ]);
+    }""")
+    page.locator("#s-btn").focus()
+    page.keyboard.press("ArrowDown")
+    page.wait_for_selector('[role="menu"]')
+    page.keyboard.press("ArrowRight")
+    assert page.locator('[role="menu"]').count() == 2
+    assert page.evaluate("document.activeElement.textContent.trim()") == "PDF"
+    page.keyboard.press("ArrowLeft")
+    assert page.locator('[role="menu"]').count() == 1
+    assert page.evaluate("document.activeElement.textContent.trim()") == "Exporter"
+    page.keyboard.press("ArrowRight")
+    page.keyboard.press("Enter")
+    page.wait_for_function("window.__sub === 'pdf'")
+    assert page.locator('[role="menu"]').count() == 0
+    _no_errors(page)
+
+
+def test_hover_card_opens_on_hover_and_closes_on_leave(page):
+    page.evaluate("""() => {
+      document.body.insertAdjacentHTML('beforeend', '<div id="hc-root" style="position:fixed;left:600px;top:300px;z-index:9;background:#fff"><a href="#" class="hc-t" id="hc-a">Client Test</a></div>');
+      ui.hoverCard.attach(document.getElementById('hc-root'), '.hc-t', t => '<strong>Fiche</strong> ' + t.textContent);
+    }""")
+    page.locator("#hc-a").hover()
+    card = page.locator(".hovercard")
+    card.wait_for()
+    assert "Fiche" in card.inner_text()
+    page.mouse.move(5, 600)
+    card.wait_for(state="detached")
+    _no_errors(page)
