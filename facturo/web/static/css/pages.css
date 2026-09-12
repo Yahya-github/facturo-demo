@@ -1,0 +1,54 @@
+/* Shared page-level pieces used by Historique, Clients, Factures scannées and
+   Paramètres: avatar tints, cell layouts, field validation, table polish.
+   Tokens only (see tokens.css). */
+
+/* ── Avatars ──────────────────────────────────────────── */
+.avatar.tone-0 { background: var(--primary-muted); color: var(--primary); }
+.avatar.tone-1 { background: var(--gold-bg); color: var(--gold-fg); box-shadow: inset 0 0 0 1px var(--gold-border); }
+.avatar.tone-2 { background: color-mix(in srgb, var(--chart-3, #3b82a0) 16%, var(--card)); color: color-mix(in srgb, var(--chart-3, #3b82a0) 70%, var(--foreground)); }
+.avatar.tone-3 { background: color-mix(in srgb, #b4532a 14%, var(--card)); color: color-mix(in srgb, #b4532a 75%, var(--foreground)); }
+.avatar.tone-4 { background: var(--secondary); color: var(--secondary-foreground); box-shadow: inset 0 0 0 1px var(--border); }
+.avatar-sm { width: 1.75rem; height: 1.75rem; font-size: 0.625rem; }
+.avatar-lg { width: 2.75rem; height: 2.75rem; font-size: var(--text-sm); letter-spacing: -0.01em; }
+.avatar.avatar-sm.tone-0 { background: var(--primary-muted); color: var(--primary); }
+.avatar.avatar-sm.tone-1 { background: var(--gold-bg); color: var(--gold-fg); }
+
+/* ── Table card ───────────────────────────────────────── */
+.card-table { padding: 0; overflow: clip; }
+.card-table .data-table th:first-child, .card-table .data-table td:first-child { padding-left: 1.25rem; }
+.card-table .data-table th:last-child, .card-table .data-table td:last-child { padding-right: 1.25rem; }
+.data-table th { letter-spacing: 0.01em; }
+.data-table td.num, .data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table .cell-sub { display: block; font-size: var(--text-xs); color: var(--muted-foreground); font-weight: 400; }
+.cell-client .cell-name { max-width: 20rem; }
+
+/* ── Fields with inline validation ────────────────────── */
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field + .field, .field-row + .field, .field + .field-row { margin-top: 1rem; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+.field-row:first-child { margin-top: 0; }
+.field-label { font-size: var(--text-sm); font-weight: 500; color: var(--foreground); }
+.field-label .req { margin-left: 0.15rem; color: var(--danger-fg); }
+.field-hint { font-size: var(--text-xs); color: var(--muted-foreground); }
+.field-error { display: none; align-items: center; gap: 0.3rem; font-size: var(--text-xs); color: var(--danger-fg); }
+.field.is-invalid .field-error { display: inline-flex; }
+.field.is-invalid .field-hint { display: none; }
+.field.is-invalid .form-input, .field.is-invalid .input-group-box { border-color: var(--destructive); box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 16%, transparent); }
+.field.is-valid .form-input { border-color: var(--primary-border); }
+
+/* Input Group: adornments inside one bordered box (icon, $, kbd hint) */
+.input-group-box {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 2.25rem; padding: 0 0.7rem;
+  border: 1px solid var(--input); border-radius: var(--radius-md);
+  background: var(--card); color: var(--muted-foreground);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.input-group-box:focus-within { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 22%, transparent); }
+.input-group-box .form-input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: transparent; box-shadow: none; color: var(--foreground); }
+.input-group-box .form-input:focus { box-shadow: none; border: 0; }
+.input-group-box .addon { font-size: var(--text-sm); white-space: nowrap; }
+
+@media (max-width: 559.98px) {
+  .field-row { grid-template-columns: 1fr; }
+}

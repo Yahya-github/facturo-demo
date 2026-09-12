@@ -144,135 +144,6 @@ function currentHistoryRows() {
   return sortFactures(filterFactures(state.factures, state.histFilters), state.histFilters.tri);
 }
 
-// ── Rendering ───────────────────────────────────────────
-
-/** Action cell shared by History and Home rows; file names never touch inline JS. */
-function factureActions(f) {
-  const id = Number(f.id);
-  const fichier = escAttr(f.fichier);
-  // Labels collapse to icons on narrow screens (filters.css); aria-label/title keep them named.
-  return `<td class="actions flt-actions">
-    <button class="btn btn-ghost btn-sm" onclick="editFacture(${id})" aria-label="Modifier" title="Modifier">${icons.edit}<span class="flt-btn-label">Modifier</span></button>
-    <button class="btn btn-ghost btn-sm" data-fichier="${fichier}" onclick="downloadFacture(this.dataset.fichier)" aria-label="Télécharger Excel" title="Télécharger Excel">${icons.download}<span class="flt-btn-label">Excel</span></button>
-    <button class="btn btn-ghost btn-sm" data-fichier="${fichier}" onclick="downloadFacturePdf(this, this.dataset.fichier)" aria-label="Télécharger PDF" title="Télécharger PDF" style="color:var(--red-600)">${icons.pdf}<span class="flt-btn-label">PDF</span></button>
-  </td>`;
-}
-
-/** Paid chip, plus "x/y billets" when the payments store reports a partial payment. */
-function statutCell(f) {
-  const partial = factureStatut(f) === 'partielle'
-    ? `<span class="flt-partial" title="Billets payés">${Number(f.nb_billets_payes)}/${Number(f.nb_billets)} billets</span>`
-    : '';
-  return `<td><div class="flt-statut-cell">${paidChip(f)}${partial}</div></td>`;
-}
-
-function renderHistoryRow(f) {
-  return `<tr data-facture-id="${Number(f.id)}">
-    <td><span class="badge badge-blue">${esc(f.numero)}</span></td>
-    <td class="flt-client-cell">${esc(f.client_nom)}</td>
-    <td class="flt-date-cell" title="Créée le ${escAttr(formatDateTime(f.cree_le))}">${esc(formatDate(f.date))}</td>
-    <td class="flt-amount">${money(Number(f.total_ttc) || 0)}</td>
-    ${statutCell(f)}
-    ${factureActions(f)}
-  </tr>`;
-}
-
-function renderHistorySummary(rows) {
-  const s = summarizeFactures(rows);
-  return `<div class="flt-summary" role="status" aria-live="polite"
-      data-count="${s.count}" data-total="${s.total.toFixed(2)}" data-unpaid="${s.unpaid.toFixed(2)}">
-    <span class="flt-summary-item"><strong>${s.count}</strong> facture${s.count > 1 ? 's' : ''}</span>
-    <span class="flt-summary-item">Total <strong class="flt-num">${money(s.total)}</strong></span>
-    <span class="flt-summary-item${s.unpaid > 0 ? ' is-owed' : ''}">Solde impayé <strong class="flt-num">${money(s.unpaid)}</strong></span>
-  </div>`;
-}
-
-function renderHistoryResults() {
-  const rows = currentHistoryRows();
-  const body = rows.length === 0 ? `
-    <div class="flt-empty">
-      ${micon('search_off')}
-      <h3>Aucune facture ne correspond</h3>
-      <p>Modifiez la recherche ou les filtres pour élargir les résultats.</p>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="histResetFilters()">${micon('restart_alt')} Réinitialiser les filtres</button>
-    </div>` : `
-    <table class="data-table flt-table">
-      <thead><tr><th>N° Facture</th><th>Client</th><th>Date</th><th class="flt-amount">Montant</th><th>Statut</th><th><span class="sr-only">Actions</span></th></tr></thead>
-      <tbody>${rows.map(renderHistoryRow).join('')}</tbody>
-    </table>`;
-  return `${renderHistorySummary(rows)}<div class="card">${body}</div>`;
-}
-
-function renderHistoryOptions(options, selected) {
-  return options.map(([value, label]) =>
-    `<option value="${escAttr(value)}"${value === selected ? ' selected' : ''}>${esc(label)}</option>`).join('');
-}
-
-function renderHistoryToolbar(f) {
-  const clients = [...state.clients].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr'));
-  const clientOptions = [['', 'Tous les clients'], ...clients.map(c => [String(c.id), c.nom])];
-  const statutOptions = [['', 'Toutes'], ['payee', 'Payées'], ['non_payee', 'Non payées'], ['partielle', 'Partiellement payées']];
-  const triOptions = [['date_desc', 'Date (récentes)'], ['date_asc', 'Date (anciennes)'], ['montant_desc', 'Montant (décroissant)']];
-  return `<form class="flt-bar" role="search" aria-label="Filtrer les factures" onsubmit="return false">
-    <div class="flt-field flt-field-search">
-      <label class="flt-label" for="flt-q">Recherche</label>
-      <div class="flt-search">
-        ${icon('search')}
-        <input id="flt-q" type="search" class="form-input" value="${escAttr(f.q)}" maxlength="${HIST_QUERY_MAX}"
-          placeholder="N° facture, client, chantier, plaque, N° billet…" autocomplete="off" spellcheck="false"
-          oninput="histOnQueryInput()">
-      </div>
-    </div>
-    <div class="flt-field">
-      <label class="flt-label" for="flt-client">Client</label>
-      <select id="flt-client" class="form-select" onchange="histOnControlChange()">${renderHistoryOptions(clientOptions, f.client)}</select>
-    </div>
-    <div class="flt-field">
-      <label class="flt-label" for="flt-statut">Statut</label>
-      <select id="flt-statut" class="form-select" onchange="histOnControlChange()">${renderHistoryOptions(statutOptions, f.statut)}</select>
-    </div>
-    <div class="flt-field flt-field-date">
-      <label class="flt-label" for="flt-du">Du</label>
-      <input id="flt-du" type="date" class="form-input" value="${escAttr(f.du)}" oninput="histOnControlChange()">
-    </div>
-    <div class="flt-field flt-field-date">
-      <label class="flt-label" for="flt-au">Au</label>
-      <input id="flt-au" type="date" class="form-input" value="${escAttr(f.au)}" oninput="histOnControlChange()">
-    </div>
-    <div class="flt-field">
-      <label class="flt-label" for="flt-tri">Trier par</label>
-      <select id="flt-tri" class="form-select" onchange="histOnControlChange()">${renderHistoryOptions(triOptions, f.tri)}</select>
-    </div>
-    <button type="button" id="flt-reset" class="btn btn-ghost btn-sm flt-reset${isDefaultFilters(f) ? ' is-idle' : ''}"
-      onclick="histResetFilters()">${micon('restart_alt')} Réinitialiser</button>
-  </form>`;
-}
-
-function renderHistory() {
-  if (state.factures.length === 0) {
-    return `<div class="page page-wide">
-      <div class="page-header"><div>
-        <h2>Historique</h2>
-        <div class="subtitle">Toutes les factures générées</div>
-      </div></div>
-      <div class="card"><div class="empty-state">
-        ${icons.file}
-        <h3>Aucune facture</h3>
-        <p>Les factures générées apparaîtront ici.</p>
-      </div></div>
-    </div>`;
-  }
-  state.histFilters = withKnownClient(state.histFilters);
-  return `<div class="page page-wide">
-    <div class="page-header"><div>
-      <h2>Historique</h2>
-      <div class="subtitle">Toutes les factures générées</div>
-    </div></div>
-    ${renderHistoryToolbar(state.histFilters)}
-    <div id="hist-results" class="flt-results">${renderHistoryResults()}</div>
-  </div>`;
-}
-
 // ── Interaction ─────────────────────────────────────────
 
 function readHistControls() {
@@ -303,7 +174,7 @@ function commitHistoryHash(push) {
 /** Re-render only the results region, so the search box keeps focus and caret. */
 function refreshHistoryResults() {
   const results = document.getElementById('hist-results');
-  if (results) results.innerHTML = renderHistoryResults();
+  if (results) { results.innerHTML = renderHistoryResults(); bindHistoryRows(); }
   const reset = document.getElementById('flt-reset');
   if (reset) reset.classList.toggle('is-idle', isDefaultFilters(state.histFilters));
 }
@@ -311,6 +182,7 @@ function refreshHistoryResults() {
 function applyHistFilters(next, push) {
   if (sameFilters(next, state.histFilters)) return;
   state.histFilters = next;
+  state.histPage = 1;
   commitHistoryHash(push);
   refreshHistoryResults();
 }
@@ -345,6 +217,7 @@ function histOnLocationChange() {
   if (sameFilters(next, state.histFilters)) return;
   clearTimeout(histQueryTimer);
   state.histFilters = next;
+  state.histPage = 1;
   writeHistControls(next);
   refreshHistoryResults();
 }
