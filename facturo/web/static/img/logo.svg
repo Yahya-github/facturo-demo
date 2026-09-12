@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 32" width="148" height="32" role="img" aria-label="Facturo">
+  <style>
+    .m{fill:#1a4d2e;stroke:#1a4d2e}
+    .w{fill:#1a4d2e;font:600 22px Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:-0.045em}
+    @media (prefers-color-scheme:dark){.m{fill:#4ea672;stroke:#4ea672}.w{fill:#fafafa}}
+  </style>
+  <path class="m" stroke-width="1.6" stroke-linejoin="round" d="M8 5H21L27 11V13H12V15H21V20H12V27H6V7A2 2 0 0 1 8 5Z"/>
+  <path fill="#d4a853" d="M21 5L27 11H21Z"/>
+  <circle cx="24.6" cy="24" r="2.4" fill="#d4a853"/>
+  <text class="w" x="40" y="24">Facturo</text>
+</svg>

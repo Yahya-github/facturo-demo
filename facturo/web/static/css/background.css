@@ -1,0 +1,127 @@
+/* Context background: an invoicing / transport mood behind the floating panel.
+   Three quiet layers, all pointer-events:none and aria-hidden (js/ui/backdrop.js
+   injects the markup):
+     1. two huge blurred blobs (green + gold) drifting on transform only;
+     2. a "ledger paper" grid, masked so it fades toward the middle;
+     3. a dotted delivery route with a pin and a tiny truck, inside the panel's
+        bottom-right corner, behind the page content.
+   Light and dark have their own opacities. Everything freezes under
+   prefers-reduced-motion (backdrop.js also pauses the SVG truck). */
+
+:root {
+  --bg-green: #2f8a55;
+  --bg-gold: #d4a853;
+  --bg-blob-green: 0.26;
+  --bg-blob-gold: 0.36;
+  --bg-grid: rgba(26, 77, 46, 0.07);
+  --bg-route: rgba(26, 77, 46, 0.34);
+}
+:root[data-theme="dark"] {
+  --bg-green: #2f8a55;
+  --bg-gold: #b8892f;
+  --bg-blob-green: 0.3;
+  --bg-blob-gold: 0.2;
+  --bg-grid: rgba(255, 255, 255, 0.07);
+  --bg-route: rgba(212, 168, 83, 0.4);
+}
+
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.bg-blob-green {
+  left: -14vmax;
+  top: 8vh;
+  width: 48vmax;
+  height: 48vmax;
+  background: radial-gradient(closest-side, var(--bg-green), transparent);
+  opacity: var(--bg-blob-green);
+  animation: blobDriftA 52s ease-in-out infinite alternate;
+}
+.bg-blob-gold {
+  right: -12vmax;
+  top: -18vmax;
+  width: 42vmax;
+  height: 42vmax;
+  background: radial-gradient(closest-side, var(--bg-gold), transparent);
+  opacity: var(--bg-blob-gold);
+  animation: blobDriftB 38s ease-in-out infinite alternate;
+}
+@keyframes blobDriftA {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(9vmax, 12vmax, 0) scale(1.14); }
+}
+@keyframes blobDriftB {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-10vmax, 9vmax, 0) scale(0.94); }
+}
+
+.bg-ledger {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(ellipse 65% 60% at 55% 45%, transparent 10%, #000 100%);
+          mask-image: radial-gradient(ellipse 65% 60% at 55% 45%, transparent 10%, #000 100%);
+}
+
+/* ── Route (inside the panel, behind the content) ─────── */
+.panel-route {
+  position: absolute;
+  right: 2.5rem;
+  bottom: 1.25rem;
+  z-index: 0;
+  width: min(17rem, 34vw);
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+}
+.route-line {
+  fill: none;
+  stroke: var(--bg-route);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1 9;
+  animation: routeDash 9s linear infinite;
+}
+.route-pin { fill: var(--gold); }
+.route-pin-hole { fill: var(--background); }
+.route-pulse {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: routePulse 4.5s ease-out infinite;
+}
+.route-truck { fill: none; stroke: var(--primary); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes routeDash { to { stroke-dashoffset: -100; } }
+@keyframes routePulse {
+  0%   { transform: scale(0.6); opacity: 0.55; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@media (max-width: 767.98px) {
+  .panel-route { width: 15rem; right: 0.75rem; bottom: 0.75rem; }
+  .bg-ledger { background-size: 28px 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-blob, .route-line, .route-pulse { animation: none !important; }
+  .route-pulse { opacity: 0; }
+}
