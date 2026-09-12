@@ -1,7 +1,7 @@
 // ── CLIENTS ─────────────────────────────────────────────
 
 function renderClients() {
-  return `<div class="page">
+  return `<div class="page page-wide">
     <div class="page-header">
       <div>
         <h2>Clients</h2>

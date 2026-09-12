@@ -68,7 +68,7 @@
   ].filter(Boolean);
 
   // ── vertical bars ──
-  const W = 640, H = 260, PAD = { l: 52, r: 12, t: 12, b: 32 };
+  const DEFAULT_W = 640, DEFAULT_H = 260, MIN_W = 300, PAD = { l: 52, r: 12, t: 12, b: 32 };
 
   /**
    * Monthly bar chart. `data` = groupByMonth() rows ({label, short, total, count}).
@@ -76,6 +76,7 @@
    */
   function bar(el, data, o = {}) {
     const title = o.title || 'Facturé par mois';
+    const W = Math.max(MIN_W, Math.round(o.width || DEFAULT_W)), H = o.height || DEFAULT_H;
     const max = Math.max(0, ...data.map(d => d.total));
     const sc = ui.chartData.niceScale(max, 4);
     const iw = W - PAD.l - PAD.r, ih = H - PAD.t - PAD.b;
@@ -162,6 +163,9 @@
    */
   function hbar(el, data, o = {}) {
     const title = o.title || 'Meilleurs clients';
+    const W = Math.max(MIN_W, Math.round(o.width || DEFAULT_W));
+    const labelW = Math.min(LABEL_W, Math.round(W * 0.36)), valueW = Math.min(VALUE_W, Math.round(W * 0.3));
+    const maxChars = Math.max(8, Math.floor(labelW / 7.4));
     const max = Math.max(0, ...data.map(d => d.total));
     const h = Math.max(ROW, data.length * ROW) + 8;
     const s = svg('svg', { viewBox: `0 0 ${W} ${h}`, class: 'chart-svg chart-hbar-svg' });
@@ -169,16 +173,16 @@
       kind: 'hbar', svg: s, title, label: `${title} : ${data.map(d => `${d.name} ${money(d.total)}`).join(', ')}`,
       columns: ['Client', 'Total', 'Factures'], rows: data.map(d => [d.name, money(d.total), String(d.count)]),
     });
-    const track = W - LABEL_W - VALUE_W - 8;
+    const track = W - labelW - valueW - 8;
     data.forEach((d, i) => {
       const y = 4 + i * ROW;
       const w = max ? Math.max(3, (d.total / max) * track) : 0;
-      const name = d.name.length > 24 ? `${d.name.slice(0, 23)}…` : d.name;
+      const name = d.name.length > maxChars ? `${d.name.slice(0, maxChars - 1)}…` : d.name;
       const g = svg('g', { class: 'chart-hbar-row' });
       g.append(
         text(0, y + ROW / 2 + 4, name, 'chart-label'),
-        svg('rect', { x: LABEL_W, y: y + 8, width: track, height: ROW - 16, rx: 4, class: 'chart-track' }),
-        svg('rect', { x: LABEL_W, y: y + 8, width: w, height: ROW - 16, rx: 4, fill: 'var(--chart-1)', class: 'chart-hbar-rect', style: `--i:${i}` }),
+        svg('rect', { x: labelW, y: y + 8, width: track, height: ROW - 16, rx: 4, class: 'chart-track' }),
+        svg('rect', { x: labelW, y: y + 8, width: w, height: ROW - 16, rx: 4, fill: 'var(--chart-1)', class: 'chart-hbar-rect', style: `--i:${i}` }),
         text(W, y + ROW / 2 + 4, money(d.total), 'chart-value', 'end'),
         svg('rect', { x: 0, y, width: W, height: ROW, fill: 'transparent' }));
       f.hover(g, () => tipLines(d.name, money(d.total), `${d.count} facture${d.count > 1 ? 's' : ''}`));

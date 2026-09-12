@@ -250,7 +250,7 @@ function renderHistoryToolbar(f) {
 
 function renderHistory() {
   if (state.factures.length === 0) {
-    return `<div class="page">
+    return `<div class="page page-wide">
       <div class="page-header"><div>
         <h2>Historique</h2>
         <div class="subtitle">Toutes les factures générées</div>
@@ -263,7 +263,7 @@ function renderHistory() {
     </div>`;
   }
   state.histFilters = withKnownClient(state.histFilters);
-  return `<div class="page">
+  return `<div class="page page-wide">
     <div class="page-header"><div>
       <h2>Historique</h2>
       <div class="subtitle">Toutes les factures générées</div>

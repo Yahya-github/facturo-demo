@@ -8,41 +8,51 @@
   <title>Factures — {{COMPANY_NAME}}</title>
   <script>try{if(localStorage.getItem('facturo-sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
   <script src="/static/js/ui/theme.js?v=1"></script>
+  <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
   <link rel="preload" href="/static/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/css/tokens.css?v=1">
   <link rel="stylesheet" href="/static/css/base.css?v=1">
   <link rel="stylesheet" href="/static/css/components.css?v=1">
   <link rel="stylesheet" href="/static/css/components-overlays.css?v=5">
   <link rel="stylesheet" href="/static/css/motion.css?v=3">
-  <link rel="stylesheet" href="/static/css/app.css?v=23">
-  <link rel="stylesheet" href="/static/css/sidebar.css?v=1">
+  <link rel="stylesheet" href="/static/css/app.css?v=24">
+  <link rel="stylesheet" href="/static/css/sidebar.css?v=2">
   <link rel="stylesheet" href="/static/css/charts.css?v=1">
+  <link rel="stylesheet" href="/static/css/shell.css?v=1">
+  <link rel="stylesheet" href="/static/css/background.css?v=2">
+  <link rel="stylesheet" href="/static/css/home.css?v=2">
   <link rel="stylesheet" href="/static/css/filters.css?v=2">
   <link rel="stylesheet" href="/static/css/payments.css?v=2">
 </head>
 <body>
+  <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+    <symbol id="brand-f" viewBox="0 0 32 32">
+      <path d="M8 5H21L27 11V13H12V15H21V20H12V27H6V7A2 2 0 0 1 8 5Z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M21 5L27 11H21Z" fill="#d4a853"/>
+      <circle cx="24.6" cy="24" r="2.4" fill="#d4a853"/>
+    </symbol>
+  </svg>
+  <div class="app-backdrop" id="app-backdrop" aria-hidden="true"></div>
   <div class="app-shell">
     <header class="mobile-bar">
       <button type="button" class="btn btn-ghost btn-icon" id="sidebar-open" data-sidebar-toggle aria-label="Ouvrir le menu" aria-haspopup="dialog"><i data-icon="menu"></i></button>
-      <span class="mobile-bar-title">{{COMPANY_NAME}}</span>
+      <span class="brand brand-compact" aria-label="Facturo"><svg class="brand-mark" aria-hidden="true"><use href="#brand-f"/></svg><span class="brand-word">Facturo</span></span>
       <button type="button" class="btn btn-ghost btn-icon" data-cmd-open aria-label="Rechercher"><i data-icon="search"></i></button>
     </header>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <span class="brand-mark" aria-hidden="true"><i data-icon="receipt"></i></span>
-        <div class="brand-text">
-          <h1>{{COMPANY_NAME}}</h1>
-          <div class="brand-sub">Facturation</div>
-        </div>
-        <button type="button" class="sidebar-toggle" id="sidebar-toggle" data-sidebar-toggle
-          data-tip="Réduire le menu" data-tip-side="right" data-kbd="Ctrl+B"
-          aria-label="Réduire le menu" aria-expanded="true" aria-controls="sidebar"><i data-icon="panel-left"></i></button>
+        <h1 class="brand" aria-label="Facturo"><svg class="brand-mark" aria-hidden="true"><use href="#brand-f"/></svg><span class="brand-word">Facturo</span></h1>
       </div>
-      <button type="button" class="sidebar-search" id="cmd-open" data-cmd-open aria-keyshortcuts="Control+K Meta+K">
-        <i data-icon="search"></i>
-        <span class="nav-label">Rechercher…</span>
-        <span class="sidebar-search-kbd" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
-      </button>
+      <div class="ws">
+        <button type="button" class="ws-switch" id="ws-switch" aria-haspopup="menu" title="{{COMPANY_NAME}}">
+          <span class="ws-avatar" id="ws-avatar" aria-hidden="true"></span>
+          <span class="ws-text">
+            <span class="ws-name">{{COMPANY_NAME}}</span>
+            <span class="ws-sub">Espace de travail</span>
+          </span>
+          <i data-icon="chevrons-up-down" data-icon-size="sm"></i>
+        </button>
+      </div>
       <nav class="sidebar-nav" aria-label="Navigation principale">
         <div class="nav-group">
           <div class="nav-group-label">Facturation</div>
@@ -92,14 +102,32 @@
         <div class="sidebar-version" id="app-version">Facturo</div>
       </div>
     </aside>
-    <main class="main-content" id="main-content">
-      <div class="page page-loading">
-        <div class="loading-spinner" style="width:32px;height:32px"></div>
-      </div>
-    </main>
+    <div class="inset" id="inset">
+      <header class="topbar">
+        <button type="button" class="btn btn-ghost btn-icon topbar-toggle" id="sidebar-toggle" data-sidebar-toggle
+          data-tip="Réduire le menu" data-tip-side="bottom" data-kbd="Ctrl+B"
+          aria-label="Réduire le menu" aria-expanded="true" aria-controls="sidebar"><i data-icon="panel-left"></i></button>
+        <span class="topbar-sep" aria-hidden="true"></span>
+        <nav class="breadcrumb" id="breadcrumb" aria-label="Fil d'Ariane"></nav>
+        <div class="topbar-actions">
+          <button type="button" class="topbar-search" data-cmd-open aria-keyshortcuts="Control+K Meta+K">
+            <i data-icon="search" data-icon-size="sm"></i>
+            <span class="topbar-search-label">Rechercher…</span>
+            <span class="topbar-search-kbd" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-icon topbar-bell" id="topbar-bell" hidden aria-label="Mise à jour disponible" data-tip="Mise à jour disponible"><i data-icon="bell"></i><span class="topbar-bell-dot" aria-hidden="true"></span></button>
+          <button type="button" class="btn btn-ghost btn-icon" id="theme-cycle" aria-label="Changer de thème" data-tip="Changer de thème"></button>
+        </div>
+      </header>
+      <main class="main-content" id="main-content">
+        <div class="page page-loading">
+          <div class="loading-spinner" style="width:32px;height:32px"></div>
+        </div>
+      </main>
+    </div>
   </div>
   <script src="/static/js/util.js?v=2"></script>
-  <script src="/static/js/icons.js?v=2"></script>
+  <script src="/static/js/icons.js?v=3"></script>
   <script src="/static/js/ui/dom.js?v=1"></script>
   <script src="/static/js/ui/dialog.js?v=1"></script>
   <script src="/static/js/ui/toast.js?v=1"></script>
@@ -115,19 +143,22 @@
   <script src="/static/js/ui/command.js?v=1"></script>
   <script src="/static/js/ui/sidebar.js?v=1"></script>
   <script src="/static/js/ui/chart-data.js?v=1"></script>
-  <script src="/static/js/ui/chart.js?v=1"></script>
+  <script src="/static/js/ui/chart.js?v=2"></script>
   <script src="/static/js/ui/countup.js?v=1"></script>
   <script src="/static/js/ui/spotlight.js?v=1"></script>
-  <script src="/static/js/core.js?v=5"></script>
-  <script src="/static/js/home.js?v=2"></script>
-  <script src="/static/js/clients.js?v=2"></script>
+  <script src="/static/js/ui/shell.js?v=2"></script>
+  <script src="/static/js/ui/backdrop.js?v=1"></script>
+  <script src="/static/js/core.js?v=6"></script>
+  <script src="/static/js/home-cards.js?v=1"></script>
+  <script src="/static/js/home.js?v=3"></script>
+  <script src="/static/js/clients.js?v=3"></script>
   <script src="/static/js/discounts.js?v=1"></script>
   <script src="/static/js/facture.js?v=2"></script>
-  <script src="/static/js/history.js?v=3"></script>
+  <script src="/static/js/history.js?v=4"></script>
   <script src="/static/js/scans.js?v=4"></script>
   <script src="/static/js/payments.js?v=2"></script>
   <script src="/static/js/settings.js?v=3"></script>
   <script src="/static/js/autocomplete.js?v=1"></script>
-  <script src="/static/js/boot.js?v=1"></script>
+  <script src="/static/js/boot.js?v=2"></script>
 </body>
 </html>

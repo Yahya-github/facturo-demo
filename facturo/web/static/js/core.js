@@ -14,6 +14,8 @@ const state = {
   pdfAvailable: true,
   hasLogo: false,
   editingId: null,
+  // False until the first loadData() settles: Accueil shows skeletons until then.
+  loaded: false,
   // The shop's own vocabulary, most used first: what Chantier and Plaque
   // autocomplete from, and what a typed value settles to when you leave it.
   knownValues: { chantier: [], plaque: [] },
@@ -121,13 +123,14 @@ function render() {
   // Without this it would survive the input it is anchored to — addBillet(),
   // removeBillet() and the description-mode switch all rebuild mid-typing.
   closeAutocomplete();
+  if (typeof updateShell === 'function') updateShell();
   const main = $('#main-content');
   if (state.loadError && LOAD_DEPENDENT_PAGES.includes(state.page)) {
     main.innerHTML = renderLoadError();
     return;
   }
   switch (state.page) {
-    case 'home':    main.innerHTML = renderHome(); break;
+    case 'home':    main.innerHTML = renderHome(); mountHome(); break;
     case 'clients': main.innerHTML = renderClients(); break;
     case 'facture': main.innerHTML = renderFacture(); break;
     case 'history': main.innerHTML = renderHistory(); break;
@@ -256,11 +259,13 @@ async function loadData() {
       plaque: usable.filter(v => v.kind === 'plaque'),
     };
     state.loadError = null;
+    state.loaded = true;
   } catch (e) {
     console.error('Erreur chargement:', e);
     // Empty arrays would read as "no data": say so loudly and keep the state
     // visible until a retry succeeds.
     state.loadError = e.message || 'Erreur';
+    state.loaded = true;
     toast(`Chargement des données échoué : ${state.loadError}`, 'error');
   }
 }
