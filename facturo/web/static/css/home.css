@@ -128,7 +128,7 @@
 .bento-head h3 { font-size: var(--text-base); font-weight: 600; letter-spacing: -0.02em; }
 .bento-head p { margin-top: 0.15rem; font-size: var(--text-xs); color: var(--muted-foreground); }
 .bento-chart { flex: 1; min-height: 8rem; }
-.bento-bar .bento-chart { min-height: 15rem; }
+.bento-bar .bento-chart { min-height: 12.5rem; max-height: 16.25rem; }
 .bento-donut .bento-chart, .bento-top .bento-chart { display: flex; align-items: center; }
 .bento-chart .chart { width: 100%; }
 .chart-legend-value { white-space: nowrap; }

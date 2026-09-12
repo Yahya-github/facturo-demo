@@ -166,8 +166,19 @@ async function togglePaid(id, makePaid) {
 
 // ── Utils ───────────────────────────────────────────────
 
+/**
+ * French-Canadian currency: "9 042,78 $" (narrow no-break space between
+ * thousands, decimal comma, no-break space before the dollar sign). Built by
+ * hand rather than through Intl so every browser prints the same characters.
+ * @param {number} n
+ * @returns {string}
+ */
 function money(n) {
-  return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' $';
+  const value = Number(n) || 0;
+  const [whole, cents] = Math.abs(value).toFixed(2).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+  const sign = value < 0 && Number(`${whole}.${cents}`) !== 0 ? '\u2212' : '';
+  return `${sign}${grouped},${cents}\u00a0$`;
 }
 
 function formatDate(d) {

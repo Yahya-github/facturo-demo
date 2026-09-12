@@ -155,7 +155,7 @@ function renderHomeCharts() {
   ui.chart.donut(donut, ui.chartData.paidSplit(rows), { title: 'Payées et impayées' });
   ui.chart.hbar(top, ui.chartData.topClients(rows, 5), { title: 'Meilleurs clients', width: top.clientWidth });
   bar.textContent = '';
-  const height = Math.min(420, Math.max(240, bar.clientHeight));
+  const height = Math.min(260, Math.max(200, bar.clientHeight));
   ui.chart.bar(bar, ui.chartData.groupByMonth(rows, { months: 6 }), { title: 'Facturé par mois', width: bar.clientWidth, height });
 }
 
