@@ -1,0 +1,37 @@
+/* Clients: data table with avatars, client dialog, empty state. Tokens only. */
+
+.clients-table td { padding-block: 0.8rem; }
+.clients-table tbody tr { cursor: default; }
+.clients-table tbody tr:hover { background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+.client-id-cell { display: flex; flex-direction: column; min-width: 0; }
+.client-id-cell .cell-name { max-width: 18rem; }
+.client-id-cell .cell-sub { max-width: 18rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clients-table .cell-client { gap: 0.8rem; }
+.clients-table .avatar:not(.avatar-sm):not(.avatar-lg) { width: 2.25rem; height: 2.25rem; font-size: 0.72rem; }
+.client-next { white-space: nowrap; }
+.client-next-num { display: block; font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 500; }
+.clients-table td.num { font-family: var(--font-mono); font-size: 0.8125rem; white-space: nowrap; }
+.clients-table th:nth-child(n+4):not(:last-child) { text-align: right; }
+
+/* Empty state */
+.clients-empty { padding: 4rem 1.5rem 4.25rem; }
+.empty-orb {
+  position: relative; display: grid; place-items: center;
+  width: 4.25rem; height: 4.25rem; margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, var(--gold-bg), var(--primary-muted) 80%);
+  box-shadow: inset 0 0 0 1px var(--primary-border), 0 10px 24px -12px color-mix(in srgb, var(--primary) 60%, transparent);
+  color: var(--primary);
+}
+.empty-orb::after {
+  content: ""; position: absolute; inset: -0.6rem; border-radius: 50%;
+  border: 1px dashed var(--primary-border); opacity: 0.7;
+}
+.empty-orb .icon { width: 1.7rem; height: 1.7rem; padding: 0; margin: 0; background: none; color: inherit; border-radius: 0; }
+.clients-empty h3 { font-size: var(--text-lg); letter-spacing: -0.02em; }
+.clients-empty p { max-width: 24rem; margin-bottom: 1.5rem; }
+
+/* Dialog form */
+.client-form .switch-field { margin-top: 1.25rem; }
+.client-form .input-group-box .form-input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.client-form .field-hint { min-height: 1em; }
