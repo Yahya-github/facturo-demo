@@ -2,6 +2,8 @@
 
 state.scansQuery = '';
 
+const SCAN_ACCEPT_RE = /\.(pdf|png|jpe?g|webp|gif|heic)$/i;
+
 function openScans() {
   state.scansClientId = null;
   navigate('scans');
@@ -15,56 +17,64 @@ function isImageScan(fichier) {
   return /\.(png|jpe?g|webp|gif|heic)$/i.test(fichier || '');
 }
 
+const scansPlural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+
+// ── Folder view ─────────────────────────────────────────
+
+function renderScansHead(subtitle, actions) {
+  return `<div class="page-head">
+    <div><h2>Factures scannées</h2><p>${subtitle}</p></div>
+    ${actions ? `<div class="page-head-actions">${actions}</div>` : ''}
+  </div>`;
+}
+
+function renderScansNoClient() {
+  return `<div class="page page-wide scans">
+    ${renderScansHead('Classez vos factures numérisées par client')}
+    <div class="card"><div class="empty-state clients-empty">
+      <span class="empty-orb" aria-hidden="true">${icon('folder')}</span>
+      <h3>Aucun client</h3>
+      <p>Ajoutez un client avant d'importer des factures scannées : chaque client a son propre dossier.</p>
+      <button type="button" class="btn btn-primary" onclick="navigate('clients')">${icons.plus} Ajouter un client</button>
+    </div></div>
+  </div>`;
+}
+
+function renderScanFolder(client, q) {
+  const scans = scansForClient(client.id);
+  const n = scans.length;
+  const key = foldKey(client.nom);
+  const hidden = q && !key.includes(q) ? ' hidden' : '';
+  const latest = scans.reduce((m, s) => ((s.cree_le || '') > m ? s.cree_le : m), '');
+  const meta = n ? `Dernier import : ${esc(formatDate((latest || '').slice(0, 10)))}` : 'Aucun document pour le moment';
+  return `<button type="button" class="scan-folder${n ? '' : ' is-empty'}" data-fold="${escAttr(key)}" onclick="openScanClient(${Number(client.id)})"${hidden}>
+    <span class="scan-folder-top">
+      <span class="scan-folder-icon">${icon('folder', { fill: n > 0 })}</span>
+      <span class="scan-folder-count">${n}</span>
+    </span>
+    <span class="scan-folder-name">${esc(client.nom)}</span>
+    <span class="scan-folder-meta">${meta}</span>
+  </button>`;
+}
+
 function renderScans() {
-  // Detail view: a single client's scanned invoices.
   if (state.scansClientId != null) return renderScansForClient(state.scansClientId);
-
-  // Folder view: one card per client with its document count.
-  if (state.clients.length === 0) {
-    return `<div class="page">
-      <div class="page-header"><div>
-        <h2>Factures scannées</h2>
-        <div class="subtitle">Classez vos factures numérisées par client</div>
-      </div></div>
-      <div class="card"><div class="empty-state">
-        ${icons.users}
-        <h3>Aucun client</h3>
-        <p>Ajoutez un client avant d'importer des factures scannées.</p>
-        <button class="btn btn-primary" style="margin-top:16px" onclick="navigate('clients')">${icons.plus} Ajouter un client</button>
-      </div></div>
-    </div>`;
-  }
-
+  if (state.clients.length === 0) return renderScansNoClient();
   const total = state.scans.length;
   const q = foldKey(state.scansQuery);
-  const folders = state.clients.map(c => ({ client: c, key: foldKey(c.nom) }));
-  const anyMatch = !q || folders.some(f => f.key.includes(q));
-  return `<div class="page">
-    <div class="page-header"><div>
-      <h2>Factures scannées</h2>
-      <div class="subtitle">${total} document${total > 1 ? 's' : ''} — classés par client</div>
-    </div></div>
-    <div class="flt-bar flt-bar-compact" role="search" aria-label="Rechercher un client">
-      <div class="flt-field flt-field-search">
-        <label class="flt-label" for="scans-search">Client</label>
-        <div class="flt-search">
-          ${icon('search')}
-          <input id="scans-search" type="search" class="form-input" value="${escAttr(state.scansQuery)}"
-            placeholder="Rechercher un client…" autocomplete="off" spellcheck="false" oninput="scansOnSearchInput(this.value)">
-        </div>
+  const anyMatch = !q || state.clients.some(c => foldKey(c.nom).includes(q));
+  return `<div class="page page-wide scans">
+    ${renderScansHead(`${scansPlural(total, 'document', 'documents')}, classés par client`)}
+    <div class="scan-toolbar" role="search" aria-label="Rechercher un client">
+      <label class="sr-only" for="scans-search">Client</label>
+      <div class="scan-search">
+        ${icon('search')}
+        <input id="scans-search" type="search" class="form-input" value="${escAttr(state.scansQuery)}"
+          placeholder="Rechercher un client…" autocomplete="off" spellcheck="false" oninput="scansOnSearchInput(this.value)">
       </div>
+      <span class="scan-toolbar-hint">${scansPlural(state.clients.length, 'dossier', 'dossiers')}</span>
     </div>
-    <div class="scan-folder-grid">
-      ${folders.map(({ client: c, key }) => {
-        const n = scansForClient(c.id).length;
-        const hidden = q && !key.includes(q) ? ' hidden' : '';
-        return `<button class="scan-folder" data-fold="${escAttr(key)}" onclick="openScanClient(${Number(c.id)})"${hidden}>
-          <span class="scan-folder-icon">${micon('folder', n > 0)}</span>
-          <span class="scan-folder-name">${esc(c.nom)}</span>
-          <span class="scan-folder-count">${n} document${n > 1 ? 's' : ''}</span>
-        </button>`;
-      }).join('')}
-    </div>
+    <div class="scan-folder-grid">${state.clients.map(c => renderScanFolder(c, q)).join('')}</div>
     <p class="flt-empty flt-empty-compact" id="scans-no-match"${anyMatch ? ' hidden' : ''}>Aucun client ne correspond à cette recherche.</p>
   </div>`;
 }
@@ -86,79 +96,153 @@ function scansOnSearchInput(value) {
   if (none) none.hidden = shown > 0;
 }
 
+// ── Client view ─────────────────────────────────────────
+
+function renderDropzone(clientId, compact) {
+  return `<div class="dropzone${compact ? ' is-compact' : ''}" id="scan-dropzone" role="group" aria-label="Zone de dépôt"
+      ondragenter="scanDragOver(event)" ondragover="scanDragOver(event)" ondragleave="scanDragLeave(event)" ondrop="scanDrop(event, ${Number(clientId)})">
+    <span class="dropzone-icon" aria-hidden="true">${icon('upload')}</span>
+    <div class="dropzone-text">
+      <strong>${compact ? 'Déposez d\'autres scans ici' : 'Glissez vos factures ici'}</strong>
+      <span>PDF ou photos (PNG, JPG, HEIC…), plusieurs à la fois</span>
+    </div>
+    <button type="button" class="btn ${compact ? 'btn-outline' : 'btn-primary'}" onclick="document.getElementById('scan-input').click()">${icons.upload} Parcourir</button>
+    <ul class="dropzone-progress" id="scan-progress" aria-live="polite"></ul>
+  </div>`;
+}
+
 function renderScansForClient(clientId) {
   const client = state.clients.find(c => c.id === clientId);
   if (!client) { state.scansClientId = null; return renderScans(); }
   const scans = scansForClient(clientId);
-  return `<div class="page">
-    <div class="page-header">
-      <div class="page-back">
-        <button class="btn btn-ghost btn-sm" onclick="closeScanClient()">${micon('arrow_back')} Tous les clients</button>
-        <h2>${esc(client.nom)}</h2>
-        <div class="subtitle">${scans.length} facture${scans.length > 1 ? 's' : ''} scannée${scans.length > 1 ? 's' : ''}</div>
-      </div>
-      <button class="btn btn-primary" onclick="document.getElementById('scan-input').click()">${icons.upload} Importer des scans</button>
+  const head = `<div class="page-head">
+    <div class="page-back">
+      <button type="button" class="btn btn-quiet btn-sm" onclick="closeScanClient()">${icon('arrow-left', { size: 'sm' })} Tous les clients</button>
+      <div class="scan-client-title">${ui.avatar(client.nom, { size: 'lg' })}<div><h2>${esc(client.nom)}</h2><p>${scansPlural(scans.length, 'facture scannée', 'factures scannées')}</p></div></div>
     </div>
-    <input type="file" id="scan-input" accept="application/pdf,image/*" multiple style="display:none" onchange="uploadScans(this, ${clientId})">
-    ${scans.length === 0 ? `
-      <div class="card"><div class="empty-state">
-        ${micon('document_scanner')}
-        <h3>Aucune facture scannée</h3>
-        <p>Importez des PDF ou des photos de factures pour ce client.</p>
-        <button class="btn btn-primary" style="margin-top:16px" onclick="document.getElementById('scan-input').click()">${icons.upload} Importer des scans</button>
-      </div></div>
-    ` : `
-      <div class="scan-grid">${scans.map(renderScanCard).join('')}</div>
-    `}
+  </div>`;
+  return `<div class="page page-wide scans">
+    ${head}
+    <input type="file" id="scan-input" accept="application/pdf,image/*" multiple hidden onchange="uploadScans(this, ${Number(clientId)})">
+    ${renderDropzone(clientId, scans.length > 0)}
+    ${scans.length === 0 ? '' : `<div class="scan-grid">${scans.map(renderScanCard).join('')}</div>`}
   </div>`;
 }
 
 function renderScanCard(s) {
   const url = `/api/scans/file/${encodeURIComponent(s.fichier)}`;
-  const thumb = isImageScan(s.fichier)
-    ? `<img src="${url}" alt="${escAttr(s.nom_original)}" loading="lazy">`
-    : `<div class="scan-thumb-pdf">${micon('picture_as_pdf')}<span>PDF</span></div>`;
-  return `<div class="scan-card">
-    <a class="scan-thumb" href="${url}" target="_blank" rel="noopener" title="Ouvrir">${thumb}</a>
+  const isImg = isImageScan(s.fichier);
+  const thumb = isImg
+    ? `<img src="${url}" alt="${escAttr(s.nom_original)}" loading="lazy" onload="this.parentElement.classList.add('is-loaded')">`
+    : `<div class="scan-thumb-pdf">${icon('file-text', { size: 'xl' })}<span>PDF</span></div>`;
+  return `<article class="scan-card">
+    <div class="scan-thumb${isImg ? '' : ' is-loaded'}">
+      ${thumb}
+      <span class="scan-kind">${isImg ? 'Image' : 'PDF'}</span>
+      <div class="scan-overlay">
+        <a class="btn btn-secondary btn-icon btn-sm" href="${url}" target="_blank" rel="noopener" aria-label="Ouvrir ${escAttr(s.nom_original)}" title="Ouvrir">${icon('eye')}</a>
+        <a class="btn btn-secondary btn-icon btn-sm" href="${url}" download="${escAttr(s.nom_original)}" aria-label="Télécharger" title="Télécharger">${icon('download')}</a>
+        <button type="button" class="btn btn-secondary btn-icon btn-sm scan-del" onclick="deleteScan(${Number(s.id)})" aria-label="Supprimer" title="Supprimer">${icon('trash-2')}</button>
+      </div>
+    </div>
     <div class="scan-card-body">
       <div class="scan-name" title="${escAttr(s.nom_original)}">${esc(s.nom_original)}</div>
-      <div class="scan-date">${formatDateTime(s.cree_le)}</div>
+      <div class="scan-date">${esc(formatDateTime(s.cree_le))}</div>
     </div>
-    <div class="scan-actions">
-      <a class="btn btn-ghost btn-sm" href="${url}" target="_blank" rel="noopener">${micon('visibility')} Voir</a>
-      <a class="btn btn-ghost btn-sm" href="${url}" download="${escAttr(s.nom_original)}" title="Télécharger">${icons.download}</a>
-      <button class="btn btn-ghost btn-sm" style="color:var(--red-600)" onclick="deleteScan(${s.id})" title="Supprimer">${icons.trash}</button>
-    </div>
-  </div>`;
+  </article>`;
 }
 
 function openScanClient(clientId) { state.scansClientId = clientId; render(); }
 function closeScanClient() { state.scansClientId = null; render(); }
 
-async function uploadScans(input, clientId) {
+// ── Upload ──────────────────────────────────────────────
+
+function scanDragOver(e) {
+  e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  e.currentTarget.classList.add('is-dragover');
+}
+
+function scanDragLeave(e) {
+  // dragleave also fires when crossing into a child: only clear when leaving the zone itself.
+  if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return;
+  e.currentTarget.classList.remove('is-dragover');
+}
+
+function scanDrop(e, clientId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('is-dragover');
+  uploadScanFiles([...(e.dataTransfer ? e.dataTransfer.files : [])], clientId);
+}
+
+function uploadScans(input, clientId) {
   const files = [...(input.files || [])];
-  if (!files.length) return;
-  let ok = 0;
-  for (const file of files) {
+  input.value = '';
+  return uploadScanFiles(files, clientId);
+}
+
+/** POST one file, reporting progress (0..1) — fetch has no upload progress, XHR does. */
+function postScan(file, clientId, onProgress) {
+  return new Promise((resolve, reject) => {
     const fd = new FormData();
     fd.append('client_id', clientId);
     fd.append('file', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/scans');
+    xhr.upload.onprogress = ev => { if (ev.lengthComputable) onProgress(ev.loaded / ev.total); };
+    xhr.onerror = () => reject(new Error('Échec du téléversement'));
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) { resolve(); return; }
+      let detail = 'Erreur serveur';
+      try { detail = JSON.parse(xhr.responseText).detail || detail; } catch { /* not JSON */ }
+      reject(new Error(detail));
+    };
+    xhr.send(fd);
+  });
+}
+
+function progressRow(file) {
+  const li = ui.h('li', { class: 'dz-item' },
+    ui.h('span', { class: 'dz-name', text: file.name }),
+    ui.h('span', { class: 'dz-bar' }, ui.h('span', { class: 'dz-fill' })),
+    ui.h('span', { class: 'dz-state', text: '0 %' }));
+  return {
+    li,
+    set(ratio, label) {
+      li.querySelector('.dz-fill').style.width = `${Math.round(ratio * 100)}%`;
+      li.querySelector('.dz-state').textContent = label || `${Math.round(ratio * 100)} %`;
+    },
+  };
+}
+
+async function uploadScanFiles(all, clientId) {
+  const files = all.filter(f => SCAN_ACCEPT_RE.test(f.name) || /^(image\/|application\/pdf)/.test(f.type));
+  if (all.length > files.length) toast('Seuls les PDF et les images sont acceptés.', 'error');
+  if (!files.length) return;
+  const zone = document.getElementById('scan-dropzone');
+  const list = document.getElementById('scan-progress');
+  if (zone) zone.classList.add('is-uploading');
+  let ok = 0;
+  for (const file of files) {
+    const row = progressRow(file);
+    if (list) list.append(row.li);
     try {
-      const res = await fetch('/api/scans', { method: 'POST', body: fd });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: 'Erreur serveur' }));
-        throw new Error(err.detail || 'Échec du téléversement');
-      }
+      await postScan(file, clientId, r => row.set(r));
+      row.set(1, 'Terminé');
+      row.li.classList.add('is-done');
       ok++;
     } catch (e) {
-      toast(`${file.name}: ${e.message}`, 'error');
+      row.li.classList.add('is-error');
+      row.set(1, 'Échec');
+      toast(`${file.name} : ${e.message}`, 'error');
     }
   }
-  input.value = '';
   if (ok) {
-    toast(`${ok} document${ok > 1 ? 's' : ''} importé${ok > 1 ? 's' : ''}`);
+    toast(`${scansPlural(ok, 'document importé', 'documents importés')}`);
     await loadData();
     render();
+  } else if (zone) {
+    zone.classList.remove('is-uploading');
   }
 }
 
