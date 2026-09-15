@@ -1,0 +1,101 @@
+/* Paramètres: tabs, settings cards, key/value lists, danger zone. Tokens only. */
+
+.settings-tabs > .tabs-list { margin-bottom: 1.5rem; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.settings-tabs > .tabs-list::-webkit-scrollbar { display: none; }
+.settings-tabs .tabs-trigger { display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+.settings-tabs .tabs-trigger .icon { opacity: 0.75; }
+.settings-tabs .tabs-trigger[aria-selected="true"] .icon { opacity: 1; color: var(--primary); }
+.settings-tabs .tabs-trigger.is-danger[aria-selected="true"] .icon, .settings-tabs .tabs-trigger.is-danger[aria-selected="true"] { color: var(--danger-fg); }
+.settings-panel:focus-visible { outline: none; }
+
+/* ── Layout ───────────────────────────────────────────── */
+.settings-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.settings-col { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+.settings-panel > .settings-card { max-width: 46rem; }
+
+.card.settings-card { padding: 1.35rem 1.5rem 1.5rem; margin: 0; max-width: none; border-radius: var(--radius-xl); }
+.settings-panel > .card.settings-card { max-width: 46rem; }
+.settings-head { display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 1.15rem; }
+.settings-head h3 { font-size: var(--text-base); font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; }
+.settings-head p { margin-top: 0.2rem; font-size: var(--text-sm); color: var(--muted-foreground); line-height: 1.5; }
+.settings-ico {
+  display: grid; place-items: center; flex: none; width: 2.25rem; height: 2.25rem;
+  border-radius: var(--radius-md); background: var(--primary-muted); color: var(--primary);
+}
+.settings-ico .icon { width: 1.1rem; height: 1.1rem; }
+.settings-ico.is-danger { background: var(--danger-bg); color: var(--danger-fg); box-shadow: inset 0 0 0 1px var(--danger-border); }
+.settings-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.1rem; }
+.btn-danger-outline { color: var(--danger-fg); }
+.btn-danger-outline:hover { background: var(--danger-bg); color: var(--danger-fg); border-color: var(--danger-border); }
+.settings-muted { color: var(--muted-foreground); font-size: var(--text-sm); }
+.mono { font-family: var(--font-mono); font-size: 0.8125rem; }
+
+/* Update card lives in the same visual family */
+.settings-card.update-card { max-width: none; margin-top: 0; padding: 1.35rem 1.5rem 1.5rem; }
+.update-card .update-title { margin-bottom: 1.1rem; font-size: var(--text-base); font-weight: 600; letter-spacing: -0.02em; }
+.update-card .update-title .icon { width: 1.9rem; height: 1.9rem; padding: 0.45rem; border-radius: var(--radius-md); background: var(--primary-muted); color: var(--primary); }
+.update-card .sync-actions { margin-top: 1.1rem; }
+
+/* ── Definition list ──────────────────────────────────── */
+.settings-list { margin: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.65rem 0.9rem; font-size: var(--text-sm); }
+.settings-row + .settings-row { border-top: 1px solid var(--border); }
+.settings-row dt { color: var(--muted-foreground); flex: none; }
+.settings-row dd { margin: 0; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+
+/* ── Logo ─────────────────────────────────────────────── */
+.logo-preview { display: grid; place-items: center; min-height: 8rem; padding: 1.25rem; border: 1px dashed var(--input); border-radius: var(--radius-lg); background: repeating-conic-gradient(var(--muted) 0% 25%, var(--card) 0% 50%) 50% / 16px 16px; }
+.logo-preview img { max-height: 8rem; }
+.logo-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1.25rem 0.5rem 0.25rem; color: var(--muted-foreground); }
+.logo-empty .empty-orb { margin-bottom: 1.1rem; }
+.logo-empty p { max-width: 24rem; margin: 0 0 1.1rem; }
+
+/* ── Sync ─────────────────────────────────────────────── */
+.settings-card .sync-warning { margin: 0; }
+.settings-card .sync-actions { margin-top: 1.1rem; }
+.settings-disconnect { margin-top: 0.9rem; color: var(--muted-foreground); }
+
+/* ── AI ───────────────────────────────────────────────── */
+.ai-status { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 1rem; font-size: var(--text-sm); }
+.ai-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--muted-foreground); }
+.ai-status.is-ready .ai-dot { background: var(--success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 22%, transparent); }
+.ai-status.is-down .ai-dot { background: var(--gold); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 22%, transparent); }
+.ai-status + .sync-warning { margin-bottom: 1rem; }
+.ai-models { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.ai-loading { padding: 0.25rem 0 0.5rem; }
+
+/* ── Known values ─────────────────────────────────────── */
+.kv-seg { margin-bottom: 0.9rem; }
+.kv-count { margin-left: 0.3rem; padding: 0 0.4rem; border-radius: var(--radius-full); background: var(--muted); font-size: 0.6875rem; font-variant-numeric: tabular-nums; }
+.kv-list { max-height: 22rem; }
+.kv-row { padding: 0.55rem 0.9rem; transition: background-color var(--dur-fast); }
+.kv-row:hover { background: var(--muted); }
+.kv-actions { opacity: 0.5; transition: opacity var(--dur-fast); }
+.kv-row:hover .kv-actions, .kv-row:focus-within .kv-actions { opacity: 1; }
+.kv-empty { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 2rem 1.5rem; text-align: center; color: var(--muted-foreground); font-size: var(--text-sm); }
+.kv-empty .icon { width: 2.25rem; height: 2.25rem; padding: 0.55rem; border-radius: var(--radius-lg); background: var(--muted); }
+.kv-empty p { max-width: 20rem; }
+.kv-add { margin-top: 0.9rem; }
+
+/* ── Danger zone ──────────────────────────────────────── */
+.card.settings-danger { border-color: var(--danger-border); background: linear-gradient(180deg, color-mix(in srgb, var(--danger-bg) 55%, var(--card)), var(--card) 65%); }
+.danger-row { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1rem 1.1rem; border: 1px solid var(--danger-border); border-radius: var(--radius-lg); background: var(--card); }
+.danger-row strong { font-size: var(--text-sm); font-weight: 600; }
+.danger-row p { margin-top: 0.25rem; max-width: 30rem; font-size: var(--text-sm); color: var(--muted-foreground); line-height: 1.5; }
+.danger-row .btn { flex: none; }
+
+@media (max-width: 1099.98px) {
+  .settings-split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 639.98px) {
+  .card.settings-card, .settings-card.update-card { padding: 1.1rem 1rem 1.2rem; }
+  .danger-row { flex-direction: column; align-items: stretch; }
+  .settings-row { flex-direction: column; align-items: flex-start; gap: 0.15rem; }
+  .settings-row dd { text-align: left; }
+  .ai-models { justify-content: flex-start; }
+  .kv-row { flex-wrap: wrap; }
+  .kv-actions { opacity: 1; flex-basis: 100%; }
+  .sync-actions { flex-direction: column; }
+}
+.logo-empty .btn .icon, .logo-empty .empty-orb .icon { width: 1rem; height: 1rem; }
+.logo-empty .empty-orb .icon { width: 1.7rem; height: 1.7rem; }

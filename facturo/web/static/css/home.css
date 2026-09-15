@@ -145,8 +145,6 @@
 .cell-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 16rem; font-weight: 500; }
 .avatar-sm { width: 1.65rem; height: 1.65rem; font-size: 0.625rem; background: var(--gold-bg); color: var(--gold-fg); }
 .row-menu-cell { width: 2.5rem; text-align: right; }
-.home-foot { display: flex; justify-content: flex-start; margin-top: 2rem; }
-.home-reset { color: var(--danger-fg); }
 
 /* ── Breakpoints ──────────────────────────────────────── */
 @media (max-width: 1099.98px) {

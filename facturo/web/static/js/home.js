@@ -36,9 +36,6 @@ function renderHome() {
           <div id="home-recent">${renderHomeRecent()}</div>
         </section>`}
     </div>
-    <div class="home-foot">
-      <button class="btn btn-ghost btn-sm home-reset" onclick="resetDatabase()">${icons.reset} Réinitialiser la base de données</button>
-    </div>
   </div>`;
 }
 
