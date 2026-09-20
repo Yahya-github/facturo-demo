@@ -120,8 +120,9 @@
   .flt-reset { grid-column: 2; }
 }
 @media (max-width: 559.98px) {
-  .history .flt-bar { grid-template-columns: 1fr; }
-  .flt-reset { grid-column: 1; justify-self: stretch; }
+  .history .flt-bar { grid-template-columns: 1fr 1fr; padding: 0.85rem; }
+  .history .flt-field-search, .history .flt-field-range, .history .flt-bar > .flt-field:nth-of-type(5), .flt-reset { grid-column: 1 / -1; }
+  .flt-reset { justify-self: stretch; }
 }
 @media (max-width: 1280px) {
   .flt-btn-label { display: none; }
