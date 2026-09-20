@@ -180,6 +180,7 @@ def test_countup_respects_reduced_motion(page):
 def test_alert_dialog_cancel_then_confirm_on_a_delete_flow(page):
     """Delete a scratch known value: Annuler keeps it, Supprimer removes it."""
     page.click('.nav-btn[data-page="settings"]')
+    page.click('[data-tab="known"]')
     page.fill("#kv-new", "CHANTIER SCRATCH UI")
     page.click("text=Ajouter >> nth=0")
     row = page.locator(".kv-row", has_text="CHANTIER SCRATCH UI")
