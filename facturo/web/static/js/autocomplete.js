@@ -58,6 +58,8 @@ function ensureAcPanel() {
   if (acPanel) return acPanel;
   acPanel = document.createElement('div');
   acPanel.className = 'ac-panel';
+  acPanel.id = 'ac-panel';
+  acPanel.setAttribute('role', 'listbox');
   acPanel.hidden = true;
   // Keep focus in the input: a click that blurs first would close the panel
   // before the click ever lands on a row.
@@ -86,30 +88,63 @@ function positionAcPanel(input) {
   }
 }
 
+const AC_HEADINGS = { chantier: 'Chantiers connus', plaque: 'Plaques connues' };
+
+// One option row: the value (typed prefix in bold), how often it was used, and
+// the Tab hint on the highlighted one. Built with textContent, never markup.
+function acRow(item, i, query) {
+  const row = document.createElement('div');
+  row.className = 'ac-row' + (i === acIndex ? ' is-active' : '');
+  row.id = `ac-opt-${i}`;
+  row.dataset.i = String(i);
+  row.setAttribute('role', 'option');
+  row.setAttribute('aria-selected', String(i === acIndex));
+  const label = document.createElement('span');
+  label.className = 'ac-label';
+  const typed = query.trim();
+  if (typed && item.valeur.toLowerCase().startsWith(typed.toLowerCase())) {
+    const strong = document.createElement('strong');
+    strong.textContent = item.valeur.slice(0, typed.length);
+    label.append(strong, item.valeur.slice(typed.length));
+  } else {
+    label.textContent = item.valeur;
+  }
+  const count = document.createElement('span');
+  count.className = 'ac-count';
+  count.textContent = item.times_used ? `${item.times_used}×` : 'nouveau';
+  row.append(label, count);
+  if (i === acIndex) {
+    const hint = document.createElement('kbd');
+    hint.className = 'ac-hint';
+    hint.textContent = 'Tab';
+    row.appendChild(hint);
+  }
+  return row;
+}
+
 function drawAcPanel() {
   const panel = ensureAcPanel();
   panel.textContent = '';
-  acItems.forEach((item, i) => {
-    const row = document.createElement('div');
-    row.className = 'ac-row' + (i === acIndex ? ' is-active' : '');
-    row.dataset.i = String(i);
-    // textContent, never an interpolated attribute: esc() does not escape
-    // quotes, and a value containing one would break out of the markup.
-    const label = document.createElement('span');
-    label.textContent = item.valeur;
-    const count = document.createElement('span');
-    count.className = 'ac-count';
-    count.textContent = item.times_used ? `${item.times_used}×` : 'nouveau';
-    row.append(label, count);
-    if (i === acIndex) {
-      const hint = document.createElement('span');
-      hint.className = 'ac-hint';
-      hint.textContent = 'Tab';
-      row.appendChild(hint);
-    }
-    panel.appendChild(row);
-  });
+  const kind = acInput ? acInput.dataset.ac : '';
+  const query = acInput ? acInput.value : '';
+  if (acItems.length) {
+    const head = document.createElement('div');
+    head.className = 'ac-head';
+    head.textContent = AC_HEADINGS[kind] || 'Suggestions';
+    panel.appendChild(head);
+  }
+  acItems.forEach((item, i) => panel.appendChild(acRow(item, i, query)));
+  if (acItems.length) {
+    const foot = document.createElement('div');
+    foot.className = 'ac-foot';
+    foot.textContent = '↑ ↓ naviguer · Tab ou Entrée pour choisir · Échap';
+    panel.appendChild(foot);
+  }
   panel.hidden = acItems.length === 0;
+  if (acInput) {
+    if (acItems.length) acInput.setAttribute('aria-activedescendant', `ac-opt-${acIndex}`);
+    else acInput.removeAttribute('aria-activedescendant');
+  }
 }
 
 function openAutocomplete(input) {
@@ -120,6 +155,7 @@ function openAutocomplete(input) {
   positionAcPanel(input);
   drawAcPanel();
   input.setAttribute('aria-expanded', acItems.length ? 'true' : 'false');
+  input.setAttribute('aria-controls', 'ac-panel');
   window.addEventListener('scroll', repositionAutocomplete, true);
   window.addEventListener('resize', repositionAutocomplete);
 }
@@ -130,7 +166,10 @@ function repositionAutocomplete() {
 
 function closeAutocomplete() {
   if (acPanel) acPanel.hidden = true;
-  if (acInput) acInput.setAttribute('aria-expanded', 'false');
+  if (acInput) {
+    acInput.setAttribute('aria-expanded', 'false');
+    acInput.removeAttribute('aria-activedescendant');
+  }
   acInput = null;
   acItems = [];
   window.removeEventListener('scroll', repositionAutocomplete, true);
@@ -259,7 +298,7 @@ function aiFixHtml(b, i, field) {
     ? `Numéro de projet ignoré — l'IA avait lu « ${esc(fix.lu)} ».`
     : `Corrigé d'après l'historique — l'IA avait lu « ${esc(fix.lu)} ».`;
   return `<div class="ai-fix" data-idx="${i}" data-field="${field}">
-      ${micon('auto_fix_high')} ${message}
+      ${icon('wand-sparkles', { size: 'xs' })} ${message}
       <button type="button" class="ai-fix-undo" onclick="revertAiFix(${i}, '${field}')">Rétablir</button>
     </div>`;
 }

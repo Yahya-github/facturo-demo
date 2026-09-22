@@ -1,0 +1,123 @@
+/* Shared upload/extraction surfaces: Dropzone, indeterminate Progress, the
+   scan-picker Sheet and the AI quick-add Dialog. Also used by Paiements. Tokens only. */
+
+/* ── Dropzone ─────────────────────────────────────────── */
+.upzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 1.5rem 1rem;
+  border: 1.5px dashed var(--input);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 70%),
+    var(--muted);
+  color: var(--muted-foreground);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur), background-color var(--dur), transform var(--dur) var(--ease-out), box-shadow var(--dur);
+}
+.upzone:hover { border-color: var(--primary-border); }
+.upzone:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 28%, transparent); }
+.upzone.is-dragover {
+  border-color: var(--primary);
+  border-style: solid;
+  background: var(--primary-subtle);
+  transform: scale(1.01);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.upzone:disabled { opacity: 0.55; cursor: not-allowed; }
+.upzone-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.25rem;
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--border);
+  transition: transform var(--dur) var(--ease-out);
+}
+.upzone-icon .icon { width: 1.25rem; height: 1.25rem; }
+.upzone.is-dragover .upzone-icon { transform: translateY(-3px); }
+.upzone-title { font-size: var(--text-sm); font-weight: 500; color: var(--foreground); overflow-wrap: anywhere; }
+.upzone-title u { text-decoration-color: var(--primary); text-underline-offset: 3px; color: var(--primary); }
+.upzone-hint { font-size: var(--text-xs); }
+.upzone.has-file { border-style: solid; border-color: var(--primary-border); background: var(--primary-subtle); }
+.upzone.has-file .upzone-title { font-family: var(--font-mono); }
+
+/* ── Progress (indeterminate) ─────────────────────────── */
+.progress.is-indeterminate { position: relative; }
+.progress.is-indeterminate > span {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 38%;
+  transition: none;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--gold), transparent);
+  animation: progress-slide 1.3s var(--ease-in-out) infinite;
+}
+@keyframes progress-slide { from { transform: translateX(-100%); } to { transform: translateX(270%); } }
+.progress-labeled { display: flex; flex-direction: column; gap: 0.4rem; }
+.progress-labeled .progress-meta { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--muted-foreground); }
+.ai-progress { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+.ai-progress p { font-size: var(--text-xs); color: var(--muted-foreground); }
+
+/* ── AI quick-add dialog ──────────────────────────────── */
+.ai-dialog { max-width: 32rem; }
+.ai-dialog .field { display: flex; flex-direction: column; gap: 0.4rem; margin: 0; }
+.ai-dialog .form-label { margin: 0; }
+.or-rule { display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0; font-size: var(--text-xs); color: var(--muted-foreground); }
+.or-rule::before, .or-rule::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%; }
+
+/* ── Scan picker sheet ────────────────────────────────── */
+.scan-pick-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.scan-pick-empty .icon { color: var(--input); }
+.scan-pick-empty p { max-width: 19rem; font-size: var(--text-sm); line-height: 1.5; }
+.scan-pick-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.scan-pick {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 0.25rem 0.85rem;
+  align-items: center;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.scan-pick:hover { border-color: var(--primary-border); box-shadow: var(--shadow-sm); }
+.scan-pick.is-current { border-color: var(--gold-border); background: var(--gold-bg); }
+.scan-pick-thumb {
+  grid-row: span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--muted);
+}
+.scan-pick-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.scan-pick-pdf { display: flex; color: var(--danger-fg); }
+.scan-pick-info { min-width: 0; }
+.scan-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); font-weight: 500; }
+.scan-pick-date { font-size: var(--text-xs); color: var(--muted-foreground); }
+.scan-pick-cur { margin-top: 0.3rem; }
+.scan-pick-actions { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-left: -0.5rem; }
