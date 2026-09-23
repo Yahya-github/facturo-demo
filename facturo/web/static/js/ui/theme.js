@@ -48,10 +48,11 @@
     return apply(next);
   }
 
-  /** Cycle light -> dark -> system (used by the command palette later). */
+  /** Flip between light and dark, based on the theme currently shown.
+   *  'system' stays selectable in the sidebar control only: stepping through it
+   *  here made one click look like nothing happened when the OS theme matched. */
   function cycle() {
-    const order = ['light', 'dark', 'system'];
-    return setPreference(order[(order.indexOf(getPreference()) + 1) % order.length]);
+    return setPreference(resolve(getPreference()) === 'dark' ? 'light' : 'dark');
   }
 
   apply(getPreference());
