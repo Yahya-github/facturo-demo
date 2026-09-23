@@ -87,6 +87,21 @@ def test_theme_toggle_persists_after_reload(page):
     _no_errors(page)
 
 
+def test_header_theme_button_only_flips_between_light_and_dark(page):
+    """With the OS in dark mode and the app on 'system', one click must reach
+    light (it used to step through 'system' first, which looked identical)."""
+    page.emulate_media(color_scheme="dark")
+    page.click('#theme-toggle [data-theme-set="system"]')
+    assert page.evaluate("document.documentElement.dataset.theme") == "dark"
+    page.click("#theme-cycle")
+    assert page.evaluate("document.documentElement.dataset.theme") == "light"
+    assert page.evaluate("document.documentElement.dataset.themePref") == "light"
+    page.click("#theme-cycle")
+    assert page.evaluate("document.documentElement.dataset.theme") == "dark"
+    assert page.evaluate("document.documentElement.dataset.themePref") == "dark"
+    _no_errors(page)
+
+
 # ── Sidebar ─────────────────────────────────────────────
 
 def test_sidebar_collapse_persists_after_reload(page):
