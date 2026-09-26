@@ -34,7 +34,7 @@
 .flt-bar .flt-search .form-input { padding-left: 2.5rem; }
 
 .flt-reset { flex: 0 0 auto; align-self: flex-end; }
-.flt-reset.is-idle { opacity: 0.55; }
+.flt-reset.is-idle { opacity: 0.85; }
 .flt-reset.is-idle:hover { opacity: 1; }
 
 .flt-bar-compact { max-width: 27.5rem; }

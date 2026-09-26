@@ -40,7 +40,7 @@ function renderHistoryRow(f) {
     <td class="flt-amount">${money(Number(f.total_ttc) || 0)}</td>
     ${statutCell(f)}
     <td class="flt-actions">
-      <button type="button" class="btn btn-quiet btn-sm flt-edit" onclick="editFacture(${id})">${icon('pencil', { size: 'sm' })}<span class="flt-btn-label">Modifier</span></button>
+      <button type="button" class="btn btn-quiet btn-sm flt-edit" aria-label="Modifier la facture ${escAttr(f.numero)}" onclick="editFacture(${id})">${icon('pencil', { size: 'sm' })}<span class="flt-btn-label">Modifier</span></button>
       <button type="button" class="btn btn-quiet btn-icon btn-sm" data-row-menu="${id}" aria-label="Actions de la facture ${escAttr(f.numero)}">${icon('ellipsis')}</button>
     </td>
   </tr>`;

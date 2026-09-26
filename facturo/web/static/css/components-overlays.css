@@ -251,7 +251,7 @@
 .menu-item-kbd { display: inline-flex; gap: 0.15rem; margin-left: 1rem; }
 .menu-item-kbd kbd { border: 0; background: transparent; color: var(--muted-foreground); }
 .menu-item-chevron { display: inline-flex; color: var(--muted-foreground); }
-.menu-item-destructive, .menu-item-destructive .menu-item-icon { color: var(--destructive); }
+.menu-item-destructive, .menu-item-destructive .menu-item-icon { color: var(--danger-fg); }
 .menu-item-destructive:hover, .menu-item-destructive:focus-visible, .menu-item-destructive.is-active { background: var(--danger-bg); }
 
 /* ── Tabs (data-tabs): animated underline ─────────────── */
