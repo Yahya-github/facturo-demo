@@ -22,7 +22,7 @@ function renderPaymentDetail(p) {
       <div class="pay-detail-main">
         ${renderLignesCard(p)}
       </div>
-      <aside class="pay-detail-aside">
+      <aside class="pay-detail-aside" aria-label="Résumé du paiement">
         ${renderPaymentLedger(p)}
         ${renderPaymentHeaderCard(p)}
         ${renderDeleteZone(p)}
