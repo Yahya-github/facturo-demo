@@ -49,6 +49,8 @@
     const nav = document.getElementById('breadcrumb');
     if (!nav) return;
     const items = trail();
+    const title = document.getElementById('page-title');
+    if (title) title.textContent = items[items.length - 1].label;
     const sep = `<span class="breadcrumb-sep" aria-hidden="true">${ui.ico('chevron-right', { size: 'xs' })}</span>`;
     nav.innerHTML = items.map((it, i) => {
       const last = i === items.length - 1;
@@ -97,6 +99,13 @@
     const crumb = t.closest('[data-crumb]');
     if (crumb) { root.navigate(crumb.getAttribute('data-crumb')); return; }
     if (t.closest('#topbar-bell')) { root.navigate('settings'); return; }
+    if (t.closest('#skip-link')) {
+      // A plain #anchor would rewrite the hash the router reads; move focus instead.
+      e.preventDefault();
+      const main = document.getElementById('main-content');
+      if (main) main.focus();
+      return;
+    }
     if (t.closest('#theme-cycle')) { ui.theme.cycle(); themeIcon(); }
   });
 
