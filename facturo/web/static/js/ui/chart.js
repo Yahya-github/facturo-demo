@@ -35,7 +35,8 @@
       h('caption', { text: o.title }),
       h('thead', {}, h('tr', {}, o.columns.map(c => h('th', { scope: 'col', text: c })))),
       h('tbody', {}, o.rows.map(r => h('tr', {}, r.map(c => h('td', { text: c }))))));
-    const figure = h('figure', { class: `chart chart-${o.kind}` }, o.svg, tip, table);
+    // The clip wrapper keeps the table's intrinsic width out of the page's scrollable overflow.
+    const figure = h('figure', { class: `chart chart-${o.kind}` }, o.svg, tip, h('div', { class: 'sr-clip' }, table));
     o.svg.setAttribute('role', 'img');
     o.svg.setAttribute('aria-label', o.label);
     el.textContent = '';

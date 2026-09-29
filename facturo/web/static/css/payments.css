@@ -121,6 +121,7 @@
 .pay-detail-aside { display: flex; flex-direction: column; gap: 1rem; position: sticky; top: 4.75rem; }
 .pay-card-title { margin-bottom: 1rem; font-size: var(--text-base); font-weight: 600; letter-spacing: -0.02em; }
 .pay-fields { grid-template-columns: 1fr; gap: 0; }
+.pay-detail-main { min-width: 0; }
 .pay-detail-grid .pay-lignes { overflow: hidden; }
 .pay-short {
   position: relative;
@@ -265,7 +266,7 @@
 /* ── Responsive ───────────────────────────────────────── */
 
 @media (max-width: 1180px) {
-  .pay-detail-grid { grid-template-columns: 1fr; }
+  .pay-detail-grid { grid-template-columns: minmax(0, 1fr); }
   .pay-detail-aside { position: static; }
   .pay-emetteur { max-width: 12.5rem; }
 }
@@ -297,3 +298,6 @@
 .pay-skel-detail { display: flex; flex-direction: column; gap: 1.5rem; }
 .pay-search .form-input { background: var(--card); }
 @media (max-width: 759.98px) { .pay-zone .btn { width: 100%; } }
+
+/* Status filter: never wider than the screen; scrolls sideways on phones. */
+.pay-status-seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }

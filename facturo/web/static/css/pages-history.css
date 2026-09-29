@@ -124,6 +124,12 @@
   .history .flt-field-search, .history .flt-field-range, .history .flt-bar > .flt-field:nth-of-type(5), .flt-reset { grid-column: 1 / -1; }
   .flt-reset { justify-self: stretch; }
 }
+@media (max-width: 1023.98px) {
+  /* Tablet: the table scrolls inside its card instead of widening the page. */
+  .flt-results .card.flt-card { overflow-x: auto; }
+  .flt-table thead th { top: 0; position: static; }
+  .flt-table .flt-date-cell, .flt-table thead th:nth-child(3) { display: none; }
+}
 @media (max-width: 1280px) {
   .flt-btn-label { display: none; }
   .flt-edit { padding: 0 0.5rem; }

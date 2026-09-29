@@ -95,6 +95,7 @@ kbd, .kbd {
 
 .sr-only {
   position: absolute;
+  left: 0;
   width: 1px; height: 1px;
   padding: 0; margin: -1px;
   overflow: hidden;
@@ -102,6 +103,9 @@ kbd, .kbd {
   white-space: nowrap;
   border: 0;
 }
+
+/* Wraps an sr-only table: tables ignore width:1px, so the wrapper does the clipping. */
+.sr-clip { position: absolute; width: 1px; height: 1px; overflow: hidden; }
 
 /* Separator */
 .separator { height: 1px; background: var(--border); border: 0; margin: 1rem 0; }
