@@ -40,7 +40,7 @@
     });
     const t = document.getElementById('sidebar-toggle');
     if (t) {
-      const label = isCollapsed() ? 'Développer le menu' : 'Réduire le menu';
+      const label = ui.i18n.t(isCollapsed() ? 'sidebar.expand' : 'sidebar.collapse');
       t.setAttribute('data-tip', label);
       t.setAttribute('aria-label', label);
       t.setAttribute('aria-expanded', isCollapsed() ? 'false' : 'true');
@@ -104,6 +104,10 @@
   const opener = document.getElementById('sidebar-open');
   if (opener) opener.setAttribute('aria-expanded', 'false');
   setCollapsed(ui.store.get(KEY) === 'collapsed', false);
+
+  // index.html hydrates this button with the "collapse" text on every pass; run
+  // after that pass (DOMContentLoaded order) so the collapsed rail keeps "expand".
+  document.addEventListener('DOMContentLoaded', () => ui.hydrate.register(syncTips));
 
   ui.sidebar = { toggle, collapse: () => setCollapsed(true), expand: () => setCollapsed(false), isCollapsed, openSheet, closeSheet };
 })(window);

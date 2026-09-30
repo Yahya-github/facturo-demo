@@ -12,6 +12,8 @@
   const ui = root.ui = root.ui || {};
   const NS = 'http://www.w3.org/2000/svg';
 
+  const tr = (key, params) => ui.i18n.t(key, params);
+  const count = n => ui.i18n.tn('home.chart.count', n);
   const money = n => (typeof root.money === 'function' ? root.money(n) : n.toFixed(2));
 
   function svg(tag, attrs, ...kids) {
@@ -76,7 +78,7 @@
    * @param {{title?: string}} [o]
    */
   function bar(el, data, o = {}) {
-    const title = o.title || 'Facturé par mois';
+    const title = o.title || tr('home.chart.monthly.title');
     const W = Math.max(MIN_W, Math.round(o.width || DEFAULT_W)), H = o.height || DEFAULT_H;
     const max = Math.max(0, ...data.map(d => d.total));
     const sc = ui.chartData.niceScale(max, 4);
@@ -90,8 +92,8 @@
       s.append(text(PAD.l - 8, y + 4, ui.chartData.compact(i * sc.step), 'chart-axis', 'end'));
     }
     const f = frame(el, {
-      kind: 'bar', svg: s, title, label: `${title} : ${data.map(d => `${d.label} ${money(d.total)}`).join(', ')}`,
-      columns: ['Mois', 'Total', 'Factures'], rows: data.map(d => [d.label, money(d.total), String(d.count)]),
+      kind: 'bar', svg: s, title, label: tr('home.chart.aria', { title, items: data.map(d => `${d.label} ${money(d.total)}`).join(', ') }),
+      columns: [tr('home.chart.col_month'), tr('home.chart.col_total'), tr('home.chart.col_invoices')], rows: data.map(d => [d.label, money(d.total), String(d.count)]),
     });
     data.forEach((d, i) => {
       const cx = PAD.l + slot * i + slot / 2;
@@ -105,7 +107,7 @@
       const hit = svg('rect', { x: cx - slot / 2, y: PAD.t, width: slot, height: ih, fill: 'transparent' });
       hit.addEventListener('pointerenter', () => rect.classList.add('is-hover'));
       hit.addEventListener('pointerleave', () => rect.classList.remove('is-hover'));
-      f.hover(hit, () => tipLines(d.label, money(d.total), `${d.count} facture${d.count > 1 ? 's' : ''}`), rect);
+      f.hover(hit, () => tipLines(d.label, money(d.total), count(d.count)), rect);
       s.append(hit);
     });
     return { el };
@@ -117,19 +119,19 @@
    * @param {{title?: string}} [o]
    */
   function donut(el, data, o = {}) {
-    const title = o.title || 'Payées et impayées';
+    const title = o.title || tr('home.chart.split.title');
     const R = 70, C = 2 * Math.PI * R, SW = 26, size = 200;
     const s = svg('svg', { viewBox: `0 0 ${size} ${size}`, class: 'chart-svg chart-donut-svg' });
     const parts = [
-      { key: 'paid', label: 'Payées', color: 'var(--chart-1)', v: data.paid },
-      { key: 'unpaid', label: 'Impayées', color: 'var(--chart-2)', v: data.unpaid },
+      { key: 'paid', label: tr('home.chart.paid'), color: 'var(--chart-1)', v: data.paid },
+      { key: 'unpaid', label: tr('home.chart.unpaid'), color: 'var(--chart-2)', v: data.unpaid },
     ];
     s.append(svg('circle', { cx: 100, cy: 100, r: R, fill: 'none', 'stroke-width': SW, class: 'chart-donut-track' }));
     const pct = Math.round(data.paidPct * 100);
     const f = frame(el, {
       kind: 'donut', svg: s, title,
-      label: `${title} : ${parts.map(p => `${p.label} ${money(p.v.total)} (${p.v.count})`).join(', ')}`,
-      columns: ['Statut', 'Total', 'Factures'], rows: parts.map(p => [p.label, money(p.v.total), String(p.v.count)]),
+      label: tr('home.chart.aria', { title, items: parts.map(p => `${p.label} ${money(p.v.total)} (${p.v.count})`).join(', ') }),
+      columns: [tr('home.chart.col_status'), tr('home.chart.col_total'), tr('home.chart.col_invoices')], rows: parts.map(p => [p.label, money(p.v.total), String(p.v.count)]),
     });
     let offset = 0;
     if (data.total > 0) {
@@ -142,11 +144,11 @@
           transform: 'rotate(-90 100 100)', style: `--i:${i};--len:${len}`,
         });
         offset += len;
-        f.hover(seg, () => tipLines(p.label, money(p.v.total), `${p.v.count} facture${p.v.count > 1 ? 's' : ''}`));
+        f.hover(seg, () => tipLines(p.label, money(p.v.total), count(p.v.count)));
         s.append(seg);
       });
     }
-    s.append(text(100, 98, data.total > 0 ? `${pct} %` : '—', 'chart-donut-value', 'middle'), text(100, 118, 'payé', 'chart-axis', 'middle'));
+    s.append(text(100, 98, data.total > 0 ? `${pct} %` : '—', 'chart-donut-value', 'middle'), text(100, 118, tr('home.chart.paid_label'), 'chart-axis', 'middle'));
     const legend = ui.h('ul', { class: 'chart-legend' }, parts.map(p => ui.h('li', {},
       ui.h('span', { class: 'chart-swatch', style: `background:${p.color}` }),
       ui.h('span', { class: 'chart-legend-label', text: p.label }),
@@ -163,7 +165,7 @@
    * @param {{title?: string}} [o]
    */
   function hbar(el, data, o = {}) {
-    const title = o.title || 'Meilleurs clients';
+    const title = o.title || tr('home.chart.top.title');
     const W = Math.max(MIN_W, Math.round(o.width || DEFAULT_W));
     const labelW = Math.min(LABEL_W, Math.round(W * 0.36)), valueW = Math.min(VALUE_W, Math.round(W * 0.3));
     const maxChars = Math.max(8, Math.floor(labelW / 7.4));
@@ -171,8 +173,8 @@
     const h = Math.max(ROW, data.length * ROW) + 8;
     const s = svg('svg', { viewBox: `0 0 ${W} ${h}`, class: 'chart-svg chart-hbar-svg' });
     const f = frame(el, {
-      kind: 'hbar', svg: s, title, label: `${title} : ${data.map(d => `${d.name} ${money(d.total)}`).join(', ')}`,
-      columns: ['Client', 'Total', 'Factures'], rows: data.map(d => [d.name, money(d.total), String(d.count)]),
+      kind: 'hbar', svg: s, title, label: tr('home.chart.aria', { title, items: data.map(d => `${d.name} ${money(d.total)}`).join(', ') }),
+      columns: [tr('home.chart.col_client'), tr('home.chart.col_total'), tr('home.chart.col_invoices')], rows: data.map(d => [d.name, money(d.total), String(d.count)]),
     });
     const track = W - labelW - valueW - 8;
     data.forEach((d, i) => {
@@ -186,10 +188,10 @@
         svg('rect', { x: labelW, y: y + 8, width: w, height: ROW - 16, rx: 4, fill: 'var(--chart-1)', class: 'chart-hbar-rect', style: `--i:${i}` }),
         text(W, y + ROW / 2 + 4, money(d.total), 'chart-value', 'end'),
         svg('rect', { x: 0, y, width: W, height: ROW, fill: 'transparent' }));
-      f.hover(g, () => tipLines(d.name, money(d.total), `${d.count} facture${d.count > 1 ? 's' : ''}`));
+      f.hover(g, () => tipLines(d.name, money(d.total), count(d.count)));
       s.append(g);
     });
-    if (!data.length) s.append(text(W / 2, 30, 'Aucune donnée', 'chart-axis', 'middle'));
+    if (!data.length) s.append(text(W / 2, 30, tr('home.chart.no_data'), 'chart-axis', 'middle'));
     return { el };
   }
 

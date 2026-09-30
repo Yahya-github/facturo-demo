@@ -7,7 +7,16 @@
   if (typeof module === 'object' && module.exports) module.exports = mod;
   else { root.ui = root.ui || {}; root.ui.chartData = mod; }
 })(typeof window !== 'undefined' ? window : globalThis, function () {
-  const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  // The engine (ui.i18n) is optional so this stays unit-testable in plain Node:
+  // without it, months and decimals come out in French, the app's original look.
+  const engine = () => (typeof globalThis !== 'undefined' && globalThis.ui && globalThis.ui.i18n) || null;
+  const localeTag = () => { const e = engine(); return e ? e.LOCALES[e.lang()] : 'fr-CA'; };
+  const monthFmt = {};
+  function shortMonth(m) {
+    const tag = localeTag();
+    const f = monthFmt[tag] || (monthFmt[tag] = new Intl.DateTimeFormat(tag, { month: 'short' }));
+    return f.format(new Date(2000, m - 1, 1));
+  }
   const cents = n => Math.round((Number(n) || 0) * 100);
   const fromCents = c => c / 100;
 
@@ -22,10 +31,12 @@
     return `${Math.floor(idx / 12)}-${String((idx % 12) + 1).padStart(2, '0')}`;
   }
 
-  /** 'sept. 2026' for '2026-09'. */
+  /** 'sept. 2026' / 'Sep 2026' for '2026-09', in the active language. */
   function monthLabel(key, withYear = true) {
     const [y, m] = key.split('-').map(Number);
-    return withYear ? `${MONTHS[m - 1]} ${y}` : MONTHS[m - 1];
+    const e = engine();
+    if (withYear) return e ? e.fmtMonth(key) : `${shortMonth(m)} ${y}`;
+    return shortMonth(m);
   }
 
   /**
@@ -64,6 +75,11 @@
     return out;
   }
 
+  function unknownClient() {
+    const e = engine();
+    return e && e.has('home.chart.unknown_client') ? e.t('home.chart.unknown_client') : 'Client inconnu';
+  }
+
   /**
    * Clients ranked by invoiced total (ties: more invoices, then name).
    * @returns {{id:*,name:string,total:number,count:number}[]}
@@ -72,7 +88,7 @@
     const acc = new Map();
     for (const f of factures || []) {
       const id = f.client_id !== undefined && f.client_id !== null ? f.client_id : f.client_nom;
-      const row = acc.get(id) || { id, name: f.client_nom || 'Client inconnu', total: 0, count: 0 };
+      const row = acc.get(id) || { id, name: f.client_nom || unknownClient(), total: 0, count: 0 };
       row.total += cents(f.total_ttc);
       row.count += 1;
       acc.set(id, row);
@@ -111,10 +127,14 @@
     return { max: step * ticks, step, ticks };
   }
 
-  /** Short French axis label: 850, 1,2 k, 3 M. */
+  /** Short axis label: 850, 1,2 k, 3 M (1.2 k in English). */
   function compact(n) {
     const a = Math.abs(n);
-    const fmt = (v, u) => `${(Math.round(v * 10) / 10).toString().replace('.', ',')}${u}`;
+    const e = engine();
+    const fmt = (v, u) => {
+      const rounded = Math.round(v * 10) / 10;
+      return `${e ? e.fmtNumber(rounded) : String(rounded).replace('.', ',')}${u}`;
+    };
     if (a >= 1e6) return fmt(n / 1e6, ' M');
     if (a >= 1e3) return fmt(n / 1e3, ' k');
     return fmt(n, '');

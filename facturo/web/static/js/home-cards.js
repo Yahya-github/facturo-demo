@@ -6,11 +6,13 @@
 
 function homeGreeting() {
   const h = new Date().getHours();
-  return h < 5 || h >= 18 ? 'Bonsoir' : 'Bonjour';
+  return ui.i18n.t(h < 5 || h >= 18 ? 'home.greet.evening' : 'home.greet.morning');
 }
 
 function homeDateLabel() {
-  const d = new Date().toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' });
+  // The engine has no weekday format, so ask Intl for the active locale directly.
+  const locale = ui.i18n.LOCALES[ui.i18n.lang()];
+  const d = new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
   return d.charAt(0).toUpperCase() + d.slice(1);
 }
 
@@ -35,10 +37,11 @@ function homeTrend(cur, prev, unit) {
   if (!(prev.total > 0) && !(prev.count > 0)) return null;
   const diff = unit === 'money' ? cur.total - prev.total : cur.count - prev.count;
   const base = unit === 'money' ? prev.total : prev.count;
-  if (diff === 0) return { cls: 'trend-flat', icon: 'trending-up', text: `Stable vs ${prev.short}` };
+  const t = ui.i18n.t;
+  if (diff === 0) return { cls: 'trend-flat', icon: 'trending-up', text: t('home.trend.stable', { month: prev.short }) };
   const sign = diff > 0 ? '+' : '−';
-  const label = unit === 'money' ? `${sign}${Math.round(Math.abs(diff) / base * 100)} %` : `${sign}${Math.abs(diff)}`;
-  return { cls: diff > 0 ? 'trend-up' : 'trend-down', icon: diff > 0 ? 'trending-up' : 'trending-down', text: `${label} vs ${prev.short}` };
+  const label = unit === 'money' ? t('home.trend.pct', { sign, value: Math.round(Math.abs(diff) / base * 100) }) : `${sign}${Math.abs(diff)}`;
+  return { cls: diff > 0 ? 'trend-up' : 'trend-down', icon: diff > 0 ? 'trending-up' : 'trending-down', text: t('home.trend.vs', { change: label, month: prev.short }) };
 }
 
 function renderTrend(t, fallback) {
@@ -59,25 +62,25 @@ function renderStatCard(o) {
 }
 
 function renderHomeStats(s) {
-  const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+  const { t, tn } = ui.i18n;
   return [
     renderStatCard({
-      label: 'Clients', icon: 'users', tone: 'green', format: 'int', value: s.clients,
-      hint: renderTrend(null, s.clients ? `${s.active} avec factures` : 'Aucun client'),
+      label: t('home.stat.clients'), icon: 'users', tone: 'green', format: 'int', value: s.clients,
+      hint: renderTrend(null, s.clients ? t('home.hint.clients_active', { count: s.active }) : t('home.hint.no_clients')),
     }),
     renderStatCard({
-      label: 'Factures', icon: 'receipt', tone: 'gold', format: 'int', value: s.count,
-      hint: renderTrend(homeTrend(s.cur, s.prev, 'count'), s.cur.count ? `${plural(s.cur.count, 'facture', 'factures')} en ${s.cur.short}` : 'Aucune facture'),
+      label: t('home.stat.invoices'), icon: 'receipt', tone: 'gold', format: 'int', value: s.count,
+      hint: renderTrend(homeTrend(s.cur, s.prev, 'count'), s.cur.count ? tn('home.hint.invoices_in', s.cur.count, { month: s.cur.short }) : t('home.hint.no_invoices')),
     }),
     renderStatCard({
-      label: 'Total facturé', icon: 'trending-up', tone: 'green', format: 'money', value: s.total,
-      hint: renderTrend(homeTrend(s.cur, s.prev, 'money'), 'Toutes factures confondues'),
+      label: t('summary.total'), icon: 'trending-up', tone: 'green', format: 'money', value: s.total,
+      hint: renderTrend(homeTrend(s.cur, s.prev, 'money'), t('home.hint.all_invoices')),
     }),
     renderStatCard({
-      label: 'Solde impayé', icon: 'clock', tone: 'gold', format: 'money', value: s.unpaid,
+      label: t('summary.unpaid'), icon: 'clock', tone: 'gold', format: 'money', value: s.unpaid,
       hint: s.unpaidCount > 0
-        ? `<span class="trend trend-warn">${icon('circle-alert', { size: 'xs' })}${esc(plural(s.unpaidCount, 'facture en attente', 'factures en attente'))}</span>`
-        : `<span class="trend trend-up">${icon('circle-check', { size: 'xs' })}Tout est réglé</span>`,
+        ? `<span class="trend trend-warn">${icon('circle-alert', { size: 'xs' })}${esc(tn('home.hint.pending', s.unpaidCount))}</span>`
+        : `<span class="trend trend-up">${icon('circle-check', { size: 'xs' })}${esc(t('home.hint.all_settled'))}</span>`,
     }),
   ].join('');
 }
@@ -100,12 +103,12 @@ function renderHomeHero() {
       <path d="M8 200C60 208 96 180 150 190S236 196 254 170" fill="none" stroke="#e8c97a" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 8" opacity="0.8"/>
     </svg>
     <div class="hero-body">
-      <span class="hero-eyebrow">${esc(homeGreeting())}, ${esc(homeDateLabel())}</span>
-      <h3 id="home-hero-title">Prêt à facturer votre prochaine livraison&nbsp;?</h3>
-      <p>Sélectionnez un client, ajoutez les billets et générez le fichier Excel en un clic.</p>
+      <span class="hero-eyebrow">${esc(ui.i18n.t('home.greeting', { greeting: homeGreeting(), date: homeDateLabel() }))}</span>
+      <h3 id="home-hero-title">${esc(ui.i18n.t('home.hero.title'))}</h3>
+      <p>${esc(ui.i18n.t('home.hero.text'))}</p>
       <div class="hero-actions">
-        <button type="button" class="btn btn-lg hero-cta" onclick="newFacture()">${icons.plus} Créer une facture</button>
-        <button type="button" class="btn hero-link" onclick="navigate('history')">Historique ${icon('arrow-right', { size: 'sm' })}</button>
+        <button type="button" class="btn btn-lg hero-cta" onclick="newFacture()">${icons.plus} ${esc(ui.i18n.t('action.create_invoice'))}</button>
+        <button type="button" class="btn hero-link" onclick="navigate('history')">${esc(ui.i18n.t('nav.history'))} ${icon('arrow-right', { size: 'sm' })}</button>
       </div>
     </div>
   </section>`;
@@ -122,9 +125,9 @@ function renderHomeEmpty() {
   return `<section class="bento-card bento-wide">
     <div class="empty-state home-empty">
       ${icon('receipt')}
-      <h3>Aucune facture pour le moment</h3>
-      <p>Créez votre première facture : vos statistiques et graphiques apparaîtront ici.</p>
-      <button type="button" class="btn btn-primary" onclick="newFacture()">${icons.plus} Créer une facture</button>
+      <h3>${esc(ui.i18n.t('home.empty.title'))}</h3>
+      <p>${esc(ui.i18n.t('home.empty.text'))}</p>
+      <button type="button" class="btn btn-primary" onclick="newFacture()">${icons.plus} ${esc(ui.i18n.t('action.create_invoice'))}</button>
     </div>
   </section>`;
 }
@@ -132,7 +135,7 @@ function renderHomeEmpty() {
 /** Shimmering placeholders shown until the first data load settles. */
 function renderHomeSkeleton() {
   const stat = `<div class="stat"><span class="skeleton" style="width:40%;height:0.8rem"></span><span class="skeleton" style="width:65%;height:1.9rem;margin-top:0.9rem"></span><span class="skeleton" style="width:50%;height:0.7rem;margin-top:0.9rem"></span></div>`;
-  return `<div class="page page-loading home" aria-busy="true" aria-label="Chargement">
+  return `<div class="page page-loading home" aria-busy="true" aria-label="${escAttr(ui.i18n.t('a11y.loading'))}">
     <div class="page-head"><div><span class="skeleton" style="width:9rem;height:2rem"></span><span class="skeleton" style="width:14rem;height:0.8rem;margin-top:0.7rem"></span></div></div>
     <div class="bento">
       <div class="hero hero-skeleton"><span class="skeleton" style="width:30%;height:0.8rem"></span><span class="skeleton" style="width:70%;height:2rem;margin-top:1rem"></span><span class="skeleton" style="width:9rem;height:2.75rem;margin-top:2rem"></span></div>
@@ -152,11 +155,11 @@ function renderHomeCharts() {
   const top = $('#home-chart-top');
   if (!bar || !donut || !top) return;
   const rows = state.factures;
-  ui.chart.donut(donut, ui.chartData.paidSplit(rows), { title: 'Payées et impayées' });
-  ui.chart.hbar(top, ui.chartData.topClients(rows, 5), { title: 'Meilleurs clients', width: top.clientWidth });
+  ui.chart.donut(donut, ui.chartData.paidSplit(rows), { title: ui.i18n.t('home.chart.split.title') });
+  ui.chart.hbar(top, ui.chartData.topClients(rows, 5), { title: ui.i18n.t('home.chart.top.title'), width: top.clientWidth });
   bar.textContent = '';
   const height = Math.min(260, Math.max(200, bar.clientHeight));
-  ui.chart.bar(bar, ui.chartData.groupByMonth(rows, { months: 6 }), { title: 'Facturé par mois', width: bar.clientWidth, height });
+  ui.chart.bar(bar, ui.chartData.groupByMonth(rows, { months: 6 }), { title: ui.i18n.t('home.chart.monthly.title'), width: bar.clientWidth, height });
 }
 
 let homeChartWidth = 0;

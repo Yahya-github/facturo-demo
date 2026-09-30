@@ -33,7 +33,7 @@
     overlay.setAttribute('role', opts.role || 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     if (heading) overlay.setAttribute('aria-labelledby', heading.id);
-    overlay.querySelectorAll('.modal-close').forEach(b => { if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', 'Fermer'); });
+    overlay.querySelectorAll('.modal-close').forEach(b => { if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', ui.i18n.t('action.close')); });
 
     const trigger = document.activeElement;
     const onKeydown = e => {
@@ -100,7 +100,7 @@
     const dismissible = o.dismissible !== false;
     const header = h('div', { class: 'modal-header' },
       h('h3', { text: o.title || '' }),
-      dismissible && h('button', { type: 'button', class: 'modal-close', 'aria-label': 'Fermer', html: ui.ico('x', { size: 'sm' }) }));
+      dismissible && h('button', { type: 'button', class: 'modal-close', 'aria-label': ui.i18n.t('action.close'), html: ui.ico('x', { size: 'sm' }) }));
     const modal = h('div', { class: `modal${o.side ? ' sheet' : ''}${o.size ? ` modal-${o.size}` : ''}${o.className ? ` ${o.className}` : ''}` },
       header,
       o.description && h('p', { class: 'modal-desc', id: ui.uid('dlg-desc'), text: o.description }),
@@ -140,14 +140,14 @@
 
   /**
    * Confirmation dialog (role=alertdialog). Resolves true only on confirm; Escape,
-   * the scrim and Annuler resolve false. Destructive dialogs focus Annuler first.
+   * the scrim and Cancel resolve false. Destructive dialogs focus Cancel first.
    * @returns {Promise<boolean>}
    */
   function alertDialog(o) {
-    const { cancel, confirm } = actionButtons(o.cancelLabel || 'Annuler', o.confirmLabel || 'Confirmer', !!o.destructive);
+    const { cancel, confirm } = actionButtons(o.cancelLabel || ui.i18n.t('action.cancel'), o.confirmLabel || ui.i18n.t('action.confirm'), !!o.destructive);
     const footer = ui.h('div', { class: 'dialog-actions' }, cancel, confirm);
     const ctl = show({
-      title: o.title || 'Confirmer',
+      title: o.title || ui.i18n.t('action.confirm'),
       body: ui.h('p', { class: 'confirm-text', text: o.description || '' }),
       footer, role: 'alertdialog', size: 'sm', dismissible: false,
       initialFocus: o.destructive ? '[data-dialog-cancel]' : '[data-dialog-confirm]',
@@ -171,11 +171,11 @@
     const id = ui.uid('prompt');
     const input = h('input', { class: 'form-input', id, type: 'text', autocomplete: 'off', placeholder: o.placeholder || '' });
     input.value = o.value || '';
-    const { cancel, confirm } = actionButtons(o.cancelLabel || 'Annuler', o.confirmLabel || 'Enregistrer', false);
+    const { cancel, confirm } = actionButtons(o.cancelLabel || ui.i18n.t('action.cancel'), o.confirmLabel || ui.i18n.t('action.save'), false);
     const sync = () => { confirm.disabled = !o.allowEmpty && !input.value.trim(); };
     sync();
     const ctl = show({
-      title: o.title || 'Saisir une valeur',
+      title: o.title || ui.i18n.t('dialog.prompt_title'),
       description: o.description,
       body: h('div', { class: 'form-group' }, o.label && h('label', { class: 'form-label', for: id, text: o.label }), input),
       footer: h('div', { class: 'dialog-actions' }, cancel, confirm),

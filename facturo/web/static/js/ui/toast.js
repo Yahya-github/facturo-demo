@@ -119,7 +119,7 @@
         onclick() { dismiss(t); if (opts.action.onClick) opts.action.onClick(); },
       }));
     }
-    el.append(h('button', { type: 'button', class: 'toast-close', 'aria-label': 'Fermer la notification', html: ui.ico('x', { size: 'xs' }), onclick() { dismiss(t); } }));
+    el.append(h('button', { type: 'button', class: 'toast-close', 'aria-label': ui.i18n.t('toast.close'), html: ui.ico('x', { size: 'xs' }), onclick() { dismiss(t); } }));
     if (Number.isFinite(ms)) {
       el.append(h('span', { class: 'toast-progress', 'aria-hidden': 'true', style: `--toast-ms:${ms}ms` }));
     }
