@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,12 @@
   <title>Factures — {{COMPANY_NAME}}</title>
   <script>try{if(localStorage.getItem('facturo-sidebar')==='collapsed')document.documentElement.setAttribute('data-sidebar','collapsed')}catch(e){}</script>
   <script src="/static/js/ui/theme.js?v=2"></script>
+  <!-- Language and its dictionaries load in <head> with the theme: both read
+       localStorage and write <html lang> before the first paint, so a stored
+       preference never flashes. English first, French second. -->
+  <script src="/static/js/i18n.js?v=1"></script>
+  <script src="/static/js/locales/en.ui.js?v=1"></script>
+  <script src="/static/js/locales/fr.ui.js?v=1"></script>
   <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
   <link rel="preload" href="/static/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/css/tokens.css?v=3">
@@ -40,15 +46,15 @@
       <circle cx="24.6" cy="24" r="2.4" fill="#d4a853"/>
     </symbol>
   </svg>
-  <a class="skip-link" href="#main-content" id="skip-link">Aller au contenu</a>
+  <a class="skip-link" href="#main-content" id="skip-link" data-i18n="a11y.skip_link">Aller au contenu</a>
   <div class="app-backdrop" id="app-backdrop" aria-hidden="true"></div>
   <div class="app-shell">
-    <nav class="mobile-bar" aria-label="Barre mobile">
-      <button type="button" class="btn btn-ghost btn-icon" id="sidebar-open" data-sidebar-toggle aria-label="Ouvrir le menu" aria-haspopup="dialog"><i data-icon="menu"></i></button>
+    <nav class="mobile-bar" aria-label="Barre mobile" data-i18n-attr="aria-label:a11y.mobile_bar">
+      <button type="button" class="btn btn-ghost btn-icon" id="sidebar-open" data-sidebar-toggle aria-label="Ouvrir le menu" data-i18n-attr="aria-label:a11y.open_menu" aria-haspopup="dialog"><i data-icon="menu"></i></button>
       <span class="brand brand-compact" role="img" aria-label="Facturo"><svg class="brand-mark" aria-hidden="true"><use href="#brand-f"/></svg><span class="brand-word">Facturo</span></span>
-      <button type="button" class="btn btn-ghost btn-icon" data-cmd-open aria-label="Rechercher"><i data-icon="search"></i></button>
+      <button type="button" class="btn btn-ghost btn-icon" data-cmd-open aria-label="Rechercher" data-i18n-attr="aria-label:a11y.search"><i data-icon="search"></i></button>
     </nav>
-    <aside class="sidebar" id="sidebar" aria-label="Barre latérale">
+    <aside class="sidebar" id="sidebar" aria-label="Barre latérale" data-i18n-attr="aria-label:a11y.sidebar">
       <div class="sidebar-brand">
         <div class="brand" role="img" aria-label="Facturo"><svg class="brand-mark" aria-hidden="true"><use href="#brand-f"/></svg><span class="brand-word">Facturo</span></div>
       </div>
@@ -57,56 +63,56 @@
           <span class="ws-avatar" id="ws-avatar" aria-hidden="true"></span>
           <span class="ws-text">
             <span class="ws-name">{{COMPANY_NAME}}</span>
-            <span class="ws-sub">Espace de travail</span>
+            <span class="ws-sub" data-i18n="ws.workspace">Espace de travail</span>
           </span>
           <i data-icon="chevrons-up-down" data-icon-size="sm"></i>
         </button>
       </div>
-      <nav class="sidebar-nav" aria-label="Navigation principale">
+      <nav class="sidebar-nav" aria-label="Navigation principale" data-i18n-attr="aria-label:a11y.main_nav">
         <div class="nav-group">
-          <div class="nav-group-label">Facturation</div>
+          <div class="nav-group-label" data-i18n="nav.group.billing">Facturation</div>
           <button class="nav-btn active" data-page="home" onclick="navigate('home')">
             <i data-icon="layout-dashboard"></i>
-            <span class="nav-label">Accueil</span>
+            <span class="nav-label" data-i18n="nav.home">Accueil</span>
           </button>
           <button class="nav-btn" data-page="clients" onclick="navigate('clients')">
             <i data-icon="users"></i>
-            <span class="nav-label">Clients</span>
+            <span class="nav-label" data-i18n="nav.clients">Clients</span>
           </button>
           <button class="nav-btn" data-page="facture" onclick="newFacture()">
             <i data-icon="receipt"></i>
-            <span class="nav-label">Nouvelle facture</span>
+            <span class="nav-label" data-i18n="nav.facture">Nouvelle facture</span>
           </button>
           <button class="nav-btn" data-page="history" onclick="navigate('history')">
             <i data-icon="history"></i>
-            <span class="nav-label">Historique</span>
+            <span class="nav-label" data-i18n="nav.history">Historique</span>
           </button>
         </div>
         <div class="nav-group">
-          <div class="nav-group-label">Documents</div>
+          <div class="nav-group-label" data-i18n="nav.group.documents">Documents</div>
           <button class="nav-btn" data-page="scans" onclick="openScans()">
             <i data-icon="scan-line"></i>
-            <span class="nav-label">Factures scannées</span>
+            <span class="nav-label" data-i18n="nav.scans">Factures scannées</span>
           </button>
           <button class="nav-btn" data-page="payments" onclick="openPayments()">
             <i data-icon="banknote"></i>
-            <span class="nav-label">Paiements</span>
+            <span class="nav-label" data-i18n="nav.payments">Paiements</span>
           </button>
         </div>
         <div class="nav-group">
-          <div class="nav-group-label">Système</div>
+          <div class="nav-group-label" data-i18n="nav.group.system">Système</div>
           <button class="nav-btn" data-page="settings" onclick="navigate('settings')">
             <i data-icon="settings"></i>
-            <span class="nav-label">Paramètres</span>
-            <span class="nav-dot" id="update-dot" hidden title="Mise à jour disponible"></span>
+            <span class="nav-label" data-i18n="nav.settings">Paramètres</span>
+            <span class="nav-dot" id="update-dot" hidden title="Mise à jour disponible" data-i18n-attr="data-tip:update.available"></span>
           </button>
         </div>
       </nav>
       <div class="sidebar-footer">
-        <div class="seg theme-toggle" id="theme-toggle" role="group" aria-label="Thème">
-          <button type="button" class="seg-btn" data-theme-set="light" aria-label="Thème clair" title="Clair"></button>
-          <button type="button" class="seg-btn" data-theme-set="dark" aria-label="Thème sombre" title="Sombre"></button>
-          <button type="button" class="seg-btn" data-theme-set="system" aria-label="Thème du système" title="Système"></button>
+        <div class="seg theme-toggle" id="theme-toggle" role="group" aria-label="Thème" data-i18n-attr="aria-label:theme.group">
+          <button type="button" class="seg-btn" data-theme-set="light" aria-label="Thème clair" title="Clair" data-i18n-attr="aria-label:theme.light,data-tip:theme.light_short"></button>
+          <button type="button" class="seg-btn" data-theme-set="dark" aria-label="Thème sombre" title="Sombre" data-i18n-attr="aria-label:theme.dark,data-tip:theme.dark_short"></button>
+          <button type="button" class="seg-btn" data-theme-set="system" aria-label="Thème du système" title="Système" data-i18n-attr="aria-label:theme.system,data-tip:theme.system_short"></button>
         </div>
         <div class="sidebar-version" id="app-version">Facturo</div>
       </div>
@@ -115,18 +121,23 @@
       <header class="topbar">
         <button type="button" class="btn btn-ghost btn-icon topbar-toggle" id="sidebar-toggle" data-sidebar-toggle
           data-tip="Réduire le menu" data-tip-side="bottom" data-kbd="Ctrl+B"
-          aria-label="Réduire le menu" aria-expanded="true" aria-controls="sidebar"><i data-icon="panel-left"></i></button>
+          aria-label="Réduire le menu" aria-expanded="true" aria-controls="sidebar"
+          data-i18n-attr="data-tip:sidebar.collapse,aria-label:sidebar.collapse"><i data-icon="panel-left"></i></button>
         <span class="topbar-sep" aria-hidden="true"></span>
         <h1 class="sr-only" id="page-title"></h1>
-        <nav class="breadcrumb" id="breadcrumb" aria-label="Fil d'Ariane"></nav>
+        <nav class="breadcrumb" id="breadcrumb" aria-label="Fil d'Ariane" data-i18n-attr="aria-label:a11y.breadcrumb"></nav>
         <div class="topbar-actions">
           <button type="button" class="topbar-search" data-cmd-open aria-keyshortcuts="Control+K Meta+K">
             <i data-icon="search" data-icon-size="sm"></i>
-            <span class="topbar-search-label">Rechercher…</span>
+            <span class="topbar-search-label" data-i18n="search.placeholder">Rechercher…</span>
             <span class="topbar-search-kbd" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
           </button>
-          <button type="button" class="btn btn-ghost btn-icon topbar-bell" id="topbar-bell" hidden aria-label="Mise à jour disponible" data-tip="Mise à jour disponible"><i data-icon="bell"></i><span class="topbar-bell-dot" aria-hidden="true"></span></button>
-          <button type="button" class="btn btn-ghost btn-icon" id="theme-cycle" aria-label="Changer de thème" data-tip="Changer de thème"></button>
+          <button type="button" class="btn btn-ghost btn-icon topbar-bell" id="topbar-bell" hidden aria-label="Mise à jour disponible" data-tip="Mise à jour disponible" data-i18n-attr="aria-label:update.available,data-tip:update.available"><i data-icon="bell"></i><span class="topbar-bell-dot" aria-hidden="true"></span></button>
+          <div class="seg seg-labeled" id="lang-toggle" role="group" aria-label="Langue" data-lang-group data-i18n-attr="aria-label:lang.group">
+            <button type="button" class="seg-btn" data-lang-set="en" aria-pressed="true" aria-label="Anglais" title="Anglais" data-i18n-attr="aria-label:lang.en,data-tip:lang.en">EN</button>
+            <button type="button" class="seg-btn" data-lang-set="fr" aria-pressed="false" aria-label="Français" title="Français" data-i18n-attr="aria-label:lang.fr,data-tip:lang.fr">FR</button>
+          </div>
+          <button type="button" class="btn btn-ghost btn-icon" id="theme-cycle" aria-label="Changer de thème" data-tip="Changer de thème" data-i18n-attr="aria-label:theme.toggle,data-tip:theme.toggle"></button>
         </div>
       </header>
       <main class="main-content" id="main-content" tabindex="-1">
@@ -150,16 +161,16 @@
   <script src="/static/js/ui/menu.js?v=1"></script>
   <script src="/static/js/ui/tabs.js?v=1"></script>
   <script src="/static/js/ui/fuzzy.js?v=1"></script>
-  <script src="/static/js/ui/command.js?v=1"></script>
+  <script src="/static/js/ui/command.js?v=2"></script>
   <script src="/static/js/ui/sidebar.js?v=1"></script>
   <script src="/static/js/ui/chart-data.js?v=1"></script>
   <script src="/static/js/ui/chart.js?v=3"></script>
   <script src="/static/js/ui/countup.js?v=1"></script>
   <script src="/static/js/ui/spotlight.js?v=1"></script>
-  <script src="/static/js/ui/shell.js?v=3"></script>
+  <script src="/static/js/ui/shell.js?v=4"></script>
   <script src="/static/js/ui/avatar.js?v=1"></script>
   <script src="/static/js/ui/backdrop.js?v=1"></script>
-  <script src="/static/js/core.js?v=7"></script>
+  <script src="/static/js/core.js?v=8"></script>
   <script src="/static/js/home-cards.js?v=2"></script>
   <script src="/static/js/home.js?v=4"></script>
   <script src="/static/js/clients.js?v=4"></script>
@@ -175,7 +186,7 @@
   <script src="/static/js/scans.js?v=5"></script>
   <script src="/static/js/payments.js?v=3"></script>
   <script src="/static/js/payments-detail.js?v=2"></script>
-  <script src="/static/js/settings.js?v=4"></script>
+  <script src="/static/js/settings.js?v=5"></script>
   <script src="/static/js/settings-sync.js?v=1"></script>
   <script src="/static/js/settings-known.js?v=1"></script>
   <script src="/static/js/settings-updates.js?v=1"></script>

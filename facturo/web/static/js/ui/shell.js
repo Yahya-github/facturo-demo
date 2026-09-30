@@ -7,9 +7,13 @@
   'use strict';
   const ui = root.ui = root.ui || {};
 
-  const PAGE_LABELS = {
-    home: 'Accueil', clients: 'Clients', facture: 'Nouvelle facture', history: 'Historique',
-    scans: 'Factures scannées', payments: 'Paiements', settings: 'Paramètres',
+  // The breadcrumb and the workspace menu are the only copy this file owns, and
+  // both read through the active language rather than carrying their own.
+  const tr = key => (ui.i18n ? ui.i18n.t(key) : key);
+
+  const PAGE_KEYS = {
+    home: 'nav.home', clients: 'nav.clients', facture: 'nav.facture', history: 'nav.history',
+    scans: 'nav.scans', payments: 'nav.payments', settings: 'nav.settings',
   };
 
   const esc = s => (typeof root.esc === 'function' ? root.esc(s) : String(s));
@@ -33,15 +37,15 @@
     // `state` is a top-level const in core.js (not a window property).
     const st = typeof state !== 'undefined' ? state : null;
     const page = st ? st.page : 'home';
-    const items = [{ label: PAGE_LABELS.home, page: 'home' }];
+    const items = [{ label: tr(PAGE_KEYS.home), page: 'home' }];
     if (page === 'home') return items;
     if (page === 'facture' && st.editingId != null) {
       const f = (st.factures || []).find(x => x.id === st.editingId);
-      items.push({ label: PAGE_LABELS.history, page: 'history' });
-      items.push({ label: f && f.numero ? `Facture ${f.numero}` : 'Facture' });
+      items.push({ label: tr(PAGE_KEYS.history), page: 'history' });
+      items.push({ label: f && f.numero ? `Facture ${f.numero}` : tr('nav.facture') });
       return items;
     }
-    items.push({ label: PAGE_LABELS[page] || page });
+    items.push({ label: tr(PAGE_KEYS[page] || '') || page });
     return items;
   }
 
@@ -82,9 +86,9 @@
     const avatar = document.getElementById('ws-avatar');
     if (avatar) avatar.textContent = initials(name);
     ui.menu.attach(btn, () => [
-      { heading: name || 'Espace de travail' },
-      { label: 'Paramètres', icon: 'settings', onSelect: () => root.navigate('settings') },
-      { label: 'Changer de thème', icon: 'sun', onSelect: () => ui.theme.cycle() },
+      { heading: name || tr('ws.workspace') },
+      { label: tr('nav.settings'), icon: 'settings', onSelect: () => root.navigate('settings') },
+      { label: tr('theme.toggle'), icon: 'sun', onSelect: () => ui.theme.cycle() },
     ]);
   }
 
@@ -111,6 +115,9 @@
 
   new MutationObserver(themeIcon).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   if (ui.hydrate) ui.hydrate.register(syncBell);
+  // The breadcrumb is built once per render, not per language, so a switch
+  // would otherwise leave it in the previous language until the next render.
+  if (ui.i18n) ui.i18n.onLangChange(renderBreadcrumb);
 
   wireWorkspace();
   themeIcon();

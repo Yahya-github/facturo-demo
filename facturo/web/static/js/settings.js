@@ -16,6 +16,10 @@ const SETTINGS_TABS = [
 /** The tab that stays selected across the re-renders every action triggers. */
 let settingsTab = 'general';
 
+// The one alias this file needs for now: the rest of the copy here is a page's
+// own, waiting on its fragment.
+const tr = key => (ui.i18n ? ui.i18n.t(key) : key);
+
 /** Icon tile + title + description used by every settings card. */
 function settingsCardHead(iconName, title, desc, tone) {
   return `<header class="settings-head">
@@ -59,10 +63,25 @@ function renderCompanyCard() {
   </section>`;
 }
 
+// Same markup contract as the header control (data-lang-group + data-lang-set),
+// so ui.i18n.mountSwitchers() owns the click and paintSwitches() the state.
+// A second control is worth it here: language is a preference, and preferences
+// live on this page.
+function renderLanguageCard() {
+  const active = ui.i18n ? ui.i18n.lang() : 'en';
+  const btn = (code, short) => `<button type="button" class="seg-btn" data-lang-set="${escAttr(code)}" aria-pressed="${code === active}" aria-label="${escAttr(tr('lang.' + code))}" title="${escAttr(tr('lang.' + code))}">${esc(short)}</button>`;
+  return `<section class="card settings-card" aria-label="${escAttr(tr('lang.group'))}" data-i18n-attr="aria-label:lang.group">
+    ${settingsCardHead('code', tr('lang.card_title'), esc(tr('lang.card_desc')))}
+    <div class="seg seg-labeled" id="lang-select" role="group" aria-label="${escAttr(tr('lang.group'))}" data-lang-group data-i18n-attr="aria-label:lang.group">
+      ${btn('en', 'EN')}${btn('fr', 'FR')}
+    </div>
+  </section>`;
+}
+
 function renderGeneralPanel() {
   return `<div class="settings-split">
     <div class="settings-col">${renderLogoCard()}${renderCompanyCard()}</div>
-    <div class="settings-col">${renderUpdateCard()}</div>
+    <div class="settings-col">${renderLanguageCard()}${renderUpdateCard()}</div>
   </div>`;
 }
 

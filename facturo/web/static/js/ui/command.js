@@ -48,6 +48,9 @@
     const list = [
       { id: 'act:new', label: 'Nouvelle facture', icon: 'plus', keywords: 'creer ajouter', run: call('newFacture') },
       { id: 'act:theme', label: 'Basculer le thème', icon: 'moon', keywords: 'clair sombre dark light', run: () => ui.theme && ui.theme.setPreference(ui.theme.resolve(ui.theme.getPreference()) === 'dark' ? 'light' : 'dark') },
+      // One setLang for the palette and both switchers: three controls, one
+      // code path, so none of them can end up out of step with the others.
+      { id: 'act:lang', label: 'Langue / Language', icon: 'code', keywords: 'langue language english french en fr bilingue', run: () => ui.i18n && ui.i18n.setLang(ui.i18n.lang() === 'fr' ? 'en' : 'fr') },
     ];
     if (ui.sidebar) list.push({ id: 'act:sidebar', label: 'Afficher / masquer le menu latéral', icon: 'panel-left', kbd: 'Ctrl+B', keywords: 'barre laterale sidebar', run: () => ui.sidebar.toggle() });
     const sync = gState().sync;
