@@ -93,6 +93,8 @@
     'facture.summary.count': '{count} billets',
     'facture.summary.count.one': '{count} billet',
     'facture.summary.empty': "Ajoutez la quantité et le taux d'un billet.",
+    'facture.summary.stamp_draft': 'BROUILLON',
+    'facture.summary.stamp_ready': 'PRÊT',
     'facture.subtotal': 'Sous-total',
     'facture.tax.tps': 'TPS (5 %)',
     'facture.tax.tvq': 'TVQ (9,975 %)',

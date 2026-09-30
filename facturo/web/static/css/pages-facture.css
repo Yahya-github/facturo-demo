@@ -309,10 +309,8 @@
   padding: 1.5rem 1.5rem 1.25rem;
   border-radius: var(--radius-xl);
   color: var(--on-brand);
-  background:
-    radial-gradient(70% 45% at 100% 0%, color-mix(in srgb, var(--gold) 30%, transparent), transparent 72%),
-    linear-gradient(160deg, var(--brand-deep), var(--brand-deep-2));
-  box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  background: var(--grain), var(--brand-deep);
+  box-shadow: var(--shadow-md);
 }
 .fac-summary-head { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 1.1rem; }
 .fac-summary .fac-summary-head .avatar {

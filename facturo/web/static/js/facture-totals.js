@@ -250,6 +250,7 @@ function renderSummary(m = summaryModel()) {
   const avatar = client ? ui.avatar(client.nom, { size: 'lg' }) : '<span class="avatar avatar-lg" aria-hidden="true">?</span>';
   const rows = m.lines.map(l => summaryLine(
     `${esc(l.label)}${l.ref ? ` <em>${esc(tFac('facture.summary.ref', { ref: l.ref }))}</em>` : ''}`, money(l.net), 'line-billet')).join('');
+  const ready = m.checks.every(c => c.ok);
   const remise = (label, amount) => amount > 0 ? summaryLine(label, `−${money(amount)}`, 'line-remise') : '';
   return `<div class="fac-summary-head">
       ${avatar}
@@ -266,6 +267,7 @@ function renderSummary(m = summaryModel()) {
       ${summaryLine(esc(tFac('facture.tax.tps')), money(t.tps))}
       ${summaryLine(esc(tFac('facture.tax.tvq')), money(t.tvq))}
     </dl>
+    <div class="fac-stamp-row"><span class="fac-stamp ${ready ? 'is-ready' : 'is-draft'}" aria-hidden="true">${esc(tFac(ready ? 'facture.summary.stamp_ready' : 'facture.summary.stamp_draft'))}</span></div>
     <div class="fac-total"><span>${esc(tFac('facture.total_due'))}</span><strong data-fac-total>${money(m.total)}</strong></div>
     <ul class="fac-checks" aria-label="${escAttr(tFac('facture.check.aria'))}">
       ${m.checks.map(c => `<li class="${c.ok ? 'is-ok' : 'is-todo'}">${icon(c.ok ? 'circle-check' : 'circle', { size: 'xs' })} ${esc(c.label)}</li>`).join('')}

@@ -93,6 +93,8 @@
     'facture.summary.count': '{count} tickets',
     'facture.summary.count.one': '{count} ticket',
     'facture.summary.empty': "Add a ticket's quantity and rate.",
+    'facture.summary.stamp_draft': 'DRAFT',
+    'facture.summary.stamp_ready': 'READY',
     'facture.subtotal': 'Subtotal',
     'facture.tax.tps': 'GST (5%)',
     'facture.tax.tvq': 'QST (9.975%)',
