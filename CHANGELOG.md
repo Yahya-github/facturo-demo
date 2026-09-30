@@ -9,6 +9,9 @@ what the snapshot contains.
 
 ## [Unreleased]
 
+### Changed
+- The interface no longer uses decorative gradients. The hero, invoice summary and payments ledger are a flat green with a faint grain and a gold hairline. The hero gets a perforated ticket edge, and the invoice summary a notched tear line and a DRAFT/READY stamp. The blurred background blobs and the pointer-following glow on stat cards are gone. A test lists the gradients that remain and fails on any new one.
+
 ### Added
 - English and French. The interface and the server's messages switch between the two from the header, Settings or the command palette, with no reload; English is the default and the choice is kept per browser. Dates, numbers and money follow the language. Generated invoices and the AI prompts stay French. See `docs/I18N.md`.
 - `scripts/screenshots.py` regenerates the README screenshots in either language.

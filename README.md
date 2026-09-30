@@ -72,7 +72,7 @@ Releases, rolling back automatically if an update fails.
   palette, with no reload. English is the default and the choice is remembered
   per browser. Dates, numbers and money follow the language. Generated
   invoices stay French. See [docs/I18N.md](docs/I18N.md).
-- **Tests and CI:** about 760 pytest tests (unit, API, Playwright e2e) plus
+- **Tests and CI:** about 780 pytest tests (unit, API, Playwright e2e) plus
   node tests, run with ruff on every push. See
   [docs/TESTING.md](docs/TESTING.md).
 

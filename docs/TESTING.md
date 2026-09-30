@@ -34,7 +34,7 @@ The e2e suite needs `playwright install chromium` once.
 
 ## Figures (Linux, Python 3.12+)
 
-- 763 pytest tests collected. 749 pass, and 14 are skipped when optional real
+- 778 pytest tests collected. 764 pass, and 14 are skipped when optional real
   sample PDFs are missing (they are gitignored) or the machine isn't Windows
   (DPAPI). About 120 of them are Playwright e2e tests (`tests/e2e/`), which
   cover the interface: accessibility, overflow at 390/768 px, offline

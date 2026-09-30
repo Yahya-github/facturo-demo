@@ -34,13 +34,29 @@ a colour in a component: use a token, so both themes stay correct.
 | `--success-*`, `--danger-*`, `--info-*`, `--gold-*` | fg / bg / border sets | dark sets | Status chips, alerts |
 | `--chart-1` … `--chart-5` | green, gold, mid green, brown, grey | lighter variants | Charts |
 | `--sidebar-*` | sidebar surface, text, accent | dark sidebar | Sidebar |
-| `--brand-deep`, `--brand-deep-2`, `--on-brand` | `#1a4d2e`, `#256b41`, `#fafafa` | same | Hero and invoice total card (always dark green) |
+| `--brand-deep`, `--on-brand` | `#1a4d2e`, `#fafafa` | `#14382a`, same | Hero and invoice total card: a flat dark green, never a gradient |
+| `--grain`, `--hairline-gold` | a faint noise image, gold at about 45% | same idea | The grain laid over flat cards and the page, and the thin gold frame on the brand cards |
 | `--radius` (+ `sm`, `md`, `lg`, `xl`, `full`) | `0.625rem` | same | Shape |
 | `--shadow-xs` … | soft shadows | stronger shadows | Elevation |
 
 Typography is Geist (sans) and Geist Mono, self-hosted from
 `static/fonts/` (`font-display: swap`, latin and latin-ext subsets, licence in
 `OFL.txt`). Sizes come from the `--text-xs` … `--text-3xl` tokens.
+
+## Visual style
+
+Flat colour plus precise detail, not gradients. The brand cards (hero, invoice
+summary, payments ledger) are one solid dark green with a faint
+grain, a thin gold hairline, and shapes that belong to the product: a perforated
+ticket edge, a notched tear line above the total, and a DRAFT or READY stamp. The
+page behind them is a flat pale ground with a ledger grid and the dotted route
+line. Hover states are a thin gold border and a 2px lift.
+
+A gradient is allowed only when it does a job: the grid lines, the loading
+shimmers, the scrim that keeps white buttons readable over photos, the
+transparency checkerboard, and the mask that cuts the ticket perforation.
+`tests/e2e/test_flat_background.py` lists every `gradient(` in the stylesheets and
+fails if a new one appears, so a decorative blend has to be argued for.
 
 ## File map
 
@@ -52,12 +68,13 @@ Typography is Geist (sans) and Geist Mono, self-hosted from
 | `base.css` | Reset, typography, focus ring, scrollbars, icons, `kbd` |
 | `shell.css` | App shell: floating panel, header, breadcrumb, mobile layout |
 | `sidebar.css` | Sidebar, collapsed rail, mobile drawer |
-| `background.css` | Decorative backdrop (grid, blobs, pauses under reduced motion) |
+| `background.css` | Decorative backdrop: ledger grid, a faint grain, the route motif; pauses under reduced motion |
+| `cards-flat.css` | The flat brand cards: hero, invoice summary, payments ledger. Gold hairline, grain, ticket perforation, tear line, DRAFT/READY stamp |
 | `components.css` | Buttons, inputs, selects, badges, cards, tables |
 | `components-overlays.css` | Dialogs, sheets, menus, popovers, tooltips, toasts, tabs |
 | `combobox.css` | Autocomplete and combobox panels |
 | `charts.css` | SVG charts and their tooltips |
-| `motion.css` | Transitions, spotlight glow, skeletons, `prefers-reduced-motion` |
+| `motion.css` | Transitions, the stat-card hover lift, skeletons, `prefers-reduced-motion` |
 | `home.css`, `pages*.css`, `payments.css`, `filters.css`, `facture-dialogs.css` | One file per page or feature |
 | `app.css` | Older shared rules still in use (nav, status chips, billet cards) |
 
@@ -79,7 +96,7 @@ node can test it.
 | `sidebar.js`, `shell.js` | Collapsible sidebar, workspace switcher, breadcrumb, theme buttons |
 | `theme.js` | Light, dark, system; loaded in `<head>` to avoid a flash |
 | `chart.js`, `chart-data.js` | SVG charts and their data shaping |
-| `countup.js`, `spotlight.js`, `backdrop.js`, `avatar.js` | Motion and decoration |
+| `countup.js`, `backdrop.js`, `avatar.js` | Motion and decoration |
 | `hydrate.js` | One `MutationObserver` that wires tabs, tooltips and menus after each re-render |
 
 `static/js/icons.js` is the Lucide (ISC) icon registry.
@@ -144,12 +161,12 @@ E2E tests depend on these hooks. Renaming one means updating the tests.
   a roving tabindex with typeahead. Toasts are announced through an
   `aria-live` region (errors use `role="alert"`).
 - Charts have text alternatives: values are reachable without hover.
-- `prefers-reduced-motion` stops the backdrop, count-up, spotlight and
+- `prefers-reduced-motion` stops the backdrop, count-up, the hover lift and
   transitions, and the app runs no animation-frame loop.
 - Contrast was checked with axe-core 4 on all seven pages, both themes, at
-  1440 and 390 px: no serious or critical violations. Text on gradients (which
-  axe reports as "needs review") was checked by sampling pixels; the muted
-  foreground and the invoice checklist colours were raised as a result.
+  1440 and 390 px: no serious or critical violations. Text on tinted grounds
+  (which axe reports as "needs review") was checked by sampling pixels; the
+  muted foreground and the invoice checklist colours were raised as a result.
   `tests/e2e/test_accessibility.py` guards the fixes.
 - Layout has no horizontal scroll at 390, 768 and 1440 px (e2e test).
 
