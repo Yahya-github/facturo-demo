@@ -9,7 +9,7 @@
 
   // The breadcrumb and the workspace menu are the only copy this file owns, and
   // both read through the active language rather than carrying their own.
-  const tr = key => (ui.i18n ? ui.i18n.t(key) : key);
+  const tr = (key, params) => (ui.i18n ? ui.i18n.t(key, params) : key);
 
   const PAGE_KEYS = {
     home: 'nav.home', clients: 'nav.clients', facture: 'nav.facture', history: 'nav.history',
@@ -42,7 +42,7 @@
     if (page === 'facture' && st.editingId != null) {
       const f = (st.factures || []).find(x => x.id === st.editingId);
       items.push({ label: tr(PAGE_KEYS.history), page: 'history' });
-      items.push({ label: f && f.numero ? `Facture ${f.numero}` : tr('nav.facture') });
+      items.push({ label: f && f.numero ? tr('nav.invoice_no', { number: f.numero }) : tr('nav.facture') });
       return items;
     }
     items.push({ label: tr(PAGE_KEYS[page] || '') || page });
