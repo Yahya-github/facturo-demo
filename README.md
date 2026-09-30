@@ -67,8 +67,13 @@ Releases, rolling back automatically if an update fails.
   toasts, and accessible dialogs, sheets, tabs and tooltips (focus trap, roving
   tabindex, reduced-motion support). Fonts (Geist) and icons (Lucide) are
   bundled, so the whole UI works offline. See [docs/UI.md](docs/UI.md).
-- **Tests and CI:** about 700 pytest tests (unit, API, Playwright e2e) plus
-  node parity tests, run with ruff on every push. See
+- **English and French:** the whole interface and the server's error messages
+  switch between the two from the header, the settings page or the command
+  palette, with no reload. English is the default and the choice is remembered
+  per browser. Dates, numbers and money follow the language. Generated
+  invoices stay French. See [docs/I18N.md](docs/I18N.md).
+- **Tests and CI:** about 760 pytest tests (unit, API, Playwright e2e) plus
+  node tests, run with ruff on every push. See
   [docs/TESTING.md](docs/TESTING.md).
 
 ## Tech stack

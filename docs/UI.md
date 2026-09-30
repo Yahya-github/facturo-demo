@@ -5,8 +5,10 @@ step, no npm dependency at runtime and no network access. It follows the
 shadcn/ui design language (tokens, radii, component anatomy) and is written by
 hand. Fonts and icons are bundled, so it works offline.
 
-Screenshots: [`docs/screenshots/`](screenshots/). Fictional data:
-`python scripts/seed_demo.py`.
+Screenshots: [`docs/screenshots/`](screenshots/), regenerated with
+`python scripts/screenshots.py`. Fictional data: `python scripts/seed_demo.py`.
+Text and languages: [I18N.md](I18N.md). Pages take their text from `t()`
+rather than writing it inline.
 
 ## Design tokens
 

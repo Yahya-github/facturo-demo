@@ -34,11 +34,13 @@ The e2e suite needs `playwright install chromium` once.
 
 ## Figures (Linux, Python 3.12+)
 
-- 717 pytest tests collected. 703 pass, and 14 are skipped when optional real
+- 763 pytest tests collected. 749 pass, and 14 are skipped when optional real
   sample PDFs are missing (they are gitignored) or the machine isn't Windows
-  (DPAPI). About 100 of them are Playwright e2e tests (`tests/e2e/`), which
+  (DPAPI). About 120 of them are Playwright e2e tests (`tests/e2e/`), which
   cover the interface: accessibility, overflow at 390/768 px, offline
-  loading, command palette, dialogs and toasts.
+  loading, command palette, dialogs and toasts, and every page in both
+  languages. The shared `page` fixture starts in French and `page_en` in
+  English (the default); see [I18N.md](I18N.md).
 - `test_release_tooling.py` (9 tests) clones the working tree with git, so
   it needs the project to be a git checkout.
 - Backend line coverage is about 79% overall (Python only; the JavaScript UI
@@ -46,8 +48,9 @@ The e2e suite needs `playwright install chromium` once.
   `pdf_text.py` 100%, `store.py` 99%, `parser.py` 96%, `updater.py` 95%,
   `known_values.py` 93%, `billet_fields.py` 92%, `excel_generator.py` 82%,
   `services/sync.py` 57% (its network paths are mocked).
-- JS: 6 node test files (9 tests: discount and money parity, chart data,
-  fuzzy matcher, floating placement, utilities), all passing.
+- JS: 9 node test files (71 tests: discount and money parity, chart data,
+  fuzzy matcher, floating placement, utilities, the language engine and the
+  English/French key parity of every locale file), all passing.
 
 ## Billet extraction bench (manual)
 

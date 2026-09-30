@@ -10,6 +10,7 @@
 | `UPDATES_AND_RELEASES.md` | release.sh, CI workflows, in-app updater, rollback | Developer |
 | `INSTALL_WINDOWS.md` | Building `Factures.exe` and the client package by hand | Owner |
 | `UI.md` | Design tokens, CSS and JS file map, how to add a component, icon or theme colour, test-contract ids, accessibility and performance | Developer |
+| `I18N.md` | English and French: how the language is chosen, where strings live, how to add one or a third language, what stays French | Developer |
 | `TESTING.md` | Test suites, coverage figures, CI, the extraction bench | Developer |
 | `CLIENT_GUIDE_FR.md` | Daily use, in French | End user |
 

@@ -10,6 +10,8 @@ what the snapshot contains.
 ## [Unreleased]
 
 ### Added
+- English and French. The interface and the server's messages switch between the two from the header, Settings or the command palette, with no reload; English is the default and the choice is kept per browser. Dates, numbers and money follow the language. Generated invoices and the AI prompts stay French. See `docs/I18N.md`.
+- `scripts/screenshots.py` regenerates the README screenshots in either language.
 - `facturo/` package layout. Runtime data (database, invoices, scans, payments) lives outside the source tree.
 - Invoices built from billets (hours × rate), exported to Excel and PDF, with an option to split by worksite.
 - Dual discounts: a percentage and/or a fixed amount, per billet and per invoice, before TPS/TVQ. Includes a migration from the v1 single-discount model, checked against a frozen oracle.
