@@ -78,7 +78,7 @@
 .kv-add { margin-top: 0.9rem; }
 
 /* ── Danger zone ──────────────────────────────────────── */
-.card.settings-danger { border-color: var(--danger-border); background: linear-gradient(180deg, color-mix(in srgb, var(--danger-bg) 55%, var(--card)), var(--card) 65%); }
+.card.settings-danger { border-color: var(--danger-border); background: var(--danger-bg); }
 .danger-row { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1rem 1.1rem; border: 1px solid var(--danger-border); border-radius: var(--radius-lg); background: var(--card); }
 .danger-row strong { font-size: var(--text-sm); font-weight: 600; }
 .danger-row p { margin-top: 0.25rem; max-width: 30rem; font-size: var(--text-sm); color: var(--muted-foreground); line-height: 1.5; }

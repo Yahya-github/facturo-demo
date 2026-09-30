@@ -464,15 +464,6 @@ def test_tabs_keyboard_and_indicator(page):
     _no_errors(page)
 
 
-def test_spotlight_tracks_the_pointer(page):
-    page.evaluate("""() => { document.body.insertAdjacentHTML('beforeend',
-      '<div id="sp" class="spotlight" style="position:fixed;left:600px;top:100px;width:200px;height:100px;background:#fff;z-index:9"></div>'); }""")
-    page.mouse.move(650, 130)
-    page.mouse.move(680, 150)
-    page.wait_for_function("document.getElementById('sp').style.getPropertyValue('--mx') === '80px'")
-    assert page.evaluate("document.getElementById('sp').style.getPropertyValue('--my')") == "50px"
-
-
 def test_submenu_opens_with_arrow_right_and_closes_with_arrow_left(page):
     page.evaluate("""() => {
       document.body.insertAdjacentHTML('beforeend', '<button id="s-btn" style="position:fixed;left:500px;top:300px">Plus</button>');

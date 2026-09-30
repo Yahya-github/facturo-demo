@@ -68,7 +68,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xs);
-  transition: border-color var(--dur), box-shadow var(--dur);
+  transition: border-color var(--dur), box-shadow var(--dur), transform var(--dur-fast) var(--ease-out);
 }
 .stat:hover { border-color: var(--gold-border); box-shadow: var(--shadow-md); }
 .stat-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }

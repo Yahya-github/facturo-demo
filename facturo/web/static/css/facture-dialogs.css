@@ -13,9 +13,7 @@
   padding: 1.5rem 1rem;
   border: 1.5px dashed var(--input);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 70%),
-    var(--muted);
+  background: var(--muted);
   color: var(--muted-foreground);
   text-align: center;
   cursor: pointer;
@@ -60,7 +58,7 @@
   left: 0;
   width: 38%;
   transition: none;
-  background: linear-gradient(90deg, transparent, var(--primary), var(--gold), transparent);
+  background: var(--primary);
   animation: progress-slide 1.3s var(--ease-in-out) infinite;
 }
 @keyframes progress-slide { from { transform: translateX(-100%); } to { transform: translateX(270%); } }

@@ -5,14 +5,16 @@
 :root {
   --shell-bg: #eceee9;
   --shell-panel: color-mix(in srgb, var(--background) 90%, transparent);
-  --shell-ring: rgba(26, 77, 46, 0.06);
   --page-max: 75rem;
   --page-max-wide: 85rem;
   --page-gutter: clamp(1rem, 4vw, 3rem);
 }
 :root[data-theme="dark"] {
   --shell-bg: #111114;
-  --shell-ring: rgba(0, 0, 0, 0.5);
+}
+/* No explicit choice (theme.js absent): follow the OS. Mirrors the dark block. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) { --shell-bg: #111114; }
 }
 
 body { background: var(--shell-bg); }
@@ -61,7 +63,7 @@ body { background: var(--shell-bg); }
   height: 2rem;
   flex: none;
   border-radius: var(--radius-md);
-  background: linear-gradient(140deg, var(--gold-light), var(--gold));
+  background: var(--gold);
   color: #17351f;
   font-size: 0.75rem;
   font-weight: 700;
@@ -94,7 +96,7 @@ body { background: var(--shell-bg); }
   background: var(--shell-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm), 0 28px 60px -34px var(--shell-ring);
+  box-shadow: var(--shadow-sm), 0 12px 28px -14px rgba(0, 0, 0, 0.16);
 }
 
 /* ── Top bar ──────────────────────────────────────────── */

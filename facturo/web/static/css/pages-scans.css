@@ -20,7 +20,7 @@
 }
 .scan-folder::before {
   content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light) 60%, transparent);
+  background: var(--gold);
   opacity: 0; transition: opacity var(--dur);
 }
 .scan-folder:hover { transform: translateY(-2px); border-color: var(--gold-border); box-shadow: var(--shadow-md); }
@@ -30,7 +30,7 @@
 .scan-folder-icon {
   display: grid; place-items: center; width: 2.75rem; height: 2.75rem;
   border-radius: var(--radius-lg);
-  background: linear-gradient(145deg, var(--gold-bg), color-mix(in srgb, var(--gold) 28%, var(--card)));
+  background: var(--gold-bg);
   box-shadow: inset 0 0 0 1px var(--gold-border);
   color: var(--gold-fg);
 }
@@ -70,7 +70,7 @@
 
 .dropzone.is-dragover {
   border-style: solid; border-color: var(--primary);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--card)), color-mix(in srgb, var(--gold) 14%, var(--card)));
+  background: var(--primary-subtle);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
   transform: scale(1.005);
 }
@@ -82,7 +82,7 @@
 .dz-item { display: grid; grid-template-columns: minmax(0, 14rem) 1fr 4.5rem; align-items: center; gap: 0.75rem; font-size: var(--text-xs); }
 .dz-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .dz-bar { height: 0.4rem; border-radius: var(--radius-full); background: var(--muted); overflow: hidden; }
-.dz-fill { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--primary), var(--gold)); transition: width 160ms linear; }
+.dz-fill { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--primary); transition: width 160ms linear; }
 .dz-state { text-align: right; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 .dz-item.is-done .dz-state { color: var(--success-fg); }
 .dz-item.is-error .dz-state { color: var(--danger-fg); }
@@ -101,7 +101,7 @@
 .scan-thumb:not(.is-loaded) { background: linear-gradient(100deg, var(--muted) 30%, color-mix(in srgb, var(--muted) 55%, var(--card)) 50%, var(--muted) 70%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
 .scan-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease-out); }
 .scan-card:hover .scan-thumb img { transform: scale(1.04); }
-.scan-thumb-pdf { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.35rem; height: 100%; color: var(--danger-fg); background: linear-gradient(160deg, var(--danger-bg), var(--muted)); }
+.scan-thumb-pdf { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.35rem; height: 100%; color: var(--danger-fg); background: var(--danger-bg); }
 .scan-thumb-pdf span { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; }
 .scan-kind {
   position: absolute; top: 0.55rem; left: 0.55rem; padding: 0.1rem 0.5rem; border-radius: var(--radius-full);
