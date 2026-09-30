@@ -65,13 +65,23 @@ def live_server():
     proc.wait(timeout=10)
 
 
-@pytest.fixture
-def page(live_server):
+# The app defaults to English; most of these tests were written against the French UI, so
+# their page starts in French. Set only when unset, so a test that switches language
+# keeps its choice across reloads. `page_en` covers the default language.
+def lang_init_script(lang: str) -> str:
+    return (f"try {{ if (!localStorage.getItem('facturo-lang')) "
+            f"localStorage.setItem('facturo-lang', '{lang}'); }} catch (e) {{}}")
+
+
+def _open_page(live_server, lang: str | None):
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        pg = browser.new_page(viewport={"width": 1440, "height": 900})
+        context = browser.new_context(viewport={"width": 1440, "height": 900})
+        if lang:
+            context.add_init_script(lang_init_script(lang))
+        pg = context.new_page()
         pg.errors = []
         pg.on("pageerror", lambda e: pg.errors.append(str(e)))
         pg.on("console", lambda m: m.type == "error" and pg.errors.append(m.text))
@@ -79,3 +89,14 @@ def page(live_server):
         pg.wait_for_selector(".page")
         yield pg
         browser.close()
+
+
+@pytest.fixture
+def page(live_server):
+    yield from _open_page(live_server, "fr")
+
+
+@pytest.fixture
+def page_en(live_server):
+    """A fresh browser with no stored preference: the app's default (English)."""
+    yield from _open_page(live_server, None)

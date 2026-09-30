@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.e2e.conftest import _free_port, api
+from tests.e2e.conftest import _free_port, api, lang_init_script
 
 FAKE_TOKEN = "github_pat_e2e_should_never_reach_the_page_0123456789"
 
@@ -59,7 +59,9 @@ def browser_page():
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        pg = browser.new_page(viewport={"width": 1024, "height": 800})
+        context = browser.new_context(viewport={"width": 1024, "height": 800})
+        context.add_init_script(lang_init_script("fr"))
+        pg = context.new_page()
         pg.errors, pg.requests = [], []
         pg.on("pageerror", lambda e: pg.errors.append(str(e)))
         pg.on("console", lambda m: m.type == "error" and pg.errors.append(m.text))
