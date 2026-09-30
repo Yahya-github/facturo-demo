@@ -200,7 +200,7 @@ async function fetchAiPages(file, text) {
   if (!file) return [await api('POST', '/api/ai/extract-text', { text })];
   const fd = new FormData();
   fd.append('file', file);
-  const res = await fetch('/api/ai/extract-image', { method: 'POST', body: fd });
+  const res = await fetch('/api/ai/extract-image', { method: 'POST', body: fd, headers: { 'X-Lang': ui.i18n.lang() } });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: tFac('facture.ai.server_error') }));
     throw new Error(err.detail || tFac('facture.ai.error'));

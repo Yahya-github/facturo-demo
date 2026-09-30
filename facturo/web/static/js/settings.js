@@ -189,7 +189,7 @@ async function uploadLogo(input) {
   const fd = new FormData();
   fd.append('file', file);
   try {
-    const res = await fetch('/api/logo', { method: 'POST', body: fd });
+    const res = await fetch('/api/logo', { method: 'POST', body: fd, headers: { 'X-Lang': ui.i18n.lang() } });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: tr('settings.server_error') }));
       throw new Error(err.detail || tr('settings.logo.upload_failed'));
