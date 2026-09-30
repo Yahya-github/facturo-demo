@@ -29,7 +29,12 @@ function blankFacForm() {
 }
 
 async function api(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  // The server reads X-Lang and localizes the whole response with it, falling
+  // back to Accept-Language. Read defensively: this file also runs on its own.
+  const i18n = (typeof ui !== 'undefined' && ui.i18n) ? ui.i18n : null;
+  const headers = { 'Content-Type': 'application/json' };
+  if (i18n) headers['X-Lang'] = i18n.lang();
+  const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
   let res;
   try {
@@ -167,13 +172,14 @@ async function togglePaid(id, makePaid) {
 // ── Utils ───────────────────────────────────────────────
 
 /**
- * French-Canadian currency: "9 042,78 $" (narrow no-break space between
- * thousands, decimal comma, no-break space before the dollar sign). Built by
- * hand rather than through Intl so every browser prints the same characters.
+ * Amount in the active language's currency style: "9 042,78 $" in French,
+ * "9,042.78 $" in English. The hand-built French path stays as the fallback so
+ * this still works when the page is loaded without i18n.js.
  * @param {number} n
  * @returns {string}
  */
 function money(n) {
+  if (typeof ui !== 'undefined' && ui.i18n) return ui.i18n.fmtMoney(n);
   const value = Number(n) || 0;
   const [whole, cents] = Math.abs(value).toFixed(2).split('.');
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
