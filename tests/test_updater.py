@@ -157,6 +157,7 @@ def test_check_reports_not_available_when_up_to_date(monkeypatch):
     assert result["available"] is False
 
 
+@pytest.mark.usefixtures("french")
 def test_check_raises_when_no_token_configured(monkeypatch, tmp_path):
     monkeypatch.setattr(updater, "CONFIG_PATH", tmp_path / "update_config.json")
     monkeypatch.setattr(sync, "load_config", lambda: None)
@@ -185,6 +186,7 @@ def test_check_raises_friendly_message_on_403(monkeypatch):
             updater.check(base_url=base_url, token="scoped-wrong", force=True)
 
 
+@pytest.mark.usefixtures("french")
 def test_check_raises_friendly_message_on_404(monkeypatch):
     server, _ = fh.make_server({
         GITHUB_RELEASES_PATH: lambda h: fh.json_response(h, 404, {"message": "Not Found"}),
@@ -194,6 +196,7 @@ def test_check_raises_friendly_message_on_404(monkeypatch):
             updater.check(base_url=base_url, token="tok", force=True)
 
 
+@pytest.mark.usefixtures("french")
 def test_check_raises_friendly_message_on_network_error():
     with pytest.raises(updater.UpdateError, match="[Cc]onnexion"):
         updater.check(base_url="http://127.0.0.1:1", token="tok", force=True)
@@ -316,6 +319,7 @@ def test_download_deletes_new_file_and_raises_on_sha_mismatch(tmp_path):
 # ── install() preconditions ───────────────────────────────
 
 
+@pytest.mark.usefixtures("french")
 def test_install_refuses_in_dev_mode(monkeypatch):
     monkeypatch.setattr(paths, "IS_FROZEN", False)
     with pytest.raises(updater.UpdateError, match="développement|developpement"):
@@ -330,6 +334,7 @@ def test_install_refuses_when_exe_dir_not_writable(monkeypatch, tmp_path):
         updater.install(port=8000)
 
 
+@pytest.mark.usefixtures("french")
 def test_install_refuses_when_sync_in_progress(monkeypatch, tmp_path):
     monkeypatch.setattr(paths, "IS_FROZEN", True)
     monkeypatch.setattr("sys.executable", str(tmp_path / "Factures.exe"))
@@ -342,6 +347,7 @@ def test_install_refuses_when_sync_in_progress(monkeypatch, tmp_path):
         sync._lock.release()
 
 
+@pytest.mark.usefixtures("french")
 def test_install_refuses_when_no_update_available(monkeypatch, tmp_path):
     monkeypatch.setattr(paths, "IS_FROZEN", True)
     monkeypatch.setattr("sys.executable", str(tmp_path / "Factures.exe"))
@@ -502,6 +508,7 @@ def test_cleanup_after_update_surfaces_failure_message_once_via_status(monkeypat
 # ── schema guard: sync push refuses when the db is newer than this app ─────
 
 
+@pytest.mark.usefixtures("french")
 def test_sync_push_refused_when_db_is_newer_than_app(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "sync-guard.db")
     # A throwaway path, never the real sync_config.json, and never a real

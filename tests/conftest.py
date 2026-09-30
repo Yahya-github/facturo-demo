@@ -59,3 +59,16 @@ def _allow_testclient_host(monkeypatch):
     from facturo import local_guard
 
     monkeypatch.setattr(local_guard, "LOCAL_HOSTS", local_guard.LOCAL_HOSTS | {"testserver"})
+
+
+@pytest.fixture
+def french():
+    """Run one test in French: service errors are translated when they are raised,
+    so tests that pin the original French wording need the language set first."""
+    from facturo import i18n
+
+    token = i18n.set_lang("fr")
+    try:
+        yield
+    finally:
+        i18n.reset_lang(token)

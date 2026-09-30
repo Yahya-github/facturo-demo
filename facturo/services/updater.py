@@ -39,6 +39,7 @@ from urllib.parse import urlsplit
 
 from facturo import paths
 from facturo.core import secret_store
+from facturo.i18n import tr, tr_or_text
 from facturo.services import sync
 
 logger = logging.getLogger(__name__)
@@ -89,26 +90,16 @@ _SEMVER = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-rc(\d+))?$")
 _SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 _TOKEN_SHAPE = re.compile(r"^[A-Za-z0-9_\-.]{1,255}$")
 
-_MSG_NO_TOKEN = "Aucun jeton configuré. Ajoutez un jeton GitHub en lecture seule dans Paramètres."
-_MSG_REFUSED = "Jeton GitHub refusé ou expiré."
-_MSG_NOT_FOUND = "Dépôt introuvable ou jeton sans accès."
-_MSG_NETWORK = "Connexion impossible. Vérifiez votre connexion internet."
-_MSG_INSECURE = "Adresse de téléchargement refusée (connexion non sécurisée)."
-_MSG_TOO_BIG = "Fichier de mise à jour anormalement volumineux ; mise à jour annulée."
-
 # update_helper.cmd writes an ASCII code (its body must stay ASCII so every
-# Windows code page reads it the same); the app turns it into French here.
-_ROLLBACK_MESSAGES = {
-    "HEALTH_CHECK_FAILED": "La mise à jour a échoué : la nouvelle version n'a pas démarré. "
-                           "Retour à la version précédente.",
-    "ACTIVATE_NEW_FAILED": "La mise à jour a échoué : le nouveau programme n'a pas pu être mis "
-                           "en place. Retour à la version précédente.",
-    "RENAME_CURRENT_FAILED": "La mise à jour a échoué : le programme était verrouillé "
-                             "(antivirus ?). Aucune modification n'a été faite.",
-    "OLD_PROCESS_STILL_RUNNING": "La mise à jour a échoué : l'ancienne version ne s'est pas "
-                                 "fermée. Aucune modification n'a été faite.",
+# Windows code page reads it the same); the app turns it into a catalog key here
+# and translates it when the message is shown.
+_ROLLBACK_KEYS = {
+    "HEALTH_CHECK_FAILED": "updates.rollback_health_check_failed",
+    "ACTIVATE_NEW_FAILED": "updates.rollback_activate_new_failed",
+    "RENAME_CURRENT_FAILED": "updates.rollback_rename_current_failed",
+    "OLD_PROCESS_STILL_RUNNING": "updates.rollback_old_process_still_running",
 }
-_ROLLBACK_DEFAULT = "La mise à jour a échoué. Retour à la version précédente."
+_ROLLBACK_DEFAULT_KEY = "updates.rollback_default"
 
 
 class UpdateError(Exception):
@@ -122,7 +113,6 @@ _last_update_failure: str | None = None
 # Held for the whole of install() and download() (re-entrant: install calls
 # download on the same thread); a concurrent caller is refused immediately.
 _install_lock = threading.RLock()
-_MSG_BUSY = "Une mise à jour est déjà en cours."
 
 
 # ── Config management ────────────────────────────────────────
@@ -240,7 +230,7 @@ def set_config(*, token: str | None = None, include_prereleases: bool | None = N
         if not token:
             candidate.pop("token", None)
         elif not _TOKEN_SHAPE.match(token):
-            raise UpdateError("Jeton invalide : collez uniquement le jeton GitHub, sans espace.")
+            raise UpdateError(tr("updates.invalid_token"))
         else:
             candidate["token"] = token
     if include_prereleases is not None:
@@ -275,7 +265,7 @@ def status(*, consume_failure: bool = True) -> dict:
         "configured": bool(_resolve_token(cfg)),
         "include_prereleases": bool(cfg.get("include_prereleases", False)),
         "last_check": _cache.get("checked_at"),
-        "update_failed_message": failure,
+        "update_failed_message": tr_or_text(failure) if failure else failure,
     }
 
 
@@ -394,16 +384,16 @@ def _open(url: str, *, token: str | None, accept: str):
 def _read_capped(response, limit: int) -> bytes:
     data = response.read(limit + 1)
     if len(data) > limit:
-        raise UpdateError("Réponse du serveur trop volumineuse.")
+        raise UpdateError(tr("updates.response_too_large"))
     return data
 
 
 def _http_error(e: urllib.error.HTTPError) -> UpdateError:
     if e.code in (401, 403):
-        return UpdateError(_MSG_REFUSED)
+        return UpdateError(tr("updates.token_refused"))
     if e.code == 404:
-        return UpdateError(_MSG_NOT_FOUND)
-    return UpdateError(f"GitHub a répondu avec une erreur ({e.code}). Réessayez plus tard.")
+        return UpdateError(tr("updates.repo_not_found"))
+    return UpdateError(tr("updates.github_error", code=e.code))
 
 
 def _monotonic() -> float:
@@ -435,7 +425,7 @@ def check(*, base_url: str | None = None, force: bool = False,
         if include_prereleases is None:
             include_prereleases = bool(cfg.get("include_prereleases", False))
     if not token:
-        raise UpdateError(_MSG_NO_TOKEN)
+        raise UpdateError(tr("updates.no_token"))
 
     now = _monotonic()
     if not force and _cache and now - _cache["at"] < CACHE_TTL_SECONDS:
@@ -448,13 +438,13 @@ def check(*, base_url: str | None = None, force: bool = False,
     except urllib.error.HTTPError as e:
         raise _http_error(e) from None
     except _InsecureURL:
-        raise UpdateError(_MSG_INSECURE) from None
+        raise UpdateError(tr("updates.insecure_url")) from None
     except (urllib.error.URLError, OSError):
-        raise UpdateError(_MSG_NETWORK) from None
+        raise UpdateError(tr("updates.network_error")) from None
     except ValueError:
-        raise UpdateError("Réponse de GitHub illisible.") from None
+        raise UpdateError(tr("updates.github_unreadable")) from None
     if not isinstance(releases, list):
-        raise UpdateError("Réponse de GitHub illisible.")
+        raise UpdateError(tr("updates.github_unreadable"))
 
     chosen = select_release(releases, include_prereleases)
     current = current_version()
@@ -479,7 +469,7 @@ def _fetch_expected_sha(sha_asset_url: str, token: str) -> str:
     fields = text.split()
     expected = fields[0].lower() if fields else ""
     if not _SHA256_HEX.match(expected):
-        raise UpdateError("Fichier SHA-256 de la version invalide ; mise à jour annulée.")
+        raise UpdateError(tr("updates.sha_file_invalid"))
     return expected
 
 
@@ -487,17 +477,17 @@ def _stream_to(response, part: Path) -> str:
     """Write the body to `part` (size-capped) and return its sha256 hex digest."""
     declared = response.headers.get("Content-Length")
     if declared and declared.isdigit() and int(declared) > MAX_EXE_BYTES:
-        raise UpdateError(_MSG_TOO_BIG)
+        raise UpdateError(tr("updates.file_too_big"))
     digest, total = hashlib.sha256(), 0
     with open(part, "wb") as out:
         while chunk := response.read(_CHUNK):
             total += len(chunk)
             if total > MAX_EXE_BYTES:
-                raise UpdateError(_MSG_TOO_BIG)
+                raise UpdateError(tr("updates.file_too_big"))
             digest.update(chunk)
             out.write(chunk)
     if total == 0:
-        raise UpdateError("Fichier de mise à jour vide ; mise à jour annulée.")
+        raise UpdateError(tr("updates.download_empty"))
     return digest.hexdigest()
 
 
@@ -509,9 +499,6 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-_MSG_SHA_MISMATCH = ("Échec de la vérification SHA-256 : fichier corrompu ou modifié. "
-                     "Mise à jour annulée.")
-
 
 def download(*, exe_asset_url: str, sha_asset_url: str, dest_dir: Path, token: str) -> Path:
     """Download the new exe to `dest_dir/Factures.exe.new`, SHA-256 verified.
@@ -522,7 +509,7 @@ def download(*, exe_asset_url: str, sha_asset_url: str, dest_dir: Path, token: s
     so what was verified is exactly what gets installed.
     """
     if not _install_lock.acquire(blocking=False):
-        raise UpdateError(_MSG_BUSY)
+        raise UpdateError(tr("updates.already_running"))
     try:
         return _download_locked(exe_asset_url=exe_asset_url, sha_asset_url=sha_asset_url,
                                 dest_dir=Path(dest_dir), token=token)
@@ -546,19 +533,19 @@ def _download_locked(*, exe_asset_url: str, sha_asset_url: str, dest_dir: Path,
         with _open(exe_asset_url, token=token, accept="application/octet-stream") as response:
             streamed = _stream_to(response, part)
         if streamed != expected or _sha256_file(part) != expected:
-            raise UpdateError(_MSG_SHA_MISMATCH)
+            raise UpdateError(tr("updates.sha_mismatch"))
         os.replace(part, final)
         promoted = True
         if _sha256_file(final) != expected:
-            raise UpdateError(_MSG_SHA_MISMATCH)
+            raise UpdateError(tr("updates.sha_mismatch"))
         verified = True
         return final
     except urllib.error.HTTPError as e:
         raise _http_error(e) from None
     except _InsecureURL:
-        raise UpdateError(_MSG_INSECURE) from None
+        raise UpdateError(tr("updates.insecure_url")) from None
     except (urllib.error.URLError, OSError):
-        raise UpdateError("Téléchargement interrompu. Vérifiez votre connexion internet.") from None
+        raise UpdateError(tr("updates.download_interrupted")) from None
     finally:
         part.unlink(missing_ok=True)
         # Whatever went wrong after promotion (a mismatch, an unreadable file),
@@ -606,7 +593,7 @@ def install(*, port: int) -> dict:
     Only one install at a time: a second concurrent call is refused at once.
     """
     if not _install_lock.acquire(blocking=False):
-        raise UpdateError(_MSG_BUSY)
+        raise UpdateError(tr("updates.already_running"))
     try:
         return _install_locked(port=port)
     finally:
@@ -617,36 +604,33 @@ def _install_locked(*, port: int) -> dict:
     from facturo.core import database as db
 
     if not paths.IS_FROZEN:
-        raise UpdateError("Mise à jour impossible en mode développement : "
-                          "elle n'est disponible que dans Factures.exe.")
+        raise UpdateError(tr("updates.dev_mode"))
     exe_dir = _exe_dir()
     if not _exe_dir_writable(exe_dir):
-        raise UpdateError("Impossible d'écrire dans le dossier de Factures.exe (permission "
-                          "refusée). Déplacez le dossier hors de « Program Files ».")
+        raise UpdateError(tr("updates.exe_folder_readonly"))
     if Path(sys.executable).name.lower() != EXE_NAME.lower():
-        raise UpdateError(f"Le programme doit s'appeler {EXE_NAME} pour être mis à jour.")
+        raise UpdateError(tr("updates.exe_name_required", exe=EXE_NAME))
     if sync._lock.locked():
-        raise UpdateError("Une synchronisation est en cours. Attendez qu'elle se termine.")
+        raise UpdateError(tr("updates.sync_in_progress"))
     if not isinstance(port, int) or not 1 <= port <= 65535:
-        raise UpdateError("Port invalide.")
+        raise UpdateError(tr("updates.invalid_port"))
 
     token = _resolve_token(load_config())
     result = check(force=True, token=token)
     if not result.get("available"):
-        raise UpdateError("Aucune mise à jour disponible.")
+        raise UpdateError(tr("updates.none_available"))
     if not result.get("asset"):
-        raise UpdateError(f"La version {result.get('latest')} ne contient pas {EXE_NAME} ; "
-                          "réessayez plus tard.")
+        raise UpdateError(tr("updates.asset_missing", version=result.get("latest"), exe=EXE_NAME))
 
     try:
         db.checkpoint()
     except Exception:
         logger.exception("Checkpoint de data.db impossible avant la mise à jour")
-        raise UpdateError("Impossible de préparer la base de données pour la mise à jour.") from None
+        raise UpdateError(tr("updates.db_prepare_failed")) from None
     try:
         _backup_db()
     except OSError:
-        raise UpdateError("Impossible de sauvegarder data.db ; mise à jour annulée.") from None
+        raise UpdateError(tr("updates.backup_failed")) from None
 
     downloaded = Path(download(exe_asset_url=result["asset"]["exe_url"],
                                sha_asset_url=result["asset"]["sha256_url"],
@@ -663,7 +647,7 @@ def _install_locked(*, port: int) -> dict:
             Path(script_path).unlink(missing_ok=True)
         if isinstance(e, UpdateError):
             raise
-        raise UpdateError("Impossible de lancer l'installation de la mise à jour.") from None
+        raise UpdateError(tr("updates.helper_launch_failed")) from None
     logger.info("Mise à jour vers %s lancée", result["latest"])
     return {"ok": True, "version": result["latest"]}
 
@@ -853,7 +837,7 @@ def _helper_env() -> dict:
 def _launch_helper(script_path: Path) -> None:
     """Start the helper detached from this process (Windows only)."""
     if not sys.platform.startswith("win"):
-        raise UpdateError("La mise à jour automatique n'est disponible que sous Windows.")
+        raise UpdateError(tr("updates.windows_only"))
     system_root = os.environ.get("SystemRoot", r"C:\Windows")
     cmd_exe = str(Path(system_root) / "System32" / "cmd.exe")
     flags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
@@ -881,8 +865,8 @@ def pending_failure_report() -> bool:
 def _rollback_message(raw: str) -> str:
     text = raw.strip()
     if text.startswith("ROLLBACK"):
-        return _ROLLBACK_MESSAGES.get(text[len("ROLLBACK"):].strip(), _ROLLBACK_DEFAULT)
-    return text or _ROLLBACK_DEFAULT
+        return _ROLLBACK_KEYS.get(text[len("ROLLBACK"):].strip(), _ROLLBACK_DEFAULT_KEY)
+    return text or _ROLLBACK_DEFAULT_KEY
 
 
 def cleanup_after_update() -> dict | None:
@@ -908,7 +892,7 @@ def cleanup_after_update() -> dict | None:
             raw = ""
         _last_update_failure = _rollback_message(raw)
         logger.warning("Mise à jour annulée par l'assistant : %s", raw.strip()[:200])
-        result = {"message": _last_update_failure}
+        result = {"message": tr_or_text(_last_update_failure)}
     else:
         leftovers.append(OLD_EXE_NAME)
     for name in leftovers:

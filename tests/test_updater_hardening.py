@@ -47,6 +47,7 @@ def test_url_policy(url, carries_token, allowed):
     assert updater._url_allowed(url, carries_token=carries_token) is allowed
 
 
+@pytest.mark.usefixtures("french")
 def test_download_refuses_to_send_the_token_to_a_foreign_host(tmp_path):
     with pytest.raises(updater.UpdateError, match="refusée"):
         updater.download(exe_asset_url="https://evil.example/Factures.exe",
@@ -55,6 +56,7 @@ def test_download_refuses_to_send_the_token_to_a_foreign_host(tmp_path):
     assert not (tmp_path / updater.NEW_EXE_NAME).exists()
 
 
+@pytest.mark.usefixtures("french")
 def test_redirect_to_plain_http_is_refused(tmp_path):
     server, _ = fh.make_server({
         "/assets/1": lambda h: fh.redirect_response(h, "http://storage.example/blob"),
@@ -77,6 +79,7 @@ def _serve(payload: bytes, sha_text: str):
     })
 
 
+@pytest.mark.usefixtures("french")
 def test_download_is_size_capped(tmp_path, monkeypatch):
     monkeypatch.setattr(updater, "MAX_EXE_BYTES", 10)
     payload = b"x" * 11
@@ -98,6 +101,7 @@ def test_download_rejects_a_malformed_sha_file(tmp_path, sha_text):
     assert list(tmp_path.iterdir()) == []
 
 
+@pytest.mark.usefixtures("french")
 def test_download_rejects_an_empty_body(tmp_path):
     server, _ = _serve(b"", hashlib.sha256(b"").hexdigest())
     with fh.running(server) as base:
@@ -121,6 +125,7 @@ def test_download_http_error_is_mapped_without_the_token(tmp_path):
 RELEASES_PATH = f"/repos/{updater.GITHUB_OWNER}/{updater.GITHUB_REPO}/releases"
 
 
+@pytest.mark.usefixtures("french")
 def test_check_rejects_a_non_list_payload():
     server, _ = fh.make_server({RELEASES_PATH: lambda h: fh.json_response(h, 200, {"m": "odd"})})
     with fh.running(server) as base:
@@ -172,6 +177,7 @@ def test_corrupt_config_is_ignored():
 
 
 @pytest.mark.parametrize("bad", ["two words", "tok\nen", "x" * 300])
+@pytest.mark.usefixtures("french")
 def test_set_config_rejects_malformed_tokens_before_any_network(monkeypatch, bad):
     monkeypatch.setattr(updater, "check", lambda **k: pytest.fail("must not validate remotely"))
     with pytest.raises(updater.UpdateError, match="invalide"):
@@ -287,6 +293,7 @@ def test_install_refuses_a_renamed_exe(monkeypatch, tmp_path):
         updater.install(port=8123)
 
 
+@pytest.mark.usefixtures("french")
 def test_install_refuses_a_release_without_exe(monkeypatch, tmp_path):
     _frozen_install_env(monkeypatch, tmp_path, {"available": True, "latest": "2.1.0", "asset": None})
     with pytest.raises(updater.UpdateError, match="ne contient pas"):
@@ -301,6 +308,7 @@ def test_exe_dir_writable_probe(tmp_path):
 # ── rollback report and leftovers ─────────────────────────
 
 
+@pytest.mark.usefixtures("french")
 def test_cleanup_translates_helper_codes_and_removes_leftovers(monkeypatch, tmp_path):
     monkeypatch.setattr(paths, "IS_FROZEN", True)
     monkeypatch.setattr("sys.executable", str(tmp_path / "Factures.exe"))
@@ -315,6 +323,7 @@ def test_cleanup_translates_helper_codes_and_removes_leftovers(monkeypatch, tmp_
     assert updater.pending_failure_report() is False
 
 
+@pytest.mark.usefixtures("french")
 def test_cleanup_unknown_code_uses_generic_message(monkeypatch, tmp_path):
     monkeypatch.setattr(paths, "IS_FROZEN", True)
     monkeypatch.setattr("sys.executable", str(tmp_path / "Factures.exe"))
@@ -369,6 +378,7 @@ def test_install_endpoint_rejects_invalid_ports(client):
 # ── C1: concurrent installs/downloads ─────────────────────
 
 
+@pytest.mark.usefixtures("french")
 def test_concurrent_downloads_cannot_mix_payloads(tmp_path):
     """Two overlapping downloads into the same folder: the second is refused at
     once, and the promoted Factures.exe.new is byte-for-byte the verified one."""
@@ -415,6 +425,7 @@ def test_concurrent_downloads_cannot_mix_payloads(tmp_path):
     assert sorted(p.name for p in tmp_path.iterdir()) == [updater.NEW_EXE_NAME]
 
 
+@pytest.mark.usefixtures("french")
 def test_install_is_refused_while_another_install_runs(monkeypatch):
     import threading
 
@@ -558,6 +569,7 @@ def test_real_dpapi_roundtrip():
 # ── the suite itself can never reach GitHub ───────────────
 
 
+@pytest.mark.usefixtures("french")
 def test_unmocked_set_config_cannot_reach_github():
     with pytest.raises(updater.UpdateError, match="[Cc]onnexion"):
         updater.set_config(token="github_pat_would_be_sent")
@@ -568,6 +580,7 @@ def test_unmocked_set_config_cannot_reach_github():
 # ── Silent-failure review: unexpected errors during install ──
 
 
+@pytest.mark.usefixtures("french")
 def test_install_maps_a_checkpoint_failure_to_update_error(monkeypatch, tmp_path):
     import sqlite3
 

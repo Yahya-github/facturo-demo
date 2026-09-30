@@ -33,6 +33,7 @@ from dulwich.repo import Repo
 from facturo import paths
 from facturo.core import database as db
 from facturo.core import secret_store
+from facturo.i18n import tr
 
 CONFIG_PATH = paths.app_dir() / "sync_config.json"
 
@@ -184,7 +185,7 @@ def status() -> dict:
 def _require_config() -> dict:
     cfg = load_config()
     if not (cfg and cfg.get("remote_url") and cfg.get("token")):
-        raise SyncError("La synchronisation n'est pas configurée.")
+        raise SyncError(tr("sync.not_configured"))
     # The token is injected into this URL: never send it anywhere but GitHub,
     # even if the stored config was edited by hand.
     _assert_github_url(cfg["remote_url"])
@@ -193,16 +194,12 @@ def _require_config() -> dict:
 
 # ── URL / repo helpers ───────────────────────────────────
 
-_MSG_GITHUB_ONLY = ("Adresse du dépôt refusée : utilisez un dépôt GitHub "
-                    "(https://github.com/propriétaire/dépôt).")
-
-
 def _assert_github_url(url: str) -> None:
     """Only https://github.com/<path> may receive the sync token."""
     p = urlparse(url)
     if (p.scheme.lower() != "https" or (p.hostname or "").lower() != "github.com"
             or p.username or p.password or p.port or not p.path.strip("/")):
-        raise SyncError(_MSG_GITHUB_ONLY)
+        raise SyncError(tr("sync.github_url_only"))
 
 
 def _normalize_url(url: str) -> str:
@@ -210,7 +207,7 @@ def _normalize_url(url: str) -> str:
     if url.startswith("git@github.com:"):  # accept SSH form, store as HTTPS
         url = "https://github.com/" + url.split(":", 1)[1]
     if not url:
-        raise SyncError("URL du dépôt requise.")
+        raise SyncError(tr("sync.url_required"))
     _assert_github_url(url)
     if not url.endswith(".git"):
         url += ".git"
@@ -311,7 +308,7 @@ def _backup_db(base: Path) -> Path | None:
         target.write_bytes(src.read_bytes())
     except OSError as e:
         log.error("Sauvegarde de %s impossible avant réception", src, exc_info=True)
-        raise SyncError("Sauvegarde de sécurité impossible ; réception annulée.") from e
+        raise SyncError(tr("sync.backup_failed")) from e
     return target
 
 
@@ -320,11 +317,7 @@ def _checkpoint() -> None:
     try:
         db.checkpoint()
     except db.DatabaseBusyError as e:
-        raise SyncError(f"{e} Synchronisation annulée.") from e
-
-
-_MSG_STAMP_FAILED = ("Synchronisation terminée, mais la date de dernière synchronisation "
-                     "n'a pas pu être enregistrée.")
+        raise SyncError(tr("sync.database_busy")) from e
 
 
 def _stamp(cfg: dict, action: str) -> dict:
@@ -337,7 +330,7 @@ def _stamp(cfg: dict, action: str) -> dict:
     except OSError:
         log.warning("Enregistrement de %s impossible après « %s »", CONFIG_PATH.name, action,
                     exc_info=True)
-        cfg["_stamp_warning"] = _MSG_STAMP_FAILED
+        cfg["_stamp_warning"] = tr("sync.stamp_failed")
     return cfg
 
 
@@ -362,7 +355,7 @@ def _assert_remote_is_data_only(repo: Repo, authed: str, branch: str) -> None:
     try:
         refs = porcelain.ls_remote(authed)
     except Exception as e:  # noqa: BLE001
-        raise SyncError(f"Connexion au dépôt impossible : {_short(e)}") from e
+        raise SyncError(tr("sync.connect_failed", detail=_short(e))) from e
 
     head_ref = b"refs/heads/" + branch.encode()
     if head_ref not in refs and b"HEAD" not in refs:
@@ -383,11 +376,7 @@ def _assert_tree_is_data_only(repo: Repo, sha: bytes) -> None:
              if e.path not in _ALLOWED_TREE]
     if extra:
         preview = ", ".join(extra[:5]) + ("…" if len(extra) > 5 else "")
-        raise SyncError(
-            f"Ce dépôt contient déjà d'autres fichiers ({preview}). "
-            "Utilisez un dépôt GitHub vide et privé, créé uniquement pour les "
-            "données de Factures — jamais le dépôt du code source."
-        )
+        raise SyncError(tr("sync.repo_not_data_only", files=preview))
 
 
 def configure(remote_url: str, token: str, branch: str = "main") -> dict:
@@ -395,7 +384,7 @@ def configure(remote_url: str, token: str, branch: str = "main") -> dict:
         sync_base = _sync_base()
         sync_base.mkdir(parents=True, exist_ok=True)
         if not (token or "").strip():
-            raise SyncError("Jeton GitHub requis.")
+            raise SyncError(tr("sync.token_required"))
         remote_url = _normalize_url(remote_url)
         branch = (branch or "main").strip() or "main"
 
@@ -417,10 +406,7 @@ def push() -> dict:
     """Envoyer — commit local data and push it to GitHub (never force)."""
     # Schema guard: refuse push if db is newer than app version
     if db.is_newer_than_app():
-        raise SyncError(
-            "Cette base de données a été créée par une version plus récente de "
-            "Factures. Mettez à jour l'application avant d'envoyer."
-        )
+        raise SyncError(tr("sync.db_newer_than_app"))
 
     with _lock:
         base = _base()
@@ -456,13 +442,10 @@ def push() -> dict:
         try:
             fr = porcelain.fetch(repo, authed, errstream=io.BytesIO())
         except Exception as e:  # noqa: BLE001
-            raise SyncError(f"Envoi impossible (connexion) : {_short(e)}") from e
+            raise SyncError(tr("sync.push_connect_failed", detail=_short(e))) from e
         remote_sha = fr.refs.get(branch_ref)
         if remote_sha and not _is_ancestor(repo, remote_sha, repo.head()):
-            raise SyncError(
-                "Le dépôt distant contient des données plus récentes "
-                "(un autre appareil a synchronisé). Cliquez « Recevoir » avant d'envoyer."
-            )
+            raise SyncError(tr("sync.remote_has_newer_device"))
 
         err = io.BytesIO()
         try:
@@ -488,14 +471,11 @@ def pull() -> dict:
                 repo, _authed_url(cfg["remote_url"], cfg["token"]), errstream=io.BytesIO()
             )
         except Exception as e:  # noqa: BLE001
-            raise SyncError(f"Réception impossible : {_short(e)}") from e
+            raise SyncError(tr("sync.pull_failed", detail=_short(e))) from e
 
         sha = result.refs.get(b"refs/heads/" + branch.encode())
         if not sha:
-            raise SyncError(
-                "Le dépôt distant est vide. Cliquez « Envoyer » depuis l'appareil "
-                "qui possède déjà les données."
-            )
+            raise SyncError(tr("sync.remote_empty"))
 
         # Same guard as configure(): a remote that has since gained anything but
         # app data must be refused BEFORE the backup and the destructive reset.
@@ -509,8 +489,7 @@ def pull() -> dict:
         try:
             _clear_wal(sync_base)
         except OSError as e:
-            raise SyncError("Fichiers temporaires de la base impossibles à supprimer ; "
-                            "réception annulée. Redémarrez Facturo puis réessayez.") from e
+            raise SyncError(tr("sync.wal_remove_failed")) from e
 
         local_ref = b"refs/heads/" + branch.encode()
         repo.refs[local_ref] = sha
@@ -524,7 +503,7 @@ def pull() -> dict:
 def _backup_hint(backup: Path | None) -> str:
     if backup is None:
         return ""
-    return f" Votre base précédente est sauvegardée dans « {backup.name} » ({backup.parent})."
+    return tr("sync.backup_hint", file=backup.name, folder=backup.parent)
 
 
 def _finish_pull(base: Path, sync_base: Path, backup: Path | None) -> None:
@@ -537,18 +516,14 @@ def _finish_pull(base: Path, sync_base: Path, backup: Path | None) -> None:
         try:
             _clear_wal(where)
         except OSError as e:
-            raise SyncError("Données reçues, mais les fichiers temporaires de la base n'ont "
-                            "pas pu être supprimés. Redémarrez Facturo puis cliquez de nouveau "
-                            "sur « Recevoir »." + hint) from e
+            raise SyncError(tr("sync.pulled_wal_failed", hint=hint)) from e
 
     def run(step) -> None:
         try:
             step()
         except Exception as e:
             log.exception("Réception : mise en place des données reçues impossible")
-            raise SyncError("Données reçues, mais leur mise en place a échoué "
-                            f"({_short(e)}). Redémarrez Facturo puis cliquez de nouveau sur "
-                            "« Recevoir »." + hint) from e
+            raise SyncError(tr("sync.pulled_install_failed", detail=_short(e), hint=hint)) from e
 
     clear_wal(sync_base)
     if sync_base != base:
@@ -568,9 +543,7 @@ def disconnect() -> dict:
             CONFIG_PATH.unlink(missing_ok=True)
         except OSError as e:
             log.error("Suppression de %s impossible", CONFIG_PATH, exc_info=True)
-            raise SyncError("Impossible de supprimer la configuration de synchronisation "
-                            f"({CONFIG_PATH.name}). Fermez les autres programmes qui "
-                            "l'utilisent puis réessayez.") from e
+            raise SyncError(tr("sync.disconnect_failed", file=CONFIG_PATH.name)) from e
         return {"ok": True}
 
 
@@ -585,11 +558,10 @@ def _short(e: Exception) -> str:
 def _friendly_push_error(e: Exception, err: io.BytesIO) -> str:
     detail = (err.getvalue().decode("utf-8", "replace") + " " + str(e)).lower()
     if "401" in detail or "unauthor" in detail or "403" in detail:
-        return "Jeton GitHub refusé. Vérifiez le jeton et ses autorisations."
+        return tr("sync.token_refused")
     if "non-fast-forward" in detail or "fast forward" in detail:
-        return ("Le dépôt distant contient des données plus récentes. "
-                "Cliquez « Recevoir » avant d'envoyer.")
-    return f"Envoi impossible : {_short(e)}"
+        return tr("sync.remote_has_newer")
+    return tr("sync.push_failed", detail=_short(e))
 
 
 def _check_push_result(result, ref: str) -> None:
@@ -598,8 +570,5 @@ def _check_push_result(result, ref: str) -> None:
     if err:
         low = str(err).lower()
         if "fast" in low and "forward" in low:
-            raise SyncError(
-                "Le dépôt distant contient des données plus récentes. "
-                "Cliquez « Recevoir » avant d'envoyer."
-            )
-        raise SyncError(f"Envoi refusé : {err}")
+            raise SyncError(tr("sync.remote_has_newer"))
+        raise SyncError(tr("sync.push_rejected", detail=err))

@@ -60,6 +60,7 @@ def test_extract_text_reads_a_real_text_pdf():
     assert "Quittance # 700-001" in pdf_text.extract_text(make_text_pdf(QUITTANCE_LINES))
 
 
+@pytest.mark.usefixtures("french")
 def test_extract_text_rejects_a_pdf_without_text():
     with pytest.raises(pdf_text.PaymentParseError, match="texte lisible"):
         pdf_text.extract_text(make_blank_pdf())
@@ -74,18 +75,20 @@ def _password_protected_pdf() -> bytes:
     return raw.replace(b"<< /Size", b"<< " + encrypt + b"/Size")
 
 
+@pytest.mark.usefixtures("french")
 def test_extract_text_explains_a_password_protected_pdf():
     with pytest.raises(pdf_text.PaymentParseError, match="mot de passe"):
         pdf_text.extract_text(_password_protected_pdf())
 
 
 def test_password_protected_upload_is_400_with_the_explanation(api):
-    resp = api.post("/api/paiements", files={
+    resp = api.post("/api/paiements", headers={"X-Lang": "fr"}, files={
         "file": ("p.pdf", io.BytesIO(_password_protected_pdf()), "application/pdf")})
     assert resp.status_code == 400
     assert "mot de passe" in resp.json()["detail"]
 
 
+@pytest.mark.usefixtures("french")
 def test_extract_text_rejects_garbage_bytes():
     with pytest.raises(pdf_text.PaymentParseError, match="PDF lisible"):
         pdf_text.extract_text(b"%PDF-1.4 but not really")

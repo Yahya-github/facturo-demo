@@ -67,6 +67,7 @@ def test_pull_happy_path_backs_up_then_resets(pull_env):
     assert list(pull_env.base.glob("data.db.*.bak"))
 
 
+@pytest.mark.usefixtures("french")
 def test_backup_failure_aborts_pull_before_the_reset(pull_env, caplog):
     (pull_env.base / "data.db").unlink()
     (pull_env.base / "data.db").mkdir()  # exists, but cannot be read as a file
@@ -89,6 +90,7 @@ def test_wal_that_cannot_be_cleared_aborts_pull_before_the_reset(pull_env, caplo
     assert "data.db-wal" in caplog.text
 
 
+@pytest.mark.usefixtures("french")
 def test_wal_that_reappears_after_the_reset_is_surfaced(pull_env, monkeypatch, caplog):
     def reset_leaving_a_wal(repo, mode, sha):
         pull_env.resets.append(sha)
@@ -242,6 +244,7 @@ def test_wal_failure_after_the_reset_names_the_backup(pull_env, monkeypatch):
     assert next(pull_env.base.glob("data.db.*.bak")).name in str(exc.value)
 
 
+@pytest.mark.usefixtures("french")
 def test_pull_aborts_when_the_checkpoint_stays_busy(pull_env, monkeypatch):
     def busy():
         raise db.DatabaseBusyError("occupée")
