@@ -9,30 +9,31 @@ let kvTab = 'chantier';
 
 function renderKnownValuesCard() {
   const rows = (state.kvAll || []).filter(v => v.kind === kvTab);
-  const label = kvTab === 'chantier' ? 'un chantier' : 'une plaque';
+  const what = ui.i18n.t(kvTab === 'chantier' ? 'settings.known.a_worksite' : 'settings.known.a_plate');
+  const t = ui.i18n.t;
   const count = kind => (state.kvAll || []).filter(v => v.kind === kind).length;
   const body = rows.length
     ? rows.map(v => `<div class="kv-row${v.hidden ? ' is-hidden' : ''}">
         <span class="kv-value">${esc(v.valeur)}</span>
-        <span class="kv-meta">${v.times_used}×${v.alias_valeur ? ` → ${esc(v.alias_valeur)}` : ''}${v.hidden ? ' · masqué' : ''}</span>
+        <span class="kv-meta">${v.times_used}×${v.alias_valeur ? ` → ${esc(v.alias_valeur)}` : ''}${v.hidden ? ` · ${esc(t('settings.known.hidden'))}` : ''}</span>
         <span class="kv-actions">
-          <button type="button" class="kv-btn" onclick="renameKnownValue(${Number(v.id)})">Renommer</button>
-          <button type="button" class="kv-btn" onclick="toggleKnownValue(${Number(v.id)}, ${v.hidden ? 'false' : 'true'})">${v.hidden ? 'Afficher' : 'Masquer'}</button>
-          <button type="button" class="kv-btn kv-btn-danger" onclick="deleteKnownValue(${Number(v.id)})">Supprimer</button>
+          <button type="button" class="kv-btn" onclick="renameKnownValue(${Number(v.id)})">${esc(t('settings.known.rename'))}</button>
+          <button type="button" class="kv-btn" onclick="toggleKnownValue(${Number(v.id)}, ${v.hidden ? 'false' : 'true'})">${esc(t(v.hidden ? 'settings.known.show' : 'settings.known.hide'))}</button>
+          <button type="button" class="kv-btn kv-btn-danger" onclick="deleteKnownValue(${Number(v.id)})">${esc(t('action.delete'))}</button>
         </span>
       </div>`).join('')
-    : `<div class="kv-empty">${icon('tag')}<p>Aucune valeur enregistrée pour l'instant. Elles s'ajoutent d'elles-mêmes au fil de vos factures.</p></div>`;
+    : `<div class="kv-empty">${icon('tag')}<p>${esc(t('settings.known.empty'))}</p></div>`;
 
-  return `<section class="card settings-card" aria-label="Chantiers et plaques connus">
-    ${settingsCardHead('tag', 'Chantiers et plaques connus', "Ce que les champs Chantier et Plaque proposent, et ce que l'IA utilise pour corriger ses lectures. Renommer une valeur ne modifie pas les factures déjà générées.")}
-    <div class="seg kv-seg" role="group" aria-label="Type de valeur">
-      <button type="button" class="seg-btn${kvTab === 'chantier' ? ' active' : ''}" onclick="setKvTab('chantier')">Chantiers <span class="kv-count">${count('chantier')}</span></button>
-      <button type="button" class="seg-btn${kvTab === 'plaque' ? ' active' : ''}" onclick="setKvTab('plaque')">Plaques <span class="kv-count">${count('plaque')}</span></button>
+  return `<section class="card settings-card" aria-label="${escAttr(t('settings.known.title'))}">
+    ${settingsCardHead('tag', t('settings.known.title'), esc(t('settings.known.desc')))}
+    <div class="seg kv-seg" role="group" aria-label="${escAttr(t('settings.known.type_aria'))}">
+      <button type="button" class="seg-btn${kvTab === 'chantier' ? ' active' : ''}" onclick="setKvTab('chantier')">${esc(t('settings.known.worksites'))} <span class="kv-count">${count('chantier')}</span></button>
+      <button type="button" class="seg-btn${kvTab === 'plaque' ? ' active' : ''}" onclick="setKvTab('plaque')">${esc(t('settings.known.plates'))} <span class="kv-count">${count('plaque')}</span></button>
     </div>
     <div class="kv-list">${body}</div>
     <div class="kv-add">
-      <input class="form-input" id="kv-new" placeholder="Ajouter ${label}…" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnownValue();}">
-      <button type="button" class="btn btn-outline" onclick="addKnownValue()">${icons.plus} Ajouter</button>
+      <input class="form-input" id="kv-new" placeholder="${escAttr(t('settings.known.add_ph', { what }))}" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnownValue();}">
+      <button type="button" class="btn btn-outline" onclick="addKnownValue()">${icons.plus} ${esc(t('action.add'))}</button>
     </div>
   </section>`;
 }
@@ -54,15 +55,16 @@ async function addKnownValue() {
   try {
     await api('POST', '/api/known-values', { kind: kvTab, valeur });
     await reloadKnownValues();
-    toast('Valeur ajoutée.');
+    toast(ui.i18n.t('settings.known.added'));
   } catch (e) { toast(e.message, 'error'); }
 }
 
 async function renameKnownValue(id) {
   const current = (state.kvAll || []).find(v => v.id === id);
   const valeur = await ui.promptDialog({
-    title: 'Renommer la valeur', label: 'Nouvelle orthographe',
-    value: current ? current.valeur : '', confirmLabel: 'Renommer',
+    title: ui.i18n.t('settings.known.rename_title'), label: ui.i18n.t('settings.known.rename_label'),
+    value: current ? current.valeur : '', confirmLabel: ui.i18n.t('settings.known.rename'),
+    cancelLabel: ui.i18n.t('action.cancel'),
   });
   if (valeur === null || !valeur.trim()) return;
   try {
@@ -81,9 +83,9 @@ async function toggleKnownValue(id, hidden) {
 async function deleteKnownValue(id) {
   const v = (state.kvAll || []).find(x => x.id === id);
   const ok = await ui.alertDialog({
-    title: 'Supprimer la valeur',
-    description: `Supprimer « ${v ? v.valeur : ''} » de la liste ?\n\nLes factures déjà générées ne changent pas.`,
-    confirmLabel: 'Supprimer', destructive: true,
+    title: ui.i18n.t('settings.known.delete_title'),
+    description: ui.i18n.t('settings.known.delete_desc', { value: v ? v.valeur : '' }),
+    confirmLabel: ui.i18n.t('action.delete'), destructive: true,
   });
   if (!ok) return;
   try {

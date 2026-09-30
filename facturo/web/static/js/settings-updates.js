@@ -47,19 +47,34 @@ function showDbNewerBanner(show) {
   el.id = 'db-newer-banner';
   el.className = 'db-guard-banner';
   el.setAttribute('role', 'alert');
-  el.innerHTML = `${micon('warning', true)}
-    <div><strong>Cette base de données provient d'une version plus récente — mettez à jour l'application.</strong>
-    <span>L'envoi (synchronisation) est bloqué jusqu'à la mise à jour, pour ne pas écraser des données plus récentes.</span></div>
-    <button class="btn btn-sm db-guard-btn" onclick="navigate('settings')">Mettre à jour</button>`;
+  el.innerHTML = dbNewerBannerHtml();
   document.body.prepend(el);
 }
 
+function dbNewerBannerHtml() {
+  return `${micon('warning', true)}
+    <div><strong>${esc(tr('settings.updates.db_newer'))}</strong>
+    <span>${esc(tr('settings.updates.db_newer_desc'))}</span></div>
+    <button class="btn btn-sm db-guard-btn" onclick="navigate('settings')">${esc(tr('settings.updates.db_newer_btn'))}</button>`;
+}
+
+let updateDotState = { available: false, version: '' };
+
 function setUpdateDot(available, version) {
+  updateDotState = { available, version };
   const dot = document.getElementById('update-dot');
   if (!dot) return;
   dot.hidden = !available;
-  dot.title = available && version ? `Mise à jour disponible : v${version}` : 'Mise à jour disponible';
+  const title = available && version ? tr('settings.updates.dot', { version }) : tr('update.available');
+  if (dot.title !== title) dot.title = title;
 }
+
+// These two live outside the page render, so a language change has to repaint them.
+ui.i18n.onLangChange(() => {
+  const banner = document.getElementById('db-newer-banner');
+  if (banner) banner.innerHTML = dbNewerBannerHtml();
+  setUpdateDot(updateDotState.available, updateDotState.version);
+});
 
 // Once per browser session, in the background: never blocks startup, never throws.
 async function backgroundUpdateCheck() {
@@ -94,12 +109,12 @@ function renderUpdateCard() {
 
   if (updateUi.phase === 'installing') {
     return `<div class="card settings-card update-card" id="update-card">
-      <h3 class="update-title">${micon('system_update')} Mises à jour</h3>
+      <h3 class="update-title">${micon('system_update')} ${esc(tr('settings.updates.title'))}</h3>
       <div class="update-progress" role="status">
         <span class="loading-spinner update-spinner"></span>
-        <div><strong>Mise à jour en cours… une nouvelle fenêtre va s'ouvrir.</strong>
-        <div class="form-hint">Ne fermez pas cette page : elle se rechargera automatiquement sur la nouvelle version.</div>
-        ${updateUi.slow ? `<div class="form-hint update-slow">La nouvelle version tarde à répondre. Si aucune fenêtre ne s'est ouverte, relancez Factures : en cas d'échec, l'ancienne version est rétablie automatiquement.</div>` : ''}
+        <div><strong>${esc(tr('settings.updates.installing'))}</strong>
+        <div class="form-hint">${esc(tr('settings.updates.installing_hint'))}</div>
+        ${updateUi.slow ? `<div class="form-hint update-slow">${esc(tr('settings.updates.slow'))}</div>` : ''}
         </div>
       </div>
     </div>`;
@@ -107,62 +122,62 @@ function renderUpdateCard() {
 
   const failure = state.updateFailure
     ? `<div class="sync-warning update-failure">${micon('error')} <div>${esc(state.updateFailure)}</div></div>` : '';
-  const devNote = frozen ? '' : `<div class="sync-warning">${micon('code')} <div><strong>Mode développement</strong> — l'installation automatique n'est disponible que dans Factures.exe. La vérification fonctionne normalement.</div></div>`;
+  const devNote = frozen ? '' : `<div class="sync-warning">${micon('code')} <div>${settingsRich('settings.updates.dev_note')}</div></div>`;
 
   let result = '';
   if (c && c.available) {
-    const date = c.published_at ? ` · publiée le ${esc(formatDateTime(c.published_at))}` : '';
+    const date = c.published_at ? ` · ${esc(tr('settings.updates.published', { date: formatDateTime(c.published_at) }))}` : '';
     const notes = c.notes ? `<div class="update-notes">${esc(c.notes)}</div>` : '';
     let action;
     if (!frozen) {
-      action = `<button class="btn btn-primary" disabled title="Indisponible en mode développement">${micon('download')} Installer</button>`;
+      action = `<button class="btn btn-primary" disabled title="${escAttr(tr('settings.updates.dev_tip'))}">${micon('download')} ${esc(tr('settings.updates.install'))}</button>`;
     } else if (updateUi.phase === 'confirm') {
       action = `<div class="update-confirm">
-        <p>Factures va se fermer, installer la version <strong>${esc(c.latest)}</strong> puis redémarrer dans une nouvelle fenêtre. Une copie de sauvegarde de vos données est faite avant.</p>
+        <p>${settingsRich('settings.updates.confirm_text', { version: c.latest })}</p>
         <div class="sync-actions">
-          <button class="btn btn-ghost" onclick="cancelUpdateInstall()">Annuler</button>
-          <button class="btn btn-success" id="update-confirm-btn" onclick="confirmUpdateInstall()">${micon('check')} Confirmer l'installation</button>
+          <button class="btn btn-ghost" onclick="cancelUpdateInstall()">${esc(tr('action.cancel'))}</button>
+          <button class="btn btn-success" id="update-confirm-btn" onclick="confirmUpdateInstall()">${micon('check')} ${esc(tr('settings.updates.confirm_btn'))}</button>
         </div>
       </div>`;
     } else {
-      action = `<button class="btn btn-success" id="update-install-btn" onclick="askUpdateInstall()" ${busy ? 'disabled' : ''}>${micon('download')} Installer</button>`;
+      action = `<button class="btn btn-success" id="update-install-btn" onclick="askUpdateInstall()" ${busy ? 'disabled' : ''}>${micon('download')} ${esc(tr('settings.updates.install'))}</button>`;
     }
     result = `<div class="update-available">
-      <div class="update-available-head">${micon('new_releases', true)} <strong>Version ${esc(c.latest)} disponible</strong><span class="form-hint">${date}</span></div>
+      <div class="update-available-head">${micon('new_releases', true)} <strong>${esc(tr('settings.updates.available', { version: c.latest }))}</strong><span class="form-hint">${date}</span></div>
       ${notes}
       <div class="update-action">${action}</div>
     </div>`;
   } else if (c) {
-    result = `<div class="update-uptodate">${micon('check_circle', true)} Vous avez la dernière version${c.latest ? ` (${esc(c.latest)})` : ''}.</div>`;
+    result = `<div class="update-uptodate">${micon('check_circle', true)} ${esc(tr('settings.updates.uptodate', { latest: c.latest ? ` (${c.latest})` : '' }))}</div>`;
   }
 
   const configured = !!s.configured;
   return `<div class="card settings-card update-card" id="update-card">
-    <h3 class="update-title">${micon('system_update')} Mises à jour</h3>
+    <h3 class="update-title">${micon('system_update')} ${esc(tr('settings.updates.title'))}</h3>
     <div class="sync-meta" style="margin-bottom:14px">
-      <div><span class="sync-meta-label">Version installée</span> <span id="update-current">${esc(current)}</span></div>
-      <div><span class="sync-meta-label">Jeton</span> ${configured ? 'configuré' : 'non configuré'}</div>
+      <div><span class="sync-meta-label">${esc(tr('settings.updates.installed'))}</span> <span id="update-current">${esc(current)}</span></div>
+      <div><span class="sync-meta-label">${esc(tr('settings.updates.token'))}</span> ${esc(tr(configured ? 'settings.updates.configured' : 'settings.updates.not_configured'))}</div>
     </div>
     ${failure}
     ${devNote}
     <div class="form-group" style="margin-top:14px">
-      <label class="form-label" for="update-token">Jeton GitHub (lecture seule)</label>
+      <label class="form-label" for="update-token">${esc(tr('settings.updates.token_label'))}</label>
       <input class="form-input" id="update-token" type="password" autocomplete="new-password" spellcheck="false"
-        placeholder="${configured ? 'Jeton enregistré — laissez vide pour le conserver' : 'github_pat_…'}">
-      <div class="form-hint">Jeton « fine-grained » avec l'accès <strong>Contents: Read-only</strong> au seul dépôt <strong>facturo-releases</strong> (jamais au code source). Il n'est jamais réaffiché.</div>
+        placeholder="${escAttr(configured ? tr('settings.updates.token_saved_ph') : 'github_pat_…')}">
+      <div class="form-hint">${settingsRich('settings.updates.token_hint')}</div>
     </div>
     <label class="switch-field" for="update-prereleases">
       <input type="checkbox" id="update-prereleases" ${s.include_prereleases ? 'checked' : ''} onchange="saveUpdateConfig(true)">
       <span class="switch-track"></span>
       <span class="switch-text">
-        <span class="switch-title">Inclure les versions de test</span>
-        <span class="switch-desc">Propose aussi les pré-versions (-rc). À laisser décoché sur les postes de travail.</span>
+        <span class="switch-title">${esc(tr('settings.updates.pre_title'))}</span>
+        <span class="switch-desc">${esc(tr('settings.updates.pre_desc'))}</span>
       </span>
     </label>
     <div class="sync-actions">
-      <button class="btn btn-ghost" id="update-save-btn" onclick="saveUpdateConfig(false)" ${busy ? 'disabled' : ''}>${micon('key')} Enregistrer le jeton</button>
+      <button class="btn btn-ghost" id="update-save-btn" onclick="saveUpdateConfig(false)" ${busy ? 'disabled' : ''}>${micon('key')} ${esc(tr('settings.updates.save_token'))}</button>
       <button class="btn btn-primary" id="update-check-btn" onclick="checkForUpdates()" ${busy ? 'disabled' : ''}>
-        ${updateUi.phase === 'checking' ? '<span class="loading-spinner"></span> Vérification…' : `${micon('refresh')} Vérifier`}
+        ${updateUi.phase === 'checking' ? `<span class="loading-spinner"></span> ${esc(tr('settings.updates.checking'))}` : `${micon('refresh')} ${esc(tr('settings.updates.check'))}`}
       </button>
     </div>
     ${result}
@@ -174,7 +189,7 @@ async function saveUpdateConfig(fromCheckbox) {
   const box = $('#update-prereleases');
   const token = tokenInput ? tokenInput.value.trim() : '';
   const include = box ? box.checked : false;
-  if (!fromCheckbox && !token) { toast('Collez le jeton GitHub avant d\'enregistrer.', 'error'); return; }
+  if (!fromCheckbox && !token) { toast(tr('settings.updates.need_token'), 'error'); return; }
   const body = { include_prereleases: include };
   if (token) body.token = token;
   updateUi.phase = 'saving';
@@ -182,7 +197,7 @@ async function saveUpdateConfig(fromCheckbox) {
     state.updates = await api('POST', '/api/updates/config', body);
     state.updateCheck = null;
     sessionSet(UPDATE_SESSION_KEY, null);
-    toast(token ? 'Jeton enregistré et vérifié.' : 'Préférence enregistrée.');
+    toast(tr(token ? 'settings.updates.token_saved' : 'settings.updates.pref_saved'));
   } catch (e) {
     if (box && fromCheckbox) box.checked = !include;
     toast(e.message, 'error');
