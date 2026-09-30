@@ -63,7 +63,7 @@
   letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15;
 }
 .flt-num { margin-left: 0; font-family: var(--font-sans); }
-.flt-summary-item.is-owed { background: linear-gradient(90deg, var(--gold-bg), transparent 75%); }
+.flt-summary-item.is-owed { background: var(--gold-bg); box-shadow: inset 3px 0 0 var(--gold); }
 .flt-summary-item.is-owed strong { color: var(--gold-fg); }
 
 /* ── Table ────────────────────────────────────────────── */
