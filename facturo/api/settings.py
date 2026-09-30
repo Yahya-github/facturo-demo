@@ -11,6 +11,7 @@ from facturo import paths
 from facturo.api import payments as payments_api
 from facturo.api import scans as scans_api
 from facturo.core import database as db
+from facturo.i18n import tr
 from facturo.invoicing import excel_generator as gen
 
 log = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ def api_get_logo():
     """Serve the current company logo for preview, or 404 if none is set."""
     logo = paths.logo_path()
     if not logo.exists():
-        raise HTTPException(404, "Aucun logo")
+        raise HTTPException(404, tr("err.no_logo"))
     return FileResponse(str(logo), media_type="image/png")
 
 
@@ -46,9 +47,9 @@ async def api_upload_logo(file: UploadFile = File(...)):
     """Store a company logo, normalized to PNG so exports have one fixed format."""
     raw = await file.read()
     if not raw:
-        raise HTTPException(400, "Fichier vide")
+        raise HTTPException(400, tr("err.file_empty"))
     if len(raw) > MAX_LOGO_BYTES:
-        raise HTTPException(400, "Image trop volumineuse (max 5 Mo)")
+        raise HTTPException(400, tr("err.image_too_large"))
 
     try:
         from PIL import Image as PILImage
@@ -58,7 +59,7 @@ async def api_upload_logo(file: UploadFile = File(...)):
             rgba = im.convert("RGBA")
             rgba.save(str(paths.logo_path()), format="PNG")
     except Exception:
-        raise HTTPException(400, "Image invalide. Utilisez un fichier PNG ou JPG.") from None
+        raise HTTPException(400, tr("err.invalid_image")) from None
 
     return {"ok": True}
 

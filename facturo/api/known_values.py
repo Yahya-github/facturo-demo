@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from facturo.core import known_values
+from facturo.i18n import tr_or_text
 
 router = APIRouter()
 
@@ -37,7 +38,7 @@ def api_add_known_value(data: KnownValueIn):
     try:
         return known_values.add(data.kind, data.valeur or "")
     except known_values.KnownValueError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
 
 
 @router.put("/api/known-values/{kv_id}")
@@ -47,7 +48,7 @@ def api_update_known_value(kv_id: int, data: KnownValueIn):
     try:
         return known_values.update(kv_id, data.valeur, data.hidden)
     except known_values.KnownValueError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
 
 
 @router.delete("/api/known-values/{kv_id}")
@@ -62,5 +63,5 @@ def api_merge_known_values(kv_id: int, data: MergeIn):
     try:
         known_values.merge(kv_id, data.into_id)
     except known_values.KnownValueError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
     return {"ok": True}

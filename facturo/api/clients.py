@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from facturo.api.scans import SCANS_DIR
 from facturo.core import database as db
+from facturo.i18n import tr
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ def api_list_clients():
 def api_get_client(client_id: int):
     c = db.get_client(client_id)
     if not c:
-        raise HTTPException(404, "Client introuvable")
+        raise HTTPException(404, tr("err.client_not_found"))
     return c
 
 
@@ -49,7 +50,7 @@ def api_create_client(data: ClientIn):
 @router.put("/api/clients/{client_id}")
 def api_update_client(client_id: int, data: ClientIn):
     if not db.get_client(client_id):
-        raise HTTPException(404, "Client introuvable")
+        raise HTTPException(404, tr("err.client_not_found"))
     return db.update_client(
         client_id, data.ref, data.prefix, data.nom, data.adresse,
         data.separer_chantiers, data.taux_defaut,
@@ -59,7 +60,7 @@ def api_update_client(client_id: int, data: ClientIn):
 @router.delete("/api/clients/{client_id}")
 def api_delete_client(client_id: int):
     if not db.get_client(client_id):
-        raise HTTPException(404, "Client introuvable")
+        raise HTTPException(404, tr("err.client_not_found"))
     # Remove the client's scanned-invoice files before their rows are dropped.
     for s in db.list_scans(client_id):
         scan_file = SCANS_DIR / Path(s["fichier"]).name

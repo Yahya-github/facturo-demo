@@ -8,6 +8,7 @@ from datetime import datetime
 
 from facturo import paths
 from facturo.core import schema
+from facturo.i18n import tr
 
 # Stored next to the exe (when frozen) so the client's data survives upgrades
 # and is easy to back up.
@@ -132,10 +133,7 @@ def checkpoint() -> None:
         log.warning("Checkpoint de la base occupé (tentative %d/%d)", attempt, CHECKPOINT_ATTEMPTS)
         if attempt < CHECKPOINT_ATTEMPTS:
             _sleep(CHECKPOINT_RETRY_SECONDS)
-    raise DatabaseBusyError(
-        "La base de données est occupée par une autre opération. "
-        "Patientez quelques secondes puis réessayez."
-    )
+    raise DatabaseBusyError(tr("err.database_busy"))
 
 
 _TRAILING_DIGITS = re.compile(r"(\d+)\s*$")

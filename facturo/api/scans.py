@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 
 from facturo import paths
 from facturo.core import database as db
+from facturo.i18n import tr
 
 log = logging.getLogger(__name__)
 
@@ -32,19 +33,19 @@ def api_list_scans(client_id: int | None = None):
 @router.post("/api/scans")
 async def api_upload_scan(client_id: int = Form(...), file: UploadFile = File(...)):
     if not db.get_client(client_id):
-        raise HTTPException(404, "Client introuvable")
+        raise HTTPException(404, tr("err.client_not_found"))
 
     # One byte past the cap is enough to know it is too big, without ever
     # holding an arbitrarily large upload in memory.
     raw = await file.read(MAX_SCAN_BYTES + 1)
     if not raw:
-        raise HTTPException(400, "Fichier vide")
+        raise HTTPException(400, tr("err.file_empty"))
     if len(raw) > MAX_SCAN_BYTES:
-        raise HTTPException(400, "Fichier trop volumineux (max 25 Mo)")
+        raise HTTPException(400, tr("err.file_too_large"))
 
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED_SCAN_EXT:
-        raise HTTPException(400, "Format non supporté. Utilisez un PDF ou une image.")
+        raise HTTPException(400, tr("err.unsupported_format"))
 
     # Store under a random name so two scans with the same original name (or odd
     # characters) never collide; the display name is kept in the database.
@@ -58,8 +59,7 @@ async def api_upload_scan(client_id: int = Form(...), file: UploadFile = File(..
         # No file may outlive a failed upload: it would be synced but never listed.
         log.exception("Enregistrement du document scanné %s impossible", stored)
         _remove_scan_file(target)
-        raise HTTPException(500, "Le document n'a pas pu être enregistré ; rien n'a été "
-                                 "conservé. Réessayez.") from e
+        raise HTTPException(500, tr("err.scan_save_failed")) from e
 
 
 def _remove_scan_file(path: Path) -> None:
@@ -77,7 +77,7 @@ def api_get_scan_file(filename: str):
     safe_name = Path(filename).name
     file_path = SCANS_DIR / safe_name
     if not file_path.exists():
-        raise HTTPException(404, "Fichier introuvable")
+        raise HTTPException(404, tr("err.file_not_found"))
     # No filename/disposition → browser shows it inline (PDF/image preview); the
     # download button on the page uses the <a download> attribute to save it.
     return FileResponse(str(file_path))
@@ -87,7 +87,7 @@ def api_get_scan_file(filename: str):
 def api_delete_scan(scan_id: int):
     scan = db.get_scan(scan_id)
     if not scan:
-        raise HTTPException(404, "Document introuvable")
+        raise HTTPException(404, tr("err.document_not_found"))
     _remove_scan_file(SCANS_DIR / Path(scan["fichier"]).name)
     db.delete_scan(scan_id)
     return {"ok": True}

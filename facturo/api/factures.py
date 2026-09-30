@@ -13,6 +13,7 @@ from pydantic import BaseModel, field_validator
 
 from facturo.core import billet_fields, known_values
 from facturo.core import database as db
+from facturo.i18n import tr
 from facturo.invoicing import discounts
 from facturo.invoicing import excel_generator as gen
 from facturo.payments import store as payment_store
@@ -20,10 +21,6 @@ from facturo.payments import store as payment_store
 log = logging.getLogger(__name__)
 
 router = APIRouter()
-
-BILLETS_UNREADABLE = (
-    "Impossible de lire les billets de cette facture. Le fichier d'origine n'a pas été modifié."
-)
 
 
 # ── Factures ─────────────────────────────────────────────
@@ -182,18 +179,18 @@ def _with_created(message: str, invoices: list[dict]) -> str:
     if not invoices:
         return message
     numeros = ", ".join(inv["numero"] for inv in invoices)
-    label = "Factures déjà créées" if len(invoices) > 1 else "Facture déjà créée"
-    return f"{message} {label} : {numeros}."
+    key = "err.invoices_already_created" if len(invoices) > 1 else "err.invoice_already_created"
+    return f"{message} {tr(key, numeros=numeros)}"
 
 
 @router.post("/api/factures/generate")
 def api_generate_facture(data: FactureIn):
     client = db.get_client(data.client_id)
     if not client:
-        raise HTTPException(404, "Client introuvable")
+        raise HTTPException(404, tr("err.client_not_found"))
 
     if not data.billets:
-        raise HTTPException(400, "Au moins un billet est requis")
+        raise HTTPException(400, tr("err.billet_required"))
 
     invoice_date = data.date or date.today().isoformat()
     billets_dicts, remise_pct, remise_montant = _billets_and_remise(data)
@@ -225,7 +222,7 @@ def api_generate_facture(data: FactureIn):
         except Exception as e:
             files.undo()
             raise HTTPException(
-                500, _with_created(f"Erreur lors de la génération: {e}", invoices),
+                500, _with_created(tr("err.generate_failed", detail=e), invoices),
             ) from e
 
         try:
@@ -238,8 +235,7 @@ def api_generate_facture(data: FactureIn):
             log.exception("Enregistrement de la facture %s impossible", numero)
             files.undo()
             raise HTTPException(500, _with_created(
-                f"La facture {numero} n'a pas pu être enregistrée dans la base de données ; "
-                "aucun fichier n'a été conservé pour elle. Réessayez.", invoices,
+                tr("err.invoice_not_saved", numero=numero), invoices,
             )) from e
         invoices.append({"filename": out_path.name, "numero": numero})
 
@@ -268,7 +264,7 @@ def _stored_billets(facture: dict) -> tuple[list[dict], str]:
         if isinstance(parsed, list):
             billets = parsed
         else:
-            problems.append("billets enregistrés illisibles")
+            problems.append(tr("err.stored_billets_unreadable"))
 
     xlsx_path = gen.OUTPUT_DIR / facture["fichier"]
     if not billets:
@@ -277,9 +273,9 @@ def _stored_billets(facture: dict) -> tuple[list[dict], str]:
                 billets = gen.read_billets_from_xlsx(xlsx_path)
             except Exception:
                 log.exception("Lecture du fichier %s impossible", xlsx_path)
-                problems.append("fichier Excel illisible")
+                problems.append(tr("err.excel_unreadable"))
         elif problems:
-            problems.append("fichier Excel introuvable")
+            problems.append(tr("err.excel_not_found"))
 
     billets = [b for b in billets if isinstance(b, dict)]
     if billets or not problems:
@@ -299,7 +295,7 @@ def api_get_facture(facture_id: int):
     """
     facture = db.get_facture(facture_id)
     if not facture:
-        raise HTTPException(404, "Facture introuvable")
+        raise HTTPException(404, tr("err.invoice_not_found"))
 
     billets, unreadable = _stored_billets(facture)
     billets = [_with_v2_discount(b) for b in billets]
@@ -318,18 +314,17 @@ def api_update_facture(facture_id: int, data: FactureIn):
     """
     facture = db.get_facture(facture_id)
     if not facture:
-        raise HTTPException(404, "Facture introuvable")
+        raise HTTPException(404, tr("err.invoice_not_found"))
 
     client = db.get_client(facture["client_id"])
     if not client:
-        raise HTTPException(404, "Client introuvable")
+        raise HTTPException(404, tr("err.client_not_found"))
 
     if not data.billets:
-        raise HTTPException(400, "Au moins un billet est requis")
+        raise HTTPException(400, tr("err.billet_required"))
 
     if not data.forcer_ecrasement and _stored_billets(facture)[1]:
-        raise HTTPException(409, f"{BILLETS_UNREADABLE} Enregistrer maintenant écraserait "
-                                 "la facture existante.")
+        raise HTTPException(409, f"{tr('err.billets_unreadable')} {tr('err.save_would_overwrite')}")
 
     invoice_date = data.date or facture["date"]
     billets_dicts, remise_pct, remise_montant = _billets_and_remise(data)
@@ -377,7 +372,7 @@ def api_update_facture(facture_id: int, data: FactureIn):
         ]
     except Exception as e:
         files.undo()
-        raise HTTPException(500, f"Erreur lors de la régénération: {e}") from e
+        raise HTTPException(500, tr("err.regenerate_failed", detail=e)) from e
     invoices = [{"filename": out_path.name, "numero": new_numero}]
     invoices += [{"filename": p.name, "numero": n}
                  for p, n in zip(extra_paths, extra_numeros, strict=True)]
@@ -395,8 +390,7 @@ def api_update_facture(facture_id: int, data: FactureIn):
         log.exception("Enregistrement de la facture %s (id %s) impossible", new_numero, facture_id)
         files.undo()
         raise HTTPException(
-            500, f"La facture {new_numero} n'a pas pu être enregistrée dans la base de données ; "
-                 "elle est restée telle qu'avant la modification. Réessayez.",
+            500, tr("err.invoice_not_saved_after_edit", numero=new_numero),
         ) from e
 
     # Only once the new state is committed: removing the old files earlier
@@ -427,8 +421,7 @@ def _save_update(facture: dict, new_numero: str, invoice_date: str, filename: st
         # The extra numbers were chosen before the lock; another write could have
         # taken them since. Refuse rather than save a duplicate number.
         if extra and _next_after_update(conn, facture, new_numero) != extra_start:
-            raise HTTPException(409, "Des factures ont été créées entre-temps pour ce client ; "
-                                     "rien n'a été enregistré. Réessayez.")
+            raise HTTPException(409, tr("err.concurrent_invoice_created"))
         db.update_facture(
             facture_id, new_numero, invoice_date, filename, json.dumps(first_billets),
             remise_pct=remise_pct, remise_montant=remise_montant, conn=conn,
@@ -467,15 +460,16 @@ def api_delete_facture(facture_id: int):
     """
     facture = db.get_facture(facture_id)
     if not facture:
-        raise HTTPException(404, "Facture introuvable")
+        raise HTTPException(404, tr("err.invoice_not_found"))
 
     try:
         db.delete_facture(facture_id)
     except Exception as e:
         log.exception("Suppression de la facture %s (id %s) impossible",
                       facture["numero"], facture_id)
-        raise HTTPException(500, f"La facture {facture['numero']} n'a pas pu être supprimée ; "
-                                 "elle est restée intacte. Réessayez.") from e
+        raise HTTPException(
+            500, tr("err.invoice_not_deleted", numero=facture["numero"]),
+        ) from e
 
     _remove_invoice_files(gen.OUTPUT_DIR / facture["fichier"])
     return {"ok": True}
@@ -489,7 +483,7 @@ class PayeIn(BaseModel):
 def api_set_facture_paye(facture_id: int, data: PayeIn):
     """Mark an invoice paid/unpaid. Toggled from the home and history lists."""
     if not db.get_facture(facture_id):
-        raise HTTPException(404, "Facture introuvable")
+        raise HTTPException(404, tr("err.invoice_not_found"))
     db.set_facture_paye(facture_id, data.paye)
     return {"ok": True, "paye": data.paye}
 
@@ -505,7 +499,7 @@ def api_download_facture(filename: str):
     safe_name = Path(filename).name
     file_path = gen.OUTPUT_DIR / safe_name
     if not file_path.exists():
-        raise HTTPException(404, "Fichier introuvable")
+        raise HTTPException(404, tr("err.file_not_found"))
     return FileResponse(
         str(file_path),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -519,12 +513,12 @@ def api_download_facture_pdf(filename: str):
     safe_name = Path(filename).name
     xlsx_path = gen.OUTPUT_DIR / safe_name
     if not xlsx_path.exists():
-        raise HTTPException(404, "Fichier introuvable")
+        raise HTTPException(404, tr("err.file_not_found"))
 
     try:
         pdf_path = gen.convert_to_pdf(xlsx_path)
     except Exception as e:
-        raise HTTPException(500, f"Erreur lors de la conversion PDF: {e}") from e
+        raise HTTPException(500, tr("err.pdf_conversion_failed", detail=e)) from e
 
     return FileResponse(
         str(pdf_path),

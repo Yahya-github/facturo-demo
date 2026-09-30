@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from facturo import paths
 from facturo.brand import COMPANY_NAME
 from facturo.core.billet_fields import tidy_billet_number
+from facturo.i18n import tr, tr_or_text
 from facturo.payments import parser, pdf_text, store
 
 log = logging.getLogger(__name__)
@@ -30,21 +31,16 @@ MAX_PAYMENT_BYTES = 25 * 1024 * 1024  # 25 MB per file
 _STORED_NAME = re.compile(r"[0-9a-f]{32}\.pdf")
 _ISO_DATE = r"^(\d{4}-\d{2}-\d{2})?$"
 
-BILL_REFUSED = (
-    f"Ce document est une facture adressée à {COMPANY_NAME}, pas une "
-    "preuve de paiement. Seules les preuves de paiement peuvent être importées."
-)
-
 
 # ── Import ────────────────────────────────────────────────────────────────
 
 def _check_upload(raw: bytes) -> None:
     if not raw:
-        raise HTTPException(400, "Fichier vide")
+        raise HTTPException(400, tr("err.file_empty"))
     if len(raw) > MAX_PAYMENT_BYTES:
-        raise HTTPException(400, "Fichier trop volumineux (max 25 Mo)")
+        raise HTTPException(400, tr("err.file_too_large"))
     if not raw.startswith(b"%PDF-"):
-        raise HTTPException(400, "Seuls les fichiers PDF sont acceptés.")
+        raise HTTPException(400, tr("err.pdf_only"))
 
 
 def _remove_file(name: str) -> None:
@@ -62,11 +58,11 @@ async def api_import_paiement(file: UploadFile = File(...)):
     try:
         text = await run_in_threadpool(pdf_text.extract_text, raw)
     except pdf_text.PaymentParseError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
 
     doc = await run_in_threadpool(parser.parse, text)
     if doc.facture_adressee_entreprise:
-        raise HTTPException(422, BILL_REFUSED)
+        raise HTTPException(422, tr("err.bill_refused", company=COMPANY_NAME))
 
     stored = f"{uuid.uuid4().hex}.pdf"
     nom_original = Path(file.filename or "").name[:255] or stored
@@ -75,8 +71,7 @@ async def api_import_paiement(file: UploadFile = File(...)):
     except OSError as e:
         log.error("Enregistrement du fichier de paiement %s impossible", stored, exc_info=True)
         _remove_file(stored)  # a partial write must not stay behind
-        raise HTTPException(500, "Enregistrement du fichier impossible ; rien n'a été "
-                                 "importé. Vérifiez l'espace disque puis réessayez.") from e
+        raise HTTPException(500, tr("err.payment_save_failed")) from e
     try:
         return await run_in_threadpool(store.create_paiement, doc, text, stored, nom_original)
     except BaseException:
@@ -100,11 +95,11 @@ def api_list_paiements():
 def api_get_paiement_file(name: str):
     safe = Path(name).name
     if not _STORED_NAME.fullmatch(safe):
-        raise HTTPException(404, "Fichier introuvable")
+        raise HTTPException(404, tr("err.file_not_found"))
     base = PAYMENTS_DIR.resolve()
     target = (base / safe).resolve()
     if target.parent != base or not target.is_file():
-        raise HTTPException(404, "Fichier introuvable")
+        raise HTTPException(404, tr("err.file_not_found"))
     return FileResponse(str(target), media_type="application/pdf")
 
 
@@ -113,7 +108,7 @@ def api_get_paiement(paiement_id: int):
     try:
         return store.get_paiement(paiement_id)
     except store.PaymentNotFound as e:
-        raise HTTPException(404, "Paiement introuvable") from e
+        raise HTTPException(404, tr("err.payment_not_found")) from e
 
 
 class PaiementUpdate(BaseModel):
@@ -139,7 +134,7 @@ def api_update_paiement(paiement_id: int, data: PaiementUpdate):
     try:
         return store.update_paiement(paiement_id, fields)
     except store.PaymentNotFound as e:
-        raise HTTPException(404, "Paiement introuvable") from e
+        raise HTTPException(404, tr("err.payment_not_found")) from e
 
 
 @router.delete("/api/paiements/{paiement_id}")
@@ -147,7 +142,7 @@ def api_delete_paiement(paiement_id: int):
     try:
         fichier = store.delete_paiement(paiement_id)
     except store.PaymentNotFound as e:
-        raise HTTPException(404, "Paiement introuvable") from e
+        raise HTTPException(404, tr("err.payment_not_found")) from e
     if fichier:
         _remove_file(fichier)
     return {"ok": True}
@@ -162,15 +157,14 @@ class LigneIn(BaseModel):
 @router.post("/api/paiements/{paiement_id}/lignes")
 def api_add_ligne(paiement_id: int, data: LigneIn):
     if not data.numero_billet.strip():
-        raise HTTPException(400, "Numéro de billet requis")
+        raise HTTPException(400, tr("err.ticket_number_required"))
     if not tidy_billet_number(data.numero_billet):
         # e.g. a project number ("#26-112"): storing it blank would match nothing.
-        raise HTTPException(422, "Ce n'est pas un numéro de billet valide "
-                                 "(un numéro de projet, par exemple).")
+        raise HTTPException(422, tr("err.not_a_ticket_number"))
     try:
         return store.add_ligne_manuelle(paiement_id, data.numero_billet)
     except store.PaymentNotFound as e:
-        raise HTTPException(404, "Paiement introuvable") from e
+        raise HTTPException(404, tr("err.payment_not_found")) from e
 
 
 class LienIn(BaseModel):
@@ -184,14 +178,14 @@ def api_link_ligne(ligne_id: int, data: LienIn):
         if data.facture_id is None:
             return store.unlink_ligne(ligne_id)
         if data.billet_index is None:
-            raise HTTPException(400, "Choisissez un billet")
+            raise HTTPException(400, tr("err.choose_ticket"))
         return store.link_ligne(ligne_id, data.facture_id, data.billet_index)
     except store.LigneNotFound as e:
-        raise HTTPException(404, "Ligne introuvable") from e
+        raise HTTPException(404, tr("err.payment_line_not_found")) from e
     except store.InvalidBillet as e:
-        raise HTTPException(400, "Ce billet n'existe pas sur cette facture") from e
+        raise HTTPException(400, tr("err.ticket_not_on_invoice")) from e
     except store.LinkConflict as e:
-        raise HTTPException(409, str(e)) from e
+        raise HTTPException(409, tr_or_text(str(e))) from e
 
 
 @router.delete("/api/paiements/lignes/{ligne_id}")
@@ -199,7 +193,7 @@ def api_delete_ligne(ligne_id: int):
     try:
         store.delete_ligne(ligne_id)
     except store.LigneNotFound as e:
-        raise HTTPException(404, "Ligne introuvable") from e
+        raise HTTPException(404, tr("err.payment_line_not_found")) from e
     return {"ok": True}
 
 
@@ -209,5 +203,5 @@ def api_delete_ligne(ligne_id: int):
 def api_facture_paiements(facture_id: int):
     result = store.factures_paiements(facture_id)
     if result is None:
-        raise HTTPException(404, "Facture introuvable")
+        raise HTTPException(404, tr("err.invoice_not_found"))
     return result

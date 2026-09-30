@@ -16,6 +16,8 @@ browsers always send Origin on cross-origin POST/PUT/PATCH/DELETE.
 from starlette.responses import PlainTextResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from facturo.i18n import tr
+
 LOCAL_HOSTS = frozenset({"127.0.0.1", "localhost"})
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 FOREIGN_FETCH_SITES = frozenset({"cross-site", "same-site"})
@@ -39,13 +41,13 @@ class LocalGuardMiddleware:
         host = headers.get("host", "")
         refusal = None
         if _hostname(host) not in LOCAL_HOSTS:
-            refusal = "Hôte non autorisé."
+            refusal = tr("guard.host_not_allowed")
         elif scope["method"] not in SAFE_METHODS:
             origin = headers.get("origin")
             if origin is not None and origin != f"http://{host}":
-                refusal = "Requête d'une autre origine refusée."
+                refusal = tr("guard.foreign_origin")
             elif headers.get("sec-fetch-site") in FOREIGN_FETCH_SITES:
-                refusal = "Requête d'un autre site refusée."
+                refusal = tr("guard.foreign_site")
 
         if refusal:
             await PlainTextResponse(refusal, status_code=403)(scope, receive, send)

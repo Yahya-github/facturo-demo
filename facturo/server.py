@@ -22,6 +22,7 @@ from facturo.api import (
 )
 from facturo.brand import COMPANY_NAME
 from facturo.core import database as db
+from facturo.i18n_middleware import I18nMiddleware
 from facturo.local_guard import LocalGuardMiddleware
 
 WEB_DIR = paths.web_dir()
@@ -34,6 +35,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=f"Factures — {COMPANY_NAME}", lifespan=lifespan)
+# Added after the guard so i18n sits outside it: the guard's own 403s are translated too.
+app.add_middleware(I18nMiddleware)
 app.add_middleware(LocalGuardMiddleware)
 app.mount("/static", StaticFiles(directory=str(WEB_DIR / "static")), name="static")
 

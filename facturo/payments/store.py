@@ -21,6 +21,7 @@ from sqlite3 import Connection, Row
 
 from facturo.core import database as db
 from facturo.core.billet_fields import tidy_billet_number
+from facturo.i18n import tr
 from facturo.payments import matcher
 from facturo.payments.parser import ParsedDoc, ParsedLigne
 
@@ -53,7 +54,7 @@ class LinkConflict(ValueError):
     """The billet is already linked to another ligne."""
 
     def __init__(self, paiement_id: int):
-        super().__init__(f"Ce billet est déjà lié au paiement #{paiement_id}.")
+        super().__init__(tr("err.ticket_already_linked", payment_id=paiement_id))
         self.paiement_id = paiement_id
 
 

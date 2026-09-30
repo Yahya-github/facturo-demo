@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from facturo import paths, version
 from facturo.core import database as db
 from facturo.core import schema
+from facturo.i18n import tr, tr_or_text
 from facturo.services import updater
 
 router = APIRouter()
@@ -33,7 +34,7 @@ def api_version(expect: str | None = None):
     """App/schema version. With ?expect=X, answers 409 unless X is running —
     update_helper.cmd uses this to health-check exactly the new version."""
     if expect is not None and expect.strip().lstrip("v") != version.__version__:
-        raise HTTPException(409, "Version différente de celle attendue.")
+        raise HTTPException(409, tr("err.version_mismatch"))
     return {
         "version": version.__version__,
         "schema_version": schema.SCHEMA_VERSION,
@@ -52,7 +53,7 @@ def api_updates_config(data: UpdateConfigIn):
     try:
         return updater.set_config(token=data.token, include_prereleases=data.include_prereleases)
     except updater.UpdateError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
 
 
 @router.get("/api/updates/check")
@@ -60,7 +61,7 @@ def api_updates_check():
     try:
         return updater.check()
     except updater.UpdateError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
 
 
 def _schedule_exit() -> None:
@@ -81,10 +82,10 @@ def api_updates_install(data: InstallIn):
     try:
         result = updater.install(port=data.port)
     except updater.UpdateError as e:
-        raise HTTPException(400, str(e)) from e
+        raise HTTPException(400, tr_or_text(str(e))) from e
     except Exception:
         # Never echo the exception: it can carry a URL with the access token.
         logger.error("Mise à jour impossible (erreur inattendue)", exc_info=False)
-        raise HTTPException(500, "La mise à jour a échoué. Rien n'a été modifié ; réessayez.") from None
+        raise HTTPException(500, tr("err.update_failed")) from None
     _schedule_exit()
     return result

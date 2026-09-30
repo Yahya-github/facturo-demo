@@ -9,6 +9,7 @@ from facturo.api.scans import ALLOWED_SCAN_EXT, MAX_SCAN_BYTES, SCANS_DIR
 from facturo.core import database as db
 from facturo.core import known_values
 from facturo.extraction import ai_extract
+from facturo.i18n import tr, tr_or_text
 
 router = APIRouter()
 
@@ -67,16 +68,16 @@ async def api_ai_extract_image(file: UploadFile = File(...)):
     """
     raw = await file.read()
     if not raw:
-        raise HTTPException(400, "Fichier vide")
+        raise HTTPException(400, tr("err.file_empty"))
     if len(raw) > MAX_SCAN_BYTES:
-        raise HTTPException(400, "Fichier trop volumineux (max 25 Mo)")
+        raise HTTPException(400, tr("err.file_too_large"))
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED_SCAN_EXT:
-        raise HTTPException(400, "Format non supporté. Utilisez un PDF ou une image.")
+        raise HTTPException(400, tr("err.unsupported_format"))
     try:
         return {"billets": ai_extract.extract_from_scan(raw, _history())}
     except ai_extract.AIExtractError as e:
-        raise HTTPException(422, str(e)) from e
+        raise HTTPException(422, tr_or_text(str(e))) from e
 
 
 @router.post("/api/ai/extract-scan")
@@ -89,14 +90,14 @@ def api_ai_extract_scan(data: ExtractScanIn):
     """
     scan = db.get_scan(data.scan_id)
     if not scan:
-        raise HTTPException(404, "Document introuvable")
+        raise HTTPException(404, tr("err.document_not_found"))
     scan_file = SCANS_DIR / Path(scan["fichier"]).name
     if not scan_file.exists():
-        raise HTTPException(404, "Fichier introuvable")
+        raise HTTPException(404, tr("err.file_not_found"))
     try:
         return {"billets": ai_extract.extract_from_scan(scan_file.read_bytes(), _history())}
     except ai_extract.AIExtractError as e:
-        raise HTTPException(422, str(e)) from e
+        raise HTTPException(422, tr_or_text(str(e))) from e
 
 
 @router.post("/api/ai/extract-text")
@@ -104,4 +105,4 @@ def api_ai_extract_text(data: ExtractTextIn):
     try:
         return ai_extract.extract_from_text(data.text, _history())
     except ai_extract.AIExtractError as e:
-        raise HTTPException(422, str(e)) from e
+        raise HTTPException(422, tr_or_text(str(e))) from e

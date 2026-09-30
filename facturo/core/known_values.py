@@ -21,6 +21,7 @@ import sqlite3
 
 from facturo.core import billet_fields
 from facturo.core.database import get_conn
+from facturo.i18n import tr
 
 KINDS = ("chantier", "plaque")
 
@@ -135,10 +136,10 @@ def add(kind: str, valeur: str) -> dict:
     the older plate it happens to resemble.
     """
     if kind not in KINDS:
-        raise KnownValueError("Type invalide")
+        raise KnownValueError(tr("known_values.invalid_kind"))
     value = _tidy(kind, valeur)
     if not value:
-        raise KnownValueError("Valeur vide")
+        raise KnownValueError(tr("known_values.empty_value"))
     conn = get_conn()
     try:
         cur = conn.execute(
@@ -149,7 +150,7 @@ def add(kind: str, valeur: str) -> dict:
         return dict(conn.execute(
             "SELECT * FROM known_values WHERE id = ?", (cur.lastrowid,)).fetchone())
     except sqlite3.IntegrityError:
-        raise KnownValueError("Cette valeur existe déjà.") from None
+        raise KnownValueError(tr("known_values.duplicate")) from None
     finally:
         conn.close()
 
@@ -168,12 +169,12 @@ def update(kv_id: int, valeur: str | None = None, hidden: bool | None = None) ->
     row = conn.execute("SELECT * FROM known_values WHERE id = ?", (kv_id,)).fetchone()
     if not row:
         conn.close()
-        raise KnownValueError("Valeur introuvable")
+        raise KnownValueError(tr("known_values.not_found"))
     try:
         if valeur is not None:
             value = _tidy(row["kind"], valeur)
             if not value:
-                raise KnownValueError("Valeur vide")
+                raise KnownValueError(tr("known_values.empty_value"))
             conn.execute(
                 "UPDATE known_values SET valeur = ?, cle = ?, curated = 1 WHERE id = ?",
                 (value, billet_fields.fold(value), kv_id),
@@ -185,7 +186,7 @@ def update(kv_id: int, valeur: str | None = None, hidden: bool | None = None) ->
         return dict(conn.execute(
             "SELECT * FROM known_values WHERE id = ?", (kv_id,)).fetchone())
     except sqlite3.IntegrityError:
-        raise KnownValueError("Cette valeur existe déjà.") from None
+        raise KnownValueError(tr("known_values.duplicate")) from None
     finally:
         conn.close()
 
@@ -209,7 +210,7 @@ def merge(src_id: int, dst_id: int) -> None:
     old spelling later still resolves, and credits the survivor.
     """
     if src_id == dst_id:
-        raise KnownValueError("Impossible de fusionner une valeur avec elle-même")
+        raise KnownValueError(tr("known_values.merge_into_itself"))
     conn = get_conn()
     try:
         src = conn.execute(
@@ -217,11 +218,11 @@ def merge(src_id: int, dst_id: int) -> None:
         dst = conn.execute(
             "SELECT * FROM known_values WHERE id = ?", (dst_id,)).fetchone()
         if not src or not dst:
-            raise KnownValueError("Valeur introuvable")
+            raise KnownValueError(tr("known_values.not_found"))
         if src["kind"] != dst["kind"]:
-            raise KnownValueError("Les deux valeurs doivent être du même type")
+            raise KnownValueError(tr("known_values.kind_mismatch"))
         if dst["alias_of"] is not None:
-            raise KnownValueError("La valeur cible a déjà été fusionnée ailleurs")
+            raise KnownValueError(tr("known_values.target_merged"))
         conn.execute("UPDATE known_values SET times_used = times_used + ? WHERE id = ?",
                      (src["times_used"], dst_id))
         # Anything already pointing at src follows it to its new home.
