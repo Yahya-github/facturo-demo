@@ -87,14 +87,14 @@ function renderHomeStats(s) {
 
 function renderHomeHero() {
   return `<section class="hero" aria-labelledby="home-hero-title">
+    <span class="hero-tick" aria-hidden="true"></span>
     <svg class="hero-art" viewBox="0 0 260 220" aria-hidden="true" focusable="false">
       <defs>
         <pattern id="hero-dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.1" fill="currentColor"/></pattern>
-        <linearGradient id="hero-sheet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#e9efe9" stop-opacity="0.9"/></linearGradient>
       </defs>
       <rect x="0" y="0" width="260" height="220" fill="url(#hero-dots)" class="hero-dots"/>
       <g transform="rotate(-7 130 112)">
-        <path d="M60 34H150L188 72V190H60Z" fill="url(#hero-sheet)"/>
+        <path d="M60 34H150L188 72V190H60Z" fill="#f3f5f2"/>
         <path d="M150 34L188 72H150Z" fill="#d4a853"/>
         <g fill="#1a4d2e" opacity="0.8"><rect x="76" y="58" width="52" height="7" rx="3"/><rect x="76" y="82" width="96" height="5" rx="2.5" opacity="0.35"/><rect x="76" y="98" width="82" height="5" rx="2.5" opacity="0.35"/><rect x="76" y="114" width="90" height="5" rx="2.5" opacity="0.35"/></g>
         <rect x="76" y="146" width="96" height="26" rx="6" fill="#1a4d2e"/>

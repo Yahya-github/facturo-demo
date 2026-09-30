@@ -22,10 +22,8 @@
   padding: 2rem 2.25rem;
   border-radius: var(--radius-xl);
   color: var(--on-brand);
-  background:
-    radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--gold) 34%, transparent), transparent 70%),
-    linear-gradient(135deg, var(--brand-deep), var(--brand-deep-2));
-  box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: var(--grain), var(--brand-deep);
+  box-shadow: var(--shadow-md);
 }
 .hero-skeleton { flex-direction: column; align-items: flex-start; justify-content: center; background: var(--muted); box-shadow: none; }
 .hero-art {
@@ -53,7 +51,7 @@
   background: var(--gold);
   color: #1c1405;
   font-weight: 600;
-  box-shadow: 0 6px 18px -6px rgba(212, 168, 83, 0.7);
+  border: 1px solid color-mix(in srgb, var(--gold) 70%, #000);
 }
 .hero .hero-cta:hover { background: var(--gold-light); }
 .hero .hero-link { background: transparent; color: var(--on-brand); opacity: 0.85; }
