@@ -4,7 +4,7 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)
 
-![Facturo dashboard](docs/screenshots/01-accueil.webp)
+![Facturo dashboard](docs/screenshots/01-accueil.webp?v=2)
 
 Facturo is a local-first invoicing app for a small Québec trucking company.
 Drivers hand in paper work tickets ("billets": hours worked by a truck at a
@@ -94,11 +94,11 @@ All captures use the fictional data from `scripts/seed_demo.py`.
 
 | | |
 |---|---|
-| ![Home](docs/screenshots/01-accueil.webp) **Home:** KPIs, charts | ![Dark theme](docs/screenshots/07-accueil-sombre.webp) **Dark theme** |
-| ![History](docs/screenshots/02-historique.webp) **History:** filters, status, row actions | ![New invoice](docs/screenshots/03-nouvelle-facture.webp) **New invoice:** live totals |
-| ![Payments](docs/screenshots/04-paiements.webp) **Payments:** proof-of-payment detail | ![Clients](docs/screenshots/10-clients.webp) **Clients** |
-| ![Settings](docs/screenshots/05-parametres.webp) **Settings** | ![Command palette](docs/screenshots/06-palette.webp) **Command palette** (Ctrl+K) |
-| ![Collapsed sidebar](docs/screenshots/08-menu-reduit.webp) **Collapsed sidebar** | ![Mobile](docs/screenshots/09-mobile.webp) **Mobile** (390 px) |
+| ![Home](docs/screenshots/01-accueil.webp?v=2) **Home:** KPIs, charts | ![Dark theme](docs/screenshots/07-accueil-sombre.webp?v=2) **Dark theme** |
+| ![History](docs/screenshots/02-historique.webp?v=2) **History:** filters, status, row actions | ![New invoice](docs/screenshots/03-nouvelle-facture.webp?v=2) **New invoice:** live totals |
+| ![Payments](docs/screenshots/04-paiements.webp?v=2) **Payments:** proof-of-payment detail | ![Clients](docs/screenshots/10-clients.webp?v=2) **Clients** |
+| ![Settings](docs/screenshots/05-parametres.webp?v=2) **Settings** | ![Command palette](docs/screenshots/06-palette.webp?v=2) **Command palette** (Ctrl+K) |
+| ![Collapsed sidebar](docs/screenshots/08-menu-reduit.webp?v=2) **Collapsed sidebar** | ![Mobile](docs/screenshots/09-mobile.webp?v=2) **Mobile** (390 px) |
 
 ## Quick start (development)
 
