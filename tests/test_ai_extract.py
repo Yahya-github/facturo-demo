@@ -99,6 +99,7 @@ _CFG = {"host": "http://127.0.0.1:9", "model": ""}
 
 
 @pytest.mark.parametrize("status", [401, 403])
+@pytest.mark.usefixtures("french")
 def test_model_listing_refused_names_the_api_key(monkeypatch, caplog, status):
     from ollama import ResponseError
 
@@ -110,6 +111,7 @@ def test_model_listing_refused_names_the_api_key(monkeypatch, caplog, status):
     assert "unauthorized" in caplog.text
 
 
+@pytest.mark.usefixtures("french")
 def test_model_listing_unreachable_names_the_host(monkeypatch, caplog):
     monkeypatch.setattr(ai_extract, "_client",
                         lambda cfg: _FailingClient(ConnectionError("refused")))
@@ -120,6 +122,7 @@ def test_model_listing_unreachable_names_the_host(monkeypatch, caplog):
     assert "refused" in caplog.text
 
 
+@pytest.mark.usefixtures("french")
 def test_describe_config_reports_the_listing_error_without_raising(monkeypatch):
     from ollama import ResponseError
 

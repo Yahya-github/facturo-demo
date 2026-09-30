@@ -21,6 +21,8 @@ import io
 import pillow_heif
 from PIL import Image, ImageOps
 
+from facturo.i18n import tr
+
 # Ollama's vision backend only reliably decodes common formats (JPEG/PNG/GIF/
 # BMP) — it hard-errors on HEIC (the default iPhone photo format) and silently
 # misbehaves on WEBP. Normalizing to JPEG here means callers never have to care.
@@ -135,9 +137,7 @@ def image_to_jpeg(raw: bytes) -> bytes:
             im.load()
             return _to_jpeg(im)
     except Exception:
-        raise ScanRenderError(
-            "Impossible de lire cette image. Essayez une autre photo (JPG ou PNG)."
-        ) from None
+        raise ScanRenderError(tr("ai.image_unreadable")) from None
 
 
 def pdf_to_jpegs(raw: bytes, max_pages: int = 40) -> list[bytes]:
@@ -150,9 +150,7 @@ def pdf_to_jpegs(raw: bytes, max_pages: int = 40) -> list[bytes]:
     try:
         import pypdfium2 as pdfium
     except ImportError:
-        raise ScanRenderError(
-            "Le support PDF n'est pas installé (pypdfium2). Réinstallez l'application."
-        ) from None
+        raise ScanRenderError(tr("ai.pdf_support_missing")) from None
     try:
         doc = pdfium.PdfDocument(io.BytesIO(raw))
         pages = []
@@ -162,13 +160,11 @@ def pdf_to_jpegs(raw: bytes, max_pages: int = 40) -> list[bytes]:
     except ScanRenderError:
         raise
     except Exception:
-        raise ScanRenderError(
-            "Impossible de lire ce PDF. Vérifiez qu'il n'est pas protégé par mot de passe."
-        ) from None
+        raise ScanRenderError(tr("ai.pdf_unreadable")) from None
 
 
 def to_jpegs(raw: bytes) -> list[bytes]:
     """Any supported scan -> the list of page images to run extraction on."""
     if not raw:
-        raise ScanRenderError("Fichier vide.")
+        raise ScanRenderError(tr("ai.file_empty"))
     return pdf_to_jpegs(raw) if is_pdf(raw) else [image_to_jpeg(raw)]

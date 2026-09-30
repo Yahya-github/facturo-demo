@@ -45,7 +45,7 @@ MESSAGES = {
     "ai.no_reply": (
         "Le modèle {model} n'a renvoyé aucune réponse (il « réfléchit » "
         "sans répondre). Utilisez un modèle de vision sans raisonnement, par "
-        "exemple : ollama pull {model}"
+        "exemple : ollama pull {suggested}"
     ),
 
     # Lecture de la réponse du modèle

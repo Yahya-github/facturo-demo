@@ -26,6 +26,7 @@ from facturo.extraction.ai_prompts import (  # noqa: F401 — EXTRACT_SCHEMA re-
     _VISION_PROMPT_FR,
     EXTRACT_SCHEMA,
 )
+from facturo.i18n import tr
 
 log = logging.getLogger(__name__)
 
@@ -124,23 +125,17 @@ def _client(cfg: dict) -> Client:
 
 
 def _listing_error(e: Exception, cfg: dict) -> str:
-    """French reason the model list could not be read: refused key vs dead host."""
+    """Reason (in the request language) the model list could not be read: refused key vs dead host."""
     status = getattr(e, "status_code", None) if isinstance(e, ResponseError) else None
     if status in (401, 403):
-        return (
-            f"Clé d'API Ollama refusée par {cfg['host']}. Ajoutez une clé valide dans "
-            f"ai_config.json (\"api_key\") ou dans la variable d'environnement {API_KEY_ENV}."
-        )
+        return tr("ai.api_key_refused", host=cfg["host"], env=API_KEY_ENV)
     if isinstance(e, OSError):  # ConnectionError included
-        return (
-            f"Impossible de joindre le service IA à {cfg['host']} — démarrez Ollama, "
-            f"puis installez un modèle de vision : ollama pull {PREFERRED_MODELS[0]}"
-        )
-    return f"Service IA indisponible à {cfg['host']} (détail : {e})."
+        return tr("ai.service_unreachable", host=cfg["host"], model=PREFERRED_MODELS[0])
+    return tr("ai.service_unavailable", host=cfg["host"], detail=e)
 
 
 def _list_models(cfg: dict) -> tuple[list[str], str]:
-    """Installed model names, and a French error ("" when the list was read)."""
+    """Installed model names, and a translated error ("" when the list was read)."""
     try:
         return _installed_models(cfg), ""
     except Exception as e:  # noqa: BLE001 — every failure becomes a message
@@ -171,10 +166,7 @@ def _pick_model(cfg: dict) -> str:
     if error:
         raise AIExtractError(error)
     if not installed:
-        raise AIExtractError(
-            "Aucun modele installe dans Ollama. Installez un modele de vision : "
-            f"ollama pull {PREFERRED_MODELS[0]}"
-        )
+        raise AIExtractError(tr("ai.no_model_installed", model=PREFERRED_MODELS[0]))
     for want in PREFERRED_MODELS:
         for name in installed:
             if name == want or name.startswith(want + ":"):
@@ -182,10 +174,7 @@ def _pick_model(cfg: dict) -> str:
     for name in installed:  # any vision-ish model beats failing outright
         if re.search(r"vl|vision|llava|minicpm-v|gemma", name, re.I):
             return name
-    raise AIExtractError(
-        "Aucun modele de vision installe dans Ollama. Installez-en un : "
-        f"ollama pull {PREFERRED_MODELS[0]}"
-    )
+    raise AIExtractError(tr("ai.no_vision_model", model=PREFERRED_MODELS[0]))
 
 
 def load_config() -> dict:
@@ -245,9 +234,7 @@ def _parse_and_validate(raw_content: str) -> dict:
     try:
         data = _loads_model_json(raw_content)
     except (ValueError, TypeError):
-        raise AIExtractError(
-            "L'IA a renvoyé une réponse invalide. Réessayez ou entrez le billet manuellement."
-        ) from None
+        raise AIExtractError(tr("ai.invalid_response")) from None
     # With every field forced "required" in the schema, the model sometimes
     # fills an unmentioned text field with the literal string "0" instead of
     # leaving it empty — treat that placeholder the same as absent.
@@ -294,40 +281,22 @@ def _parse_and_validate(raw_content: str) -> dict:
         result["quantite"] = 0.0
 
     if result["quantite"] <= 0:
-        raise AIExtractError(
-            "Aucune heure lisible sur cette page — ce n'est probablement pas un "
-            "billet (liste de prix, facture déjà émise…). Entrez-le manuellement "
-            "si c'en est un."
-        )
+        raise AIExtractError(tr("ai.no_readable_hours"))
     return result
 
 
 def _friendly_chat_error(e: Exception, model: str, cfg_host: str = "") -> str:
     detail = str(e)
     if "exceed_context_size" in detail or "context size" in detail:
-        return (
-            "L'image est trop grande pour la fenêtre de contexte du modèle. "
-            "Réessayez avec une photo plus petite, ou augmentez le contexte du "
-            f"modèle {model}."
-        )
+        return tr("ai.image_too_large_for_context", model=model)
     # A hosted run without a usable key fails as a bare 401, which the generic
     # message below turns into "check that Ollama is started" — advice that
     # sends the user to the wrong machine entirely.
     if "401" in detail or "unauthorized" in detail.lower():
-        return (
-            "Clé d'API Ollama manquante ou invalide pour "
-            f"{cfg_host}. Ajoutez-la dans ai_config.json (\"api_key\") ou dans "
-            f"la variable d'environnement {API_KEY_ENV}."
-        )
+        return tr("ai.api_key_invalid", host=cfg_host, env=API_KEY_ENV)
     if "not found" in detail.lower() or "404" in detail:
-        return (
-            f"Le modèle {model} n'est pas installé dans Ollama. "
-            f"Installez-le : ollama pull {model}"
-        )
-    return (
-        "Service IA indisponible — vérifiez qu'Ollama est démarré et que le "
-        f"modèle {model} est installé. (Détail : {detail})"
-    )
+        return tr("ai.model_not_installed", model=model)
+    return tr("ai.chat_failed", model=model, detail=detail)
 
 
 def _is_hosted(model: str) -> bool:
@@ -411,11 +380,7 @@ def _run_chat(messages: list[dict], cfg: dict) -> str:
         # A reasoning model can burn the whole budget on its thinking channel
         # and return empty content. Say so plainly instead of letting it look
         # like malformed JSON, and name the fix.
-        raise AIExtractError(
-            f"Le modèle {cfg['model']} n'a renvoyé aucune réponse (il « réfléchit » "
-            "sans répondre). Utilisez un modèle de vision sans raisonnement, par "
-            f"exemple : ollama pull {PREFERRED_MODELS[0]}"
-        )
+        raise AIExtractError(tr("ai.no_reply", model=cfg["model"], suggested=PREFERRED_MODELS[0]))
     return content
 
 
@@ -634,9 +599,7 @@ def extract_from_scan(raw: bytes, history: History | None = None) -> list[dict]:
             # without having to check `error` first.
             results.append({**_EMPTY_FIELDS, "page": i, "error": str(e)})
     if not any(not r["error"] for r in results):
-        raise AIExtractError(
-            "Aucun billet n'a pu être lu dans ce document. Entrez-les manuellement."
-        )
+        raise AIExtractError(tr("ai.no_ticket_read"))
     return results
 
 
@@ -648,7 +611,7 @@ def extract_from_text(text: str, history: History | None = None) -> dict:
     settling that here is what stops one client arriving as two sites.
     """
     if not (text or "").strip():
-        raise AIExtractError("Texte vide.")
+        raise AIExtractError(tr("ai.empty_text"))
     cfg = _resolved_config()
     content = _run_chat(
         [{"role": "user", "content": f"{_INSTRUCTIONS_FR}\n\nTexte à analyser : {text}"}], cfg,

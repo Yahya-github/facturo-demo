@@ -39,7 +39,7 @@ MESSAGES = {
     ),
     "ai.no_reply": (
         "Model {model} returned no reply (it is « thinking » without answering). "
-        "Use a vision model without reasoning, for example: ollama pull {model}"
+        "Use a vision model without reasoning, for example: ollama pull {suggested}"
     ),
 
     # Reading the model's answer
