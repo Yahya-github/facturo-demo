@@ -13,6 +13,7 @@ from openpyxl.utils.units import pixels_to_EMU
 
 from facturo import paths
 from facturo.brand import TPS_NUMBER, TVQ_NUMBER
+from facturo.i18n import tr
 from facturo.invoicing import discounts
 
 PDF_TIMEOUT = 120
@@ -547,11 +548,7 @@ def find_soffice() -> str | None:
 def _find_soffice() -> str:
     exe = find_soffice()
     if not exe:
-        raise RuntimeError(
-            "LibreOffice est requis pour l'export PDF mais est introuvable. "
-            "Installez LibreOffice (gratuit) depuis libreoffice.org, puis "
-            "réessayez. L'export Excel fonctionne sans LibreOffice."
-        )
+        raise RuntimeError(tr("invoice.soffice_missing"))
     return exe
 
 
@@ -563,7 +560,7 @@ def convert_to_pdf(xlsx_path: Path, force: bool = False) -> Path:
     """
     xlsx_path = Path(xlsx_path)
     if not xlsx_path.exists():
-        raise FileNotFoundError(f"Fichier source introuvable: {xlsx_path}")
+        raise FileNotFoundError(tr("invoice.source_file_not_found", path=xlsx_path))
 
     pdf_path = xlsx_path.with_suffix(".pdf")
     if (
@@ -597,7 +594,8 @@ def convert_to_pdf(xlsx_path: Path, force: bool = False) -> Path:
 
     if result.returncode != 0 or not pdf_path.exists():
         raise RuntimeError(
-            f"Échec de la conversion PDF: {result.stderr.strip() or result.stdout.strip()}"
+            tr("invoice.pdf_conversion_error",
+               detail=result.stderr.strip() or result.stdout.strip())
         )
 
     return pdf_path
