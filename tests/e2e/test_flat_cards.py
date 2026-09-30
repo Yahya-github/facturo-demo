@@ -51,8 +51,8 @@ def test_payment_ledger_is_flat_without_stamp(page_en, tmp_path):
         "01-09-2026", "Flat E2E Inc. (0000-0000 Qc inc.)", "1 rue Test", "Ville, QC H0H 0H0",
         "Quittance # 900-777",
         "BILLET DATE IMMAT CLIENT / CHANTIER / NOTES QTE PRIX EXT",
-        "CLIENT E2E INC. / Chantier A 8 120,00 $ 960,00 $",
-        "900001 01-09-2026 l123456", "TOTAL: 960,00 $",
+        "NOBODY INC. / Elsewhere 2 50,00 $ 100,00 $",
+        "777001 01-09-2026 z777777", "TOTAL: 100,00 $",
     ])
     pdf = tmp_path / "flat.pdf"
     pdf.write_bytes(make_text_pdf(text.split("\n")))
