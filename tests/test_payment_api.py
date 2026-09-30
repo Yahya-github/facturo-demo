@@ -454,6 +454,7 @@ class TestBillsRefused:
         resp = client.post(
             "/api/paiements",
             files={"file": ("bill.pdf", io.BytesIO(b"%PDF-1.4\nfake\n"), "application/pdf")},
+            headers={"X-Lang": "fr"},
         )
         assert resp.status_code == 422
         assert "pas une preuve de paiement" in resp.json()["detail"]

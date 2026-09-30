@@ -593,7 +593,7 @@ def test_install_endpoint_unexpected_error_is_a_french_500_without_the_token(cli
         raise RuntimeError(f"https://x-access-token:{secret}@api.github.com failed")
 
     monkeypatch.setattr(updater, "install", explode)
-    r = client.post("/api/updates/install", json={"port": 8123})
+    r = client.post("/api/updates/install", json={"port": 8123}, headers={"X-Lang": "fr"})
     assert r.status_code == 500
     assert "mise à jour" in r.json()["detail"]
     assert secret not in r.text

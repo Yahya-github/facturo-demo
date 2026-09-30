@@ -49,9 +49,9 @@ def _billet(numero, qty):
             "numero_billet": numero, "quantite": qty, "taux": 100}
 
 
-def _import(api, lines=QUITTANCE_LINES, name="q.pdf"):
+def _import(api, lines=QUITTANCE_LINES, name="q.pdf", **kw):
     return api.post("/api/paiements", files={
-        "file": (name, io.BytesIO(make_text_pdf(lines)), "application/pdf")})
+        "file": (name, io.BytesIO(make_text_pdf(lines)), "application/pdf")}, **kw)
 
 
 # ── pdf_text on real bytes ───────────────────────────────────────────────
@@ -198,7 +198,8 @@ def test_put_rejects_a_malformed_date(api):
 
 def test_numero_that_tidies_to_nothing_is_refused_in_french(api):
     paiement = _import(api).json()
-    resp = api.post(f"/api/paiements/{paiement['id']}/lignes", json={"numero_billet": "#26-112"})
+    resp = api.post(f"/api/paiements/{paiement['id']}/lignes", json={"numero_billet": "#26-112"},
+                    headers={"X-Lang": "fr"})
     assert resp.status_code == 422
     assert "billet" in resp.json()["detail"].lower()
     assert len(api.get(f"/api/paiements/{paiement['id']}").json()["lignes"]) == 2
@@ -214,7 +215,7 @@ def test_failed_pdf_write_leaves_no_partial_file(api, tmp_path, monkeypatch):
         raise OSError("disk full")
 
     monkeypatch.setattr(pathlib.Path, "write_bytes", half_write)
-    resp = _import(api)
+    resp = _import(api, headers={"X-Lang": "fr"})
 
     assert resp.status_code == 500
     assert "enregistr" in resp.json()["detail"].lower()

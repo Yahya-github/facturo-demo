@@ -42,6 +42,9 @@ def _client(api, split=False, prefix="sec"):
     }).json()["id"]
 
 
+FR = {"X-Lang": "fr"}  # only for tests about the French wording
+
+
 def _billet(numero, chantier="Chantier A", qty=4):
     return {"date_billet": "2026-09-10", "chantier": chantier, "plaque": "S111111",
             "numero_billet": numero, "quantite": qty, "taux": 100}
@@ -133,7 +136,8 @@ def test_put_refuses_to_overwrite_an_invoice_with_unreadable_billets(api):
     xlsx.write_bytes(b"the real invoice, unreadable by us but not by Excel")
 
     resp = api.put(f"/api/factures/{f['id']}", json={
-        "client_id": cid, "date": "2026-09-14", "billets": [_billet("99999")]})
+        "client_id": cid, "date": "2026-09-14", "billets": [_billet("99999")]},
+        headers=FR)
 
     assert resp.status_code == 409
     assert "billets" in resp.json()["detail"]
@@ -164,7 +168,8 @@ def test_generate_db_failure_removes_the_written_xlsx(api, monkeypatch):
     monkeypatch.setattr(db, "save_facture", _boom)
 
     resp = api.post("/api/factures/generate",
-                    json={"client_id": cid, "date": "2026-09-14", "billets": [_billet("71001")]})
+                    json={"client_id": cid, "date": "2026-09-14", "billets": [_billet("71001")]},
+                    headers=FR)
 
     assert resp.status_code == 500
     assert "enregistr" in resp.json()["detail"]
@@ -220,7 +225,8 @@ def test_update_relink_failure_rolls_back_the_billets_and_restores_the_file(api,
     monkeypatch.setattr(payment_store, "relink_after_invoice_edit", _boom)
 
     resp = api.put(f"/api/factures/{f['id']}", json={
-        "client_id": cid, "date": "2026-09-14", "billets": [_billet("72002"), _billet("72003")]})
+        "client_id": cid, "date": "2026-09-14", "billets": [_billet("72002"), _billet("72003")]},
+        headers=FR)
 
     assert resp.status_code == 500
     assert "enregistr" in resp.json()["detail"]
@@ -288,7 +294,7 @@ def test_delete_db_failure_keeps_the_files_and_answers_in_french(api, monkeypatc
     f = _only_facture(api, cid)
     monkeypatch.setattr(db, "delete_facture", _boom)
 
-    resp = api.delete(f"/api/factures/{f['id']}")
+    resp = api.delete(f"/api/factures/{f['id']}", headers=FR)
 
     assert resp.status_code == 500
     assert "supprim" in resp.json()["detail"].lower()
