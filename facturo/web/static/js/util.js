@@ -42,6 +42,15 @@
   }
 
   /**
+   * Active-language text when the engine is loaded; the French fallback keeps
+   * this file usable on its own (Node tests, a page without i18n.js).
+   */
+  function localized(key, fallback) {
+    const i18n = typeof globalThis !== 'undefined' && globalThis.ui && globalThis.ui.i18n;
+    return i18n && i18n.has(key) ? i18n.t(key) : fallback;
+  }
+
+  /**
    * Human message from a FastAPI error body. `detail` is a string for
    * HTTPException and an array of {msg, loc} for 422 validation errors.
    * @param {{detail?: string|Array<{msg?: string}>}|null} body
@@ -54,13 +63,13 @@
       const msgs = detail.map(d => (d && d.msg) || (typeof d === 'string' ? d : '')).filter(Boolean);
       if (msgs.length) return msgs.join(' ; ');
     }
-    return 'Erreur serveur';
+    return localized('error.server', 'Erreur serveur');
   }
 
   /** fetch() rejects with TypeError when the server cannot be reached. */
   function networkErrorMessage(err) {
-    if (err instanceof TypeError) return 'Connexion au serveur impossible';
-    return (err && err.message) || 'Erreur';
+    if (err instanceof TypeError) return localized('error.network', 'Connexion au serveur impossible');
+    return (err && err.message) || localized('error.generic', 'Erreur');
   }
 
   const isBlank = v => v === null || v === undefined || String(v).trim() === '';

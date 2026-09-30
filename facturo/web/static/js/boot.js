@@ -11,6 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Fire and forget: at most one GitHub check per session, never blocks startup.
   backgroundUpdateCheck();
   if (!state.pdfAvailable) {
-    toast("Export PDF désactivé : installez LibreOffice (gratuit) pour l'activer. L'export Excel fonctionne normalement.", 'error');
+    toast(ui.i18n.t('boot.pdf_disabled'), 'error');
   }
 });

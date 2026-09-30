@@ -152,8 +152,8 @@ function paidChip(f) {
   const paid = !!f.paye;
   return `<button class="status-chip ${paid ? 'is-paid' : 'is-unpaid'}"
     onclick="togglePaid(${f.id}, ${paid ? 'false' : 'true'})"
-    title="${paid ? 'Marquer comme non payée' : 'Marquer comme payée'}">
-    ${micon(paid ? 'check_circle' : 'radio_button_unchecked', paid)} ${paid ? 'Payée' : 'Non payée'}
+    title="${escAttr(ui.i18n.t(paid ? 'action.mark_unpaid_tip' : 'action.mark_paid_tip'))}">
+    ${micon(paid ? 'check_circle' : 'radio_button_unchecked', paid)} ${esc(ui.i18n.t(paid ? 'status.paid' : 'status.unpaid'))}
   </button>`;
 }
 
@@ -162,7 +162,7 @@ async function togglePaid(id, makePaid) {
     await api('PATCH', `/api/factures/${id}/paye`, { paye: makePaid });
     const f = state.factures.find(x => x.id === id);
     if (f) f.paye = makePaid ? 1 : 0;
-    toast(makePaid ? 'Facture marquée payée' : 'Facture marquée non payée');
+    toast(ui.i18n.t(makePaid ? 'toast.marked_paid' : 'toast.marked_unpaid'));
     render();
   } catch (e) {
     toast(e.message, 'error');
@@ -187,16 +187,16 @@ function money(n) {
   return `${sign}${grouped},${cents}\u00a0$`;
 }
 
+/** Date in the active language ('Sep 30, 2026' / '30 sept. 2026'). */
 function formatDate(d) {
-  if (!d) return '';
-  const parts = d.split('-');
-  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
-  return d;
+  return ui.i18n.fmtDate(d);
 }
 
+/** Date plus 'HH:MM' for timestamps such as 2026-09-30T14:05:00. */
 function formatDateTime(dt) {
   if (!dt) return '';
-  return dt.replace('T', ' ').slice(0, 16);
+  const time = dt.replace('T', ' ').slice(11, 16);
+  return time ? `${ui.i18n.fmtDate(dt.slice(0, 10))} ${time}` : ui.i18n.fmtDate(dt.slice(0, 10));
 }
 
 function bindEvents() {
@@ -240,14 +240,14 @@ function bindEvents() {
 
 async function resetDatabase() {
   const ok = await ui.alertDialog({
-    title: 'Réinitialiser la base de données',
-    description: 'Supprimer tous les clients et toutes les factures? Cette action est irréversible.',
-    confirmLabel: 'Tout supprimer', destructive: true,
+    title: ui.i18n.t('db.reset.title'),
+    description: ui.i18n.t('db.reset.desc'),
+    confirmLabel: ui.i18n.t('db.reset.confirm'), destructive: true,
   });
   if (!ok) return;
   try {
     await api('POST', '/api/reset');
-    toast('Base de données réinitialisée');
+    toast(ui.i18n.t('db.reset.done'));
     await loadData();
     navigate('home');
   } catch (e) {
@@ -283,7 +283,7 @@ async function loadData() {
     // visible until a retry succeeds.
     state.loadError = e.message || 'Erreur';
     state.loaded = true;
-    toast(`Chargement des données échoué : ${state.loadError}`, 'error');
+    toast(ui.i18n.t('load.failed_toast', { error: state.loadError }), 'error');
   }
 }
 
@@ -296,10 +296,10 @@ async function retryLoadData() {
 /** Full-page replacement for pages whose data did not load. */
 function renderLoadError() {
   return `<div class="empty-state load-error" role="alert">
-    <h3>Chargement échoué</h3>
+    <h3>${esc(ui.i18n.t('load.failed'))}</h3>
     <p>${esc(state.loadError)}</p>
-    <p>Vos données n'ont pas été modifiées, elles ne sont simplement pas affichées.</p>
-    <button class="btn btn-primary" onclick="retryLoadData()">${micon('refresh')} Réessayer</button>
+    <p>${esc(ui.i18n.t('load.failed_note'))}</p>
+    <button class="btn btn-primary" onclick="retryLoadData()">${micon('refresh')} ${esc(ui.i18n.t('toast.retry'))}</button>
   </div>`;
 }
 
@@ -324,3 +324,18 @@ async function loadSyncStatus() {
     state.sync = state.sync || { available: false, configured: false };
   }
 }
+
+// ── Language change ─────────────────────────────────────
+// Pages are JS template strings, so a language switch has to rebuild the
+// current page. Scroll is put back; an open modal keeps the text it was built
+// with (it is short-lived), but nothing on the page itself stays stale.
+ui.i18n.onLangChange(() => {
+  if (!state.loaded) return;
+  const scrollers = ['#main-content', '#inset'].map(sel => $(sel)).filter(Boolean);
+  const tops = scrollers.map(el => el.scrollTop);
+  const winTop = window.scrollY;
+  render();
+  scrollers.forEach((el, i) => { el.scrollTop = tops[i]; });
+  window.scrollTo(0, winTop);
+  $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
+});
