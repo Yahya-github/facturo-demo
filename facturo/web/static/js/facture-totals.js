@@ -17,20 +17,22 @@ const hasDiscount = ([pct, montant]) => pct > 0 || montant > 0;
 // `attrs(field)` returns the extra classes and attributes that wire each input
 // to its billet or to the invoice.
 function discountInputsHtml(who, [pct, montant], attrs) {
+  const pctLabel = tFac('facture.discount.pct_aria', { who });
+  const amountLabel = tFac('facture.discount.amount_aria', { who });
   return `<div class="field discount-field">
-      <span class="form-label">Remise en pourcentage</span>
+      <span class="form-label">${esc(tFac('facture.discount.pct'))}</span>
       <div class="input-group">
         <input ${attrs('pct')} type="number" inputmode="decimal" min="0" max="100" step="any"
-          placeholder="0" value="${numAttr(pct || '')}" aria-label="Remise en pourcentage — ${who}">
+          placeholder="0" value="${numAttr(pct || '')}" aria-label="${escAttr(pctLabel)}">
         <span class="input-group-addon" aria-hidden="true">%</span>
       </div>
     </div>
     <div class="field discount-field">
-      <span class="form-label">Remise en dollars</span>
+      <span class="form-label">${esc(tFac('facture.discount.amount'))}</span>
       <div class="input-group">
         <span class="input-group-addon" aria-hidden="true">$</span>
         <input ${attrs('montant')} type="number" inputmode="decimal" min="0" step="0.01"
-          placeholder="0.00" value="${numAttr(montant || '')}" aria-label="Remise en dollars — ${who}">
+          placeholder="0.00" value="${numAttr(montant || '')}" aria-label="${escAttr(amountLabel)}">
       </div>
     </div>`;
 }
@@ -38,7 +40,7 @@ function discountInputsHtml(who, [pct, montant], attrs) {
 function discountToggleHtml(extraClass, boxId, open, closedLabel, openLabel, onclick) {
   return `<button type="button" class="discount-toggle ${extraClass}" aria-expanded="${open}" aria-controls="${boxId}" onclick="${onclick}">
       ${icon('tag', { size: 'sm' })}
-      <span class="lbl-closed">${closedLabel}</span><span class="lbl-open">${openLabel}</span>
+      <span class="lbl-closed">${esc(closedLabel)}</span><span class="lbl-open">${esc(openLabel)}</span>
       ${icon('chevron-down', { size: 'xs', className: 'chev' })}
     </button>`;
 }
@@ -55,16 +57,16 @@ function renderBilletDiscount(b, i) {
   const attrs = field =>
     `class="form-input discount-input billet-input billet-remise-input num-input" data-idx="${i}" data-field="remise_${field}"`;
   return `<footer class="billet-foot">
-      ${discountToggleHtml('', `b${i}-remise`, open, 'Ajouter une remise sur ce billet', 'Remise sur ce billet', `toggleBilletRemise(${i})`)}
-      <div class="billet-total"><span>Total du billet</span><strong data-billet-total data-idx="${i}">${money(billetNet(b))}</strong></div>
+      ${discountToggleHtml('', `b${i}-remise`, open, tFac('facture.discount.add_billet'), tFac('facture.discount.billet'), `toggleBilletRemise(${i})`)}
+      <div class="billet-total"><span>${esc(tFac('facture.discount.billet_total'))}</span><strong data-billet-total data-idx="${i}">${money(billetNet(b))}</strong></div>
     </footer>
     <div class="collapsible discount-box${open ? ' is-open' : ''}" id="b${i}-remise" data-idx="${i}"${open ? '' : ' inert'}>
       <div class="collapsible-inner">
         <div class="discount-row">
-          ${discountInputsHtml(`billet ${i + 1}`, values, attrs)}
+          ${discountInputsHtml(tFac('facture.discount.who_billet', { n: i + 1 }), values, attrs)}
           <span class="discount-net" data-idx="${i}" aria-live="polite">${billetNetText(b)}</span>
           <button type="button" class="discount-remove" onclick="removeBilletRemise(${i})"
-            data-tip="Retirer la remise" aria-label="Retirer la remise du billet ${i + 1}">${icons.x}</button>
+            data-tip="${escAttr(tFac('facture.discount.remove'))}" aria-label="${escAttr(tFac('facture.discount.remove_billet', { n: i + 1 }))}">${icons.x}</button>
         </div>
       </div>
     </div>`;
@@ -89,17 +91,17 @@ function renderInvoiceDiscount() {
   const open = invoiceDiscountOpen();
   const values = normalizeDiscount(invoiceRemise());
   const attrs = field => `class="form-input discount-input num-input" id="inv-remise-${field}"`;
-  return `<section class="card fac-card fac-discount" aria-label="Remise sur la facture">
+  return `<section class="card fac-card fac-discount" aria-label="${escAttr(tFac('facture.discount.invoice_aria'))}">
     ${discountToggleHtml('discount-toggle-invoice', 'inv-remise-box', open,
-      'Ajouter une remise sur toute la facture', 'Remise sur toute la facture', 'toggleInvoiceRemise()')}
+      tFac('facture.discount.add_invoice'), tFac('facture.discount.invoice'), 'toggleInvoiceRemise()')}
     <div class="collapsible discount-box invoice-discount${open ? ' is-open' : ''}" id="inv-remise-box"${open ? '' : ' inert'}>
       <div class="collapsible-inner">
         <div class="discount-row">
-          ${discountInputsHtml('toute la facture', values, attrs)}
+          ${discountInputsHtml(tFac('facture.discount.who_invoice'), values, attrs)}
           <button type="button" class="discount-remove" onclick="removeInvoiceRemise()"
-            data-tip="Retirer la remise" aria-label="Retirer la remise sur la facture">${icons.x}</button>
+            data-tip="${escAttr(tFac('facture.discount.remove'))}" aria-label="${escAttr(tFac('facture.discount.remove_invoice'))}">${icons.x}</button>
         </div>
-        <p class="discount-hint">% du sous-total, puis $ une seule fois — avant taxes.</p>
+        <p class="discount-hint">${esc(tFac('facture.discount.hint'))}</p>
       </div>
     </div>
   </section>`;
@@ -225,14 +227,14 @@ function summaryModel() {
   const [pct] = normalizeDiscount(invoiceRemise());
   const lines = [];
   billets.forEach((b, i) => {
-    if (billetGross(b) > 0) lines.push({ label: `Billet ${i + 1}`, ref: dupKey(b), net: billetNet(b) });
+    if (billetGross(b) > 0) lines.push({ label: tFac('facture.billet.n', { n: i + 1 }), ref: dupKey(b), net: billetNet(b) });
   });
   const touched = billets.filter(b => !isUntouchedBillet(b));
   const dups = duplicateBilletIndices().size;
   const checks = [
-    { ok: !!state.facForm.clientId, label: 'Client choisi' },
-    { ok: touched.length > 0 && incompleteBillets(touched).length === 0, label: 'Billets avec quantité et taux' },
-    { ok: dups === 0, label: dups ? 'N° de billet en double' : 'Aucun N° de billet en double' },
+    { ok: !!state.facForm.clientId, label: tFac('facture.check.client') },
+    { ok: touched.length > 0 && incompleteBillets(touched).length === 0, label: tFac('facture.check.billets') },
+    { ok: dups === 0, label: tFac(dups ? 'facture.check.dup' : 'facture.check.no_dup') },
   ];
   return { t, total: t.total, pct, lines, checks, count: billets.length };
 }
@@ -244,28 +246,28 @@ function summaryLine(label, value, cls = '') {
 function renderSummary(m = summaryModel()) {
   const t = m.t;
   const client = currentFactureClient();
-  const name = client ? client.nom : 'Aucun client choisi';
+  const name = client ? client.nom : tFac('facture.summary.no_client');
   const avatar = client ? ui.avatar(client.nom, { size: 'lg' }) : '<span class="avatar avatar-lg" aria-hidden="true">?</span>';
   const rows = m.lines.map(l => summaryLine(
-    `${esc(l.label)}${l.ref ? ` <em>n° ${esc(l.ref)}</em>` : ''}`, money(l.net), 'line-billet')).join('');
+    `${esc(l.label)}${l.ref ? ` <em>${esc(tFac('facture.summary.ref', { ref: l.ref }))}</em>` : ''}`, money(l.net), 'line-billet')).join('');
   const remise = (label, amount) => amount > 0 ? summaryLine(label, `−${money(amount)}`, 'line-remise') : '';
   return `<div class="fac-summary-head">
       ${avatar}
       <div class="fac-summary-who">
         <strong>${esc(name)}</strong>
-        <span>${m.count} billet${m.count > 1 ? 's' : ''}${state.facForm.numero ? ` · ${esc(state.facForm.numero)}` : ''}</span>
+        <span>${esc(ui.i18n.tn('facture.summary.count', m.count))}${state.facForm.numero ? ` · ${esc(state.facForm.numero)}` : ''}</span>
       </div>
     </div>
     <dl class="fac-lines">
-      ${rows || '<div class="line line-empty"><dt>Ajoutez la quantité et le taux d\'un billet.</dt></div>'}
-      ${summaryLine('Sous-total', money(t.sousTotal), 'line-sub')}
-      ${remise(`Remise (${fmtPct(m.pct)})`, t.remisePctAmount)}
-      ${remise('Remise ($)', t.remiseMontantAmount)}
-      ${summaryLine('TPS (5 %)', money(t.tps))}
-      ${summaryLine('TVQ (9,975 %)', money(t.tvq))}
+      ${rows || `<div class="line line-empty"><dt>${esc(tFac('facture.summary.empty'))}</dt></div>`}
+      ${summaryLine(esc(tFac('facture.subtotal')), money(t.sousTotal), 'line-sub')}
+      ${remise(esc(tFac('facture.discount.line_pct', { pct: fmtPct(m.pct) })), t.remisePctAmount)}
+      ${remise(esc(tFac('facture.discount.line_amount')), t.remiseMontantAmount)}
+      ${summaryLine(esc(tFac('facture.tax.tps')), money(t.tps))}
+      ${summaryLine(esc(tFac('facture.tax.tvq')), money(t.tvq))}
     </dl>
-    <div class="fac-total"><span>Total dû</span><strong data-fac-total>${money(m.total)}</strong></div>
-    <ul class="fac-checks" aria-label="Vérifications avant génération">
+    <div class="fac-total"><span>${esc(tFac('facture.total_due'))}</span><strong data-fac-total>${money(m.total)}</strong></div>
+    <ul class="fac-checks" aria-label="${escAttr(tFac('facture.check.aria'))}">
       ${m.checks.map(c => `<li class="${c.ok ? 'is-ok' : 'is-todo'}">${icon(c.ok ? 'circle-check' : 'circle', { size: 'xs' })} ${esc(c.label)}</li>`).join('')}
     </ul>`;
 }

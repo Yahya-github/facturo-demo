@@ -10,23 +10,23 @@ function scanPickRow(s, i, current) {
     : `<div class="scan-pick-pdf">${icon('file-text')}</div>`;
   const isCur = s.id === current;
   return `<div class="scan-pick ${isCur ? 'is-current' : ''}">
-    <a class="scan-pick-thumb" href="${url}" target="_blank" rel="noopener" data-tip="Ouvrir le document" aria-label="Ouvrir ${escAttr(s.nom_original)}">${thumb}</a>
+    <a class="scan-pick-thumb" href="${url}" target="_blank" rel="noopener" data-tip="${escAttr(tFac('facture.scan.open_tip'))}" aria-label="${escAttr(tFac('facture.scan.open_aria', { name: s.nom_original }))}">${thumb}</a>
     <div class="scan-pick-info">
       <div class="scan-pick-name" data-tip="${escAttr(s.nom_original)}">${esc(s.nom_original)}</div>
-      <div class="scan-pick-date">${formatDateTime(s.cree_le)}</div>
-      ${isCur ? `<span class="badge badge-warning scan-pick-cur">${icon('check', { size: 'xs' })} Lié à ce billet</span>` : ''}
+      <div class="scan-pick-date">${esc(formatDateTime(s.cree_le))}</div>
+      ${isCur ? `<span class="badge badge-warning scan-pick-cur">${icon('check', { size: 'xs' })} ${esc(tFac('facture.scan.linked'))}</span>` : ''}
     </div>
     <div class="scan-pick-actions">
       ${isCur
-        ? `<button class="btn btn-ghost btn-sm" onclick="setBilletScan(${i}, null)">Délier</button>`
-        : `<button class="btn btn-outline btn-sm" onclick="setBilletScan(${i}, ${s.id})">${icon('link', { size: 'xs' })} Lier</button>`}
-      ${isImageScan(s.fichier) ? `<button class="btn btn-ghost btn-sm" onclick="extractScanIntoBillet(${i}, ${s.id})" data-tip="Lire ce document avec l'IA">${icon('sparkles', { size: 'xs' })} Extraire</button>` : ''}
+        ? `<button class="btn btn-ghost btn-sm" onclick="setBilletScan(${i}, null)">${esc(tFac('facture.scan.unlink'))}</button>`
+        : `<button class="btn btn-outline btn-sm" onclick="setBilletScan(${i}, ${s.id})">${icon('link', { size: 'xs' })} ${esc(tFac('facture.scan.link'))}</button>`}
+      ${isImageScan(s.fichier) ? `<button class="btn btn-ghost btn-sm" onclick="extractScanIntoBillet(${i}, ${s.id})" data-tip="${escAttr(tFac('facture.scan.extract_tip'))}">${icon('sparkles', { size: 'xs' })} ${esc(tFac('facture.ai.extract'))}</button>` : ''}
     </div>
   </div>`;
 }
 
 function scanPickEmpty(iconName, text) {
-  return `<div class="scan-pick-empty">${icon(iconName, { size: 'xl' })}<p>${text}</p></div>`;
+  return `<div class="scan-pick-empty">${icon(iconName, { size: 'xl' })}<p>${esc(text)}</p></div>`;
 }
 
 function openScanPicker(i) {
@@ -36,18 +36,18 @@ function openScanPicker(i) {
 
   let body;
   if (!clientId) {
-    body = scanPickEmpty('user-x', "Choisissez d'abord un client pour cette facture.");
+    body = scanPickEmpty('user-x', tFac('facture.scan.need_client'));
   } else {
     const scans = scansForClient(clientId);
     body = scans.length
       ? `<div class="scan-pick-list">${scans.map(s => scanPickRow(s, i, current)).join('')}</div>`
-      : scanPickEmpty('scan-line', "Aucune facture scannée pour ce client. Importez-en dans « Factures scannées », puis revenez ici.");
+      : scanPickEmpty('scan-line', tFac('facture.scan.none'));
   }
   const ctl = ui.sheet({
-    title: `Lier une facture scannée — Billet ${i + 1}`,
-    description: "Le document reste attaché au billet et s'ouvre depuis la facture.",
+    title: tFac('facture.scan.sheet_title', { billet: tFac('facture.billet.n', { n: i + 1 }) }),
+    description: tFac('facture.scan.sheet_desc'),
     body,
-    footer: '<button type="button" class="btn btn-ghost" data-dialog-cancel>Fermer</button>',
+    footer: `<button type="button" class="btn btn-ghost" data-dialog-cancel>${esc(tFac('action.close'))}</button>`,
     className: 'scan-sheet',
   });
   ctl.modal.querySelector('[data-dialog-cancel]').addEventListener('click', () => ctl.close());
@@ -58,7 +58,7 @@ function setBilletScan(i, scanId) {
   if (billets[i]) billets[i].scan_id = scanId;
   closeAllModals();
   render();
-  toast(scanId ? 'Facture scannée liée au billet' : 'Lien retiré');
+  toast(tFac(scanId ? 'facture.scan.toast_linked' : 'facture.scan.toast_unlinked'));
 }
 
 // Apply one extracted page onto an existing billet row, keeping whatever the
@@ -83,7 +83,7 @@ let extractingScan = false;
 async function extractScanIntoBillet(billetIdx, scanId) {
   closeAllModals();
   if (extractingScan) {
-    toast('Une extraction IA est déjà en cours, patientez.', 'error');
+    toast(tFac('facture.ai.busy'), 'error');
     return;
   }
   // The row is captured as an object, not an index: rows may be added or
@@ -92,17 +92,17 @@ async function extractScanIntoBillet(billetIdx, scanId) {
   const editingAtStart = state.editingId;
   const clicked = list[billetIdx];
   extractingScan = true;
-  toast('Extraction IA en cours… (un PDF de plusieurs pages peut prendre quelques minutes)');
+  toast(tFac('facture.ai.running'));
   try {
     const { billets: pages } = await api('POST', '/api/ai/extract-scan', { scan_id: scanId });
     if (billets !== list || state.editingId !== editingAtStart) {
-      toast("Extraction ignorée : la facture a changé pendant la lecture. Relancez l'extraction.", 'error');
+      toast(tFac('facture.ai.stale'), 'error');
       return;
     }
     syncBilletInputs();
     const ok = (pages || []).filter(p => !p.error);
     const failed = (pages || []).length - ok.length;
-    if (!ok.length) { toast("L'IA n'a lu aucun billet dans ce document.", 'error'); return; }
+    if (!ok.length) { toast(tFac('facture.ai.none_read'), 'error'); return; }
 
     const target = billets.includes(clicked) ? clicked : null;
     if (target) applyFieldsToBillet(target, ok[0], scanId);
@@ -116,11 +116,7 @@ async function extractScanIntoBillet(billetIdx, scanId) {
       billets.push(b);
     }
     render();
-    toast(
-      `${ok.length} billet(s) extrait(s)${failed ? `, ${failed} page(s) illisible(s)` : ''}` +
-      ' — vérifiez avant de générer la facture.',
-      failed ? 'error' : undefined
-    );
+    toast(aiExtractedMessage(ok.length, failed), failed ? 'error' : undefined);
   } catch (e) {
     toast(e.message, 'error');
   } finally {
@@ -130,25 +126,31 @@ async function extractScanIntoBillet(billetIdx, scanId) {
 
 // ── AI quick add ────────────────────────────────────────
 
+function aiExtractedMessage(count, failed) {
+  return tFac('facture.ai.extracted', { count })
+    + (failed ? tFac('facture.ai.unreadable', { failed }) : '')
+    + tFac('facture.ai.review');
+}
+
 function aiQuickAddBody() {
   return `<div class="field">
-      <span class="form-label" id="ai-file-label">Photo ou PDF du billet</span>
+      <span class="form-label" id="ai-file-label">${esc(tFac('facture.ai.file_label'))}</span>
       <input type="file" id="ai-quickadd-file" accept="image/*,.pdf" hidden>
       <button type="button" class="upzone" id="ai-quickadd-file-btn" aria-labelledby="ai-file-label ai-quickadd-file-name">
         <span class="upzone-icon">${icon('cloud-upload')}</span>
-        <span class="upzone-title" id="ai-quickadd-file-name">Glissez un fichier ici ou <u>parcourez</u></span>
-        <span class="upzone-hint">Photo ou PDF · un PDF de plusieurs pages ajoute un billet par page</span>
+        <span class="upzone-title" id="ai-quickadd-file-name">${esc(tFac('facture.ai.drop'))}<u>${esc(tFac('facture.ai.browse'))}</u></span>
+        <span class="upzone-hint">${esc(tFac('facture.ai.file_hint'))}</span>
       </button>
     </div>
-    <div class="or-rule"><span>ou</span></div>
+    <div class="or-rule"><span>${esc(tFac('facture.ai.or'))}</span></div>
     <div class="field">
-      <label class="form-label" for="ai-quickadd-text">Décrivez le billet</label>
+      <label class="form-label" for="ai-quickadd-text">${esc(tFac('facture.ai.describe'))}</label>
       <textarea class="form-input" id="ai-quickadd-text" rows="3"
-        placeholder="ex: billet 4521, Loué à : Chantier Nord, plaque A123456, 5 heures à 95$ le 20 juillet"></textarea>
+        placeholder="${escAttr(tFac('facture.ai.describe_ph'))}"></textarea>
     </div>
     <div class="ai-progress" id="ai-quickadd-progress" hidden aria-live="polite">
-      <div class="progress is-indeterminate" role="progressbar" aria-label="Extraction en cours"><span></span></div>
-      <p>L'IA locale lit le billet… un PDF de plusieurs pages peut prendre quelques minutes.</p>
+      <div class="progress is-indeterminate" role="progressbar" aria-label="${escAttr(tFac('facture.ai.progress_aria'))}"><span></span></div>
+      <p>${esc(tFac('facture.ai.progress'))}</p>
     </div>`;
 }
 
@@ -177,12 +179,12 @@ function bindAiDropzone(zone, fileInput) {
 
 function openAiQuickAdd() {
   const ctl = ui.dialog.show({
-    title: "Ajouter un billet avec l'IA",
-    description: 'Une photo, un PDF ou quelques mots suffisent. Vous relisez tout avant de générer.',
+    title: tFac('facture.ai.title'),
+    description: tFac('facture.ai.desc'),
     body: aiQuickAddBody(),
     footer: `<div class="dialog-actions">
-        <button type="button" class="btn btn-ghost" data-dialog-cancel>Annuler</button>
-        <button type="button" class="btn btn-primary" id="ai-quickadd-submit">${icon('sparkles', { size: 'sm' })} Extraire</button>
+        <button type="button" class="btn btn-ghost" data-dialog-cancel>${esc(tFac('action.cancel'))}</button>
+        <button type="button" class="btn btn-primary" id="ai-quickadd-submit">${icon('sparkles', { size: 'sm' })} ${esc(tFac('facture.ai.extract'))}</button>
       </div>`,
     className: 'ai-dialog',
   });
@@ -200,8 +202,8 @@ async function fetchAiPages(file, text) {
   fd.append('file', file);
   const res = await fetch('/api/ai/extract-image', { method: 'POST', body: fd });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: 'Erreur serveur' }));
-    throw new Error(err.detail || 'Erreur');
+    const err = await res.json().catch(() => ({ detail: tFac('facture.ai.server_error') }));
+    throw new Error(err.detail || tFac('facture.ai.error'));
   }
   return (await res.json()).billets || [];
 }
@@ -236,20 +238,16 @@ async function submitAiQuickAdd(ctl) {
   const modal = ctl.modal;
   const file = modal.querySelector('#ai-quickadd-file').files[0];
   const text = modal.querySelector('#ai-quickadd-text').value.trim();
-  if (!file && !text) { toast('Choisissez une photo ou entrez une description', 'error'); return; }
+  if (!file && !text) { toast(tFac('facture.ai.need_input'), 'error'); return; }
   setAiBusy(modal, true);
   try {
     const pages = await fetchAiPages(file, text);
     const ok = pages.filter(p => !p.error);
     const failed = pages.length - ok.length;
-    if (!ok.length) throw new Error("L'IA n'a lu aucun billet dans ce document.");
+    if (!ok.length) throw new Error(tFac('facture.ai.none_read'));
     for (const fields of ok) addBillet(billetOverridesFromAi(fields));
     ctl.close();
-    toast(
-      `${ok.length} billet(s) extrait(s)${failed ? `, ${failed} page(s) illisible(s)` : ''}` +
-      ' — vérifiez avant de générer la facture.',
-      failed ? 'error' : undefined
-    );
+    toast(aiExtractedMessage(ok.length, failed), failed ? 'error' : undefined);
   } catch (e) {
     toast(e.message, 'error');
     setAiBusy(modal, false);

@@ -15,15 +15,14 @@ async function generateFacture() {
   const numero = $('#fac-numero')?.value;
   const date = $('#fac-date')?.value;
 
-  if (!clientId) { toast('Veuillez choisir un client', 'error'); return; }
+  if (!clientId) { toast(ui.i18n.t('facture.toast.pick_client'), 'error'); return; }
 
   const touched = billets.filter(b => !isUntouchedBillet(b));
-  if (touched.length === 0) { toast('Ajoutez au moins un billet avec quantité et taux', 'error'); return; }
+  if (touched.length === 0) { toast(ui.i18n.t('facture.toast.need_billet'), 'error'); return; }
   // Never drop a billet silently: a half-filled one would vanish from the invoice.
   const incomplete = incompleteBillets(touched);
   if (incomplete.length > 0) {
-    const plural = incomplete.length > 1 ? 's' : '';
-    toast(`Billet${plural} incomplet${plural} (quantité et taux requis) : ${incomplete.join(', ')}.`, 'error');
+    toast(ui.i18n.tn('facture.toast.incomplete', incomplete.length, { list: incomplete.join(', ') }), 'error');
     return;
   }
   const validBillets = touched;
@@ -34,14 +33,14 @@ async function generateFacture() {
     render(); // repaint so the duplicate fields show their red border + warning
     const first = document.querySelector('.numero-billet-input.input-error');
     if (first) { first.scrollIntoView({ behavior: 'smooth', block: 'center' }); first.focus(); }
-    toast('N° de billet en double sur la facture. Corrigez-le avant de générer.', 'error');
+    toast(ui.i18n.t('facture.toast.dup'), 'error');
     return;
   }
 
   generating = true;
   const btn = $('#btn-generate');
   const origHTML = btn.innerHTML;
-  btn.innerHTML = '<span class="loading-spinner"></span> Génération...';
+  btn.innerHTML = `<span class="loading-spinner"></span> ${esc(ui.i18n.t('facture.generating'))}`;
   btn.classList.add('btn-loading');
   btn.disabled = true;
 
@@ -82,12 +81,12 @@ async function generateFacture() {
 
     if (editingId) {
       toast(invoices.length > 1
-        ? `Facture séparée en ${invoices.length} factures !`
-        : `Facture ${invoices[0].numero} mise à jour !`);
+        ? ui.i18n.t('facture.toast.split', { count: invoices.length })
+        : ui.i18n.t('facture.toast.updated', { numero: invoices[0].numero }));
     } else {
       toast(invoices.length > 1
-        ? `${invoices.length} factures générées !`
-        : `Facture ${invoices[0].numero} générée !`);
+        ? ui.i18n.t('facture.toast.generated_many', { count: invoices.length })
+        : ui.i18n.t('facture.toast.generated', { numero: invoices[0].numero }));
     }
 
     // Trigger each download, spaced out so the browser allows the batch.
@@ -121,8 +120,7 @@ async function editFacture(id) {
     // Opening a blank editor here would let "Mettre à jour" overwrite the
     // real invoice, so an unreadable one is not editable at all.
     if (f.billets_unreadable) {
-      toast(`Impossible de modifier la facture ${f.numero} : ${f.billets_unreadable_reason}. `
-        + "Le fichier d'origine n'a pas été modifié.", 'error');
+      toast(ui.i18n.t('facture.toast.unreadable', { numero: f.numero, reason: f.billets_unreadable_reason }), 'error');
       return;
     }
     state.editingId = id;
@@ -171,15 +169,15 @@ function resetFacture() {
 async function confirmDeleteFacture(id) {
   const numero = state.facForm.numero || '';
   const ok = await ui.alertDialog({
-    title: 'Supprimer la facture',
-    description: `Voulez-vous vraiment supprimer la facture ${numero} ? Le fichier Excel/PDF généré sera aussi supprimé. Cette action est irréversible.`,
-    confirmLabel: 'Supprimer',
+    title: ui.i18n.t('facture.delete_title'),
+    description: ui.i18n.t('facture.delete_desc', { numero }),
+    confirmLabel: ui.i18n.t('action.delete'),
     destructive: true,
   });
   if (!ok) return;
   try {
     await api('DELETE', `/api/factures/${id}`);
-    toast('Facture supprimée');
+    toast(ui.i18n.t('facture.toast.deleted'));
     state.editingId = null;
     billets = [emptyBillet()];
     state.facForm = blankFacForm();

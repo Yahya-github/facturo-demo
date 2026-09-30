@@ -88,7 +88,8 @@ function positionAcPanel(input) {
   }
 }
 
-const AC_HEADINGS = { chantier: 'Chantiers connus', plaque: 'Plaques connues' };
+// Read when the panel is drawn, so the heading follows the language.
+const acHeading = kind => ui.i18n.t(kind === 'chantier' ? 'facture.ac.known_worksites' : kind === 'plaque' ? 'facture.ac.known_plates' : 'facture.ac.suggestions');
 
 // One option row: the value (typed prefix in bold), how often it was used, and
 // the Tab hint on the highlighted one. Built with textContent, never markup.
@@ -111,7 +112,7 @@ function acRow(item, i, query) {
   }
   const count = document.createElement('span');
   count.className = 'ac-count';
-  count.textContent = item.times_used ? `${item.times_used}×` : 'nouveau';
+  count.textContent = item.times_used ? `${item.times_used}×` : ui.i18n.t('facture.ac.new');
   row.append(label, count);
   if (i === acIndex) {
     const hint = document.createElement('kbd');
@@ -130,14 +131,14 @@ function drawAcPanel() {
   if (acItems.length) {
     const head = document.createElement('div');
     head.className = 'ac-head';
-    head.textContent = AC_HEADINGS[kind] || 'Suggestions';
+    head.textContent = acHeading(kind);
     panel.appendChild(head);
   }
   acItems.forEach((item, i) => panel.appendChild(acRow(item, i, query)));
   if (acItems.length) {
     const foot = document.createElement('div');
     foot.className = 'ac-foot';
-    foot.textContent = '↑ ↓ naviguer · Tab ou Entrée pour choisir · Échap';
+    foot.textContent = ui.i18n.t('facture.ac.footer');
     panel.appendChild(foot);
   }
   panel.hidden = acItems.length === 0;
@@ -219,11 +220,11 @@ function suggestCanonical(input, suggestion) {
   const chip = document.createElement('div');
   chip.className = 'ac-suggest';
   const q = document.createElement('span');
-  q.textContent = `Vouliez-vous dire « ${suggestion} » ?`;
+  q.textContent = ui.i18n.t('facture.ac.did_you_mean', { value: suggestion });
   const yes = document.createElement('button');
   yes.type = 'button';
   yes.className = 'ac-suggest-yes';
-  yes.textContent = 'Oui';
+  yes.textContent = ui.i18n.t('facture.ac.yes');
   yes.addEventListener('click', () => {
     input.value = suggestion;
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -232,7 +233,7 @@ function suggestCanonical(input, suggestion) {
   const no = document.createElement('button');
   no.type = 'button';
   no.className = 'ac-suggest-no';
-  no.textContent = 'Non';
+  no.textContent = ui.i18n.t('facture.ac.no');
   // Remember the refusal, or the same chip reappears on every blur.
   no.addEventListener('click', () => { input.dataset.acDeclined = input.value; chip.remove(); });
   chip.append(q, yes, no);
@@ -295,10 +296,10 @@ function aiFixHtml(b, i, field) {
   const fix = b.corrections && b.corrections[field];
   if (!fix) return '';
   const message = fix.raison === 'format'
-    ? `Numéro de projet ignoré — l'IA avait lu « ${esc(fix.lu)} ».`
-    : `Corrigé d'après l'historique — l'IA avait lu « ${esc(fix.lu)} ».`;
+    ? esc(ui.i18n.t('facture.ai.fix_format', { read: fix.lu }))
+    : esc(ui.i18n.t('facture.ai.fix_history', { read: fix.lu }));
   return `<div class="ai-fix" data-idx="${i}" data-field="${field}">
       ${icon('wand-sparkles', { size: 'xs' })} ${message}
-      <button type="button" class="ai-fix-undo" onclick="revertAiFix(${i}, '${field}')">Rétablir</button>
+      <button type="button" class="ai-fix-undo" onclick="revertAiFix(${i}, '${field}')">${esc(ui.i18n.t('facture.ai.undo'))}</button>
     </div>`;
 }

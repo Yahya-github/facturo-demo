@@ -69,7 +69,7 @@ function chantierGroups() {
   billets.forEach(b => {
     const key = (b.chantier || '').trim();
     if (!groups.some(g => g.key === key)) {
-      groups.push({ key, label: key || 'Sans chantier' });
+      groups.push({ key, label: key || ui.i18n.t('facture.no_worksite') });
     }
   });
   return groups;
@@ -84,8 +84,8 @@ function splitBannerHtml() {
   return `<div class="alert split-banner" role="status">
     ${icon('split', { size: 'sm' })}
     <div class="alert-body">
-      <div class="alert-title">${groups.length} factures seront générées</div>
-      <div class="alert-desc">Une par chantier, toutes au nom de ${esc(c.nom)}.</div>
+      <div class="alert-title">${esc(ui.i18n.t('facture.split.title', { count: groups.length }))}</div>
+      <div class="alert-desc">${esc(ui.i18n.t('facture.split.desc', { name: c.nom }))}</div>
       <div class="split-chips">${labels}</div>
     </div>
   </div>`;
@@ -109,7 +109,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function fmtPct(v) {
   const n = parseFloat(v) || 0;
-  return `${n.toFixed(2).replace(/\.?0+$/, '')} %`;
+  // Two decimals at most; the unit sits after the number the way each language writes it.
+  return ui.i18n.t('facture.pct', { value: ui.i18n.fmtNumber(Math.round(n * 100) / 100) });
 }
 
 
