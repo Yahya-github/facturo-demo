@@ -1,28 +1,30 @@
 /* Context background: an invoicing / transport mood behind the floating panel.
-   Three quiet layers, all pointer-events:none and aria-hidden (js/ui/backdrop.js
+   Flat and quiet, all pointer-events:none and aria-hidden (js/ui/backdrop.js
    injects the markup):
-     1. two huge blurred blobs (green + gold) drifting on transform only;
-     2. a "ledger paper" grid, masked so it fades toward the middle;
+     1. a fine film grain over the page ground (the --grain token, no blend);
+     2. a "ledger paper" grid of 1px lines;
      3. a dotted delivery route with a pin and a tiny truck, inside the panel's
         bottom-right corner, behind the page content.
-   Light and dark have their own opacities. Everything freezes under
+   Light and dark have their own grid/route colours. The route freezes under
    prefers-reduced-motion (backdrop.js also pauses the SVG truck). */
 
 :root {
-  --bg-green: #2f8a55;
-  --bg-gold: #d4a853;
-  --bg-blob-green: 0.26;
-  --bg-blob-gold: 0.36;
   --bg-grid: rgba(26, 77, 46, 0.07);
   --bg-route: rgba(26, 77, 46, 0.34);
+  --bg-grain-opacity: 0.5;
 }
 :root[data-theme="dark"] {
-  --bg-green: #2f8a55;
-  --bg-gold: #b8892f;
-  --bg-blob-green: 0.3;
-  --bg-blob-gold: 0.2;
   --bg-grid: rgba(255, 255, 255, 0.035);
   --bg-route: rgba(212, 168, 83, 0.4);
+  --bg-grain-opacity: 0.35;
+}
+/* No explicit choice (theme.js absent): follow the OS. Mirrors the dark block. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg-grid: rgba(255, 255, 255, 0.035);
+    --bg-route: rgba(212, 168, 83, 0.4);
+    --bg-grain-opacity: 0.35;
+  }
 }
 
 .app-backdrop {
@@ -34,37 +36,12 @@
   contain: strict;
 }
 
-.bg-blob {
+.bg-grain {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  will-change: transform;
-}
-.bg-blob-green {
-  left: -14vmax;
-  top: 8vh;
-  width: 48vmax;
-  height: 48vmax;
-  background: radial-gradient(closest-side, var(--bg-green), transparent);
-  opacity: var(--bg-blob-green);
-  animation: blobDriftA 52s ease-in-out infinite alternate;
-}
-.bg-blob-gold {
-  right: -12vmax;
-  top: -18vmax;
-  width: 42vmax;
-  height: 42vmax;
-  background: radial-gradient(closest-side, var(--bg-gold), transparent);
-  opacity: var(--bg-blob-gold);
-  animation: blobDriftB 38s ease-in-out infinite alternate;
-}
-@keyframes blobDriftA {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(9vmax, 12vmax, 0) scale(1.14); }
-}
-@keyframes blobDriftB {
-  from { transform: translate3d(0, 0, 0) scale(1.08); }
-  to   { transform: translate3d(-10vmax, 9vmax, 0) scale(0.94); }
+  inset: 0;
+  background-image: var(--grain);
+  background-size: 160px 160px;
+  opacity: var(--bg-grain-opacity);
 }
 
 .bg-ledger {
@@ -74,8 +51,6 @@
     linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
   background-size: 34px 34px;
-  -webkit-mask-image: radial-gradient(ellipse 65% 60% at 55% 45%, transparent 10%, #000 100%);
-          mask-image: radial-gradient(ellipse 65% 60% at 55% 45%, transparent 10%, #000 100%);
 }
 
 /* ── Route (inside the panel, behind the content) ─────── */
@@ -122,6 +97,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-blob, .route-line, .route-pulse { animation: none !important; }
+  .route-line, .route-pulse { animation: none !important; }
   .route-pulse { opacity: 0; }
 }

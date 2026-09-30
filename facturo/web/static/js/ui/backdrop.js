@@ -1,5 +1,5 @@
 // Decorative background (see css/background.css). Injects, once:
-//   - into #app-backdrop (behind the floating panel): two blurred blobs + a ledger grid;
+//   - into #app-backdrop (behind the floating panel): a film-grain layer + a ledger grid;
 //   - into #inset (the panel, behind its content): a dotted delivery route with a pin
 //     and a tiny truck that follows it via SMIL <animateMotion>.
 // Everything is aria-hidden and pointer-events:none. CSS animations stop under
@@ -32,7 +32,7 @@
   function mount() {
     const back = document.getElementById('app-backdrop');
     if (back && !back.firstChild) {
-      back.innerHTML = '<div class="bg-blob bg-blob-green"></div><div class="bg-blob bg-blob-gold"></div><div class="bg-ledger"></div>';
+      back.innerHTML = '<div class="bg-grain"></div><div class="bg-ledger"></div>';
     }
     const panel = document.getElementById('inset');
     if (!panel || panel.querySelector('.panel-route')) return null;

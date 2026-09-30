@@ -45,7 +45,8 @@
   width: 0.9rem;
   height: 0.9rem;
   border-radius: 50%;
-  background: var(--background);
+  /* The panel colour flattened over the page ground, so the notch matches exactly. */
+  background: color-mix(in srgb, var(--background) 90%, var(--shell-bg));
 }
 .fac-page .fac-total::before { left: calc(-1.5rem - 0.45rem); }
 .fac-page .fac-total::after { right: calc(-1.5rem - 0.45rem); }

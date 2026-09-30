@@ -114,11 +114,10 @@
 
   /* Brand surface: hero banner and invoice total card (always dark green). */
   --brand-deep: #1a4d2e;
-  --brand-deep-2: #256b41;
   --on-brand: #fafafa;
 
   /* Flat-card detail: fine film grain (feTurbulence, about 5% alpha, no blend mode)
-     and a gold hairline. --brand-deep-2 is only for hard-edged geometry, never a fill blend. */
+     and a gold hairline. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .11 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --hairline-gold: rgba(212, 168, 83, 0.45);
 
@@ -234,7 +233,6 @@
   --overlay: rgba(0, 0, 0, 0.66);
 
   --brand-deep: #14382a;
-  --brand-deep-2: #1d5138;
   --hairline-gold: rgba(232, 201, 122, 0.42);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -274,7 +272,7 @@
     --sidebar-accent: #1c1c1f; --sidebar-accent-foreground: #fafafa;
     --sidebar-border: #232326; --sidebar-ring: #4ea672;
     --overlay: rgba(0, 0, 0, 0.66);
-    --brand-deep: #14382a; --brand-deep-2: #1d5138;
+    --brand-deep: #14382a;
     --hairline-gold: rgba(232, 201, 122, 0.42);
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
