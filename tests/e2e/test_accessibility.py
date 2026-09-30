@@ -139,3 +139,38 @@ def test_reduced_motion_runs_no_animation_frame_loop_on_home(page):
     before = page.evaluate("window.__raf")
     page.wait_for_timeout(1000)
     assert page.evaluate("window.__raf") - before == 0
+
+
+# ── Contrast on tinted grounds (found by the axe "needs review" pass) ────
+
+def _luminance(rgb):
+    def chan(v):
+        v /= 255
+        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = (chan(v) for v in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _ratio(a, b):
+    hi, lo = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def test_muted_text_keeps_4_5_contrast_on_the_tinted_sidebar_in_light_theme(page):
+    rgb = page.evaluate("""() => {
+      const c = document.createElement('span'); c.style.color = 'var(--muted-foreground)';
+      document.body.appendChild(c); const v = getComputedStyle(c).color; c.remove();
+      return v.match(/[\\d.]+/g).slice(0, 3).map(Number);
+    }""")
+    # Darkest plausible tint of the sidebar gradient in light theme.
+    assert _ratio(rgb, (222, 236, 226)) >= 4.5
+
+
+def test_facture_checklist_text_is_bright_enough_on_the_green_summary(page):
+    page.evaluate("newFacture()")
+    page.wait_for_selector(".fac-checks li")
+    alpha = page.evaluate("""() => {
+      const el = document.querySelector('.fac-checks .is-todo');
+      return parseFloat(getComputedStyle(el).color.match(/[\\d.]+/g)[3]);
+    }""")
+    assert alpha >= 0.85
