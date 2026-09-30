@@ -8,13 +8,13 @@ function renderPaymentDetail(p) {
   return `<div id="payment-detail" data-id="${p.id}">
     <header class="page-head">
       <div class="page-back">
-        <button class="btn btn-ghost btn-sm" onclick="closePayment()">${micon('arrow_back')} Tous les paiements</button>
-        <h2 class="pay-title">Quittance <span class="pay-title-ref">${esc(p.reference) || 'sans n°'}</span></h2>
-        <p>${esc(p.emetteur) || 'Émetteur inconnu'}${p.date ? ` — ${esc(formatDate(p.date))}` : ''}</p>
+        <button class="btn btn-ghost btn-sm" onclick="closePayment()">${micon('arrow_back')} ${esc(ui.i18n.t('pay.back'))}</button>
+        <h2 class="pay-title">${esc(ui.i18n.t('pay.title'))} <span class="pay-title-ref">${esc(p.reference) || esc(ui.i18n.t('pay.no_ref_lower'))}</span></h2>
+        <p>${esc(p.emetteur) || esc(ui.i18n.t('pay.unknown_issuer'))}${p.date ? ` — ${esc(formatDate(p.date))}` : ''}</p>
       </div>
       <div class="pay-head-actions">
-        <span class="pay-state pay-state-${p.statut_global}">${micon(st.icon)} ${st.label}</span>
-        ${pdfUrl ? `<a class="btn btn-outline" href="${pdfUrl}" target="_blank" rel="noopener">${icons.pdf} Voir le PDF</a>` : ''}
+        <span class="pay-state pay-state-${p.statut_global}">${micon(st.icon)} ${esc(payStatutLabel(p.statut_global))}</span>
+        ${pdfUrl ? `<a class="btn btn-outline" href="${pdfUrl}" target="_blank" rel="noopener">${icons.pdf} ${esc(ui.i18n.t('pay.view_pdf'))}</a>` : ''}
         ${importButton()}
       </div>
     </header>
@@ -22,7 +22,7 @@ function renderPaymentDetail(p) {
       <div class="pay-detail-main">
         ${renderLignesCard(p)}
       </div>
-      <aside class="pay-detail-aside" aria-label="Résumé du paiement">
+      <aside class="pay-detail-aside" aria-label="${escAttr(ui.i18n.t('pay.summary'))}">
         ${renderPaymentLedger(p)}
         ${renderPaymentHeaderCard(p)}
         ${renderDeleteZone(p)}
@@ -33,23 +33,23 @@ function renderPaymentDetail(p) {
 
 function renderPaymentHeaderCard(p) {
   const field = (key, label, value, type = 'text') => `<div class="form-group">
-    <label class="form-label" for="pay-${key}">${label}</label>
+    <label class="form-label" for="pay-${key}">${esc(label)}</label>
     <input class="form-input" id="pay-${key}" type="${type}" value="${escAttr(value)}"
       onchange="savePaymentField('${key}', this.value)">
   </div>`;
-  return `<section class="card pay-header-card" aria-label="Informations du paiement"><div class="card-body"><h3 class="pay-card-title">Informations</h3>
+  return `<section class="card pay-header-card" aria-label="${escAttr(ui.i18n.t('pay.info.label'))}"><div class="card-body"><h3 class="pay-card-title">${esc(ui.i18n.t('pay.info.title'))}</h3>
     <div class="form-row pay-fields">
-      ${field('emetteur', 'Émetteur', p.emetteur)}
-      ${field('reference', 'N° de quittance', p.reference)}
+      ${field('emetteur', ui.i18n.t('pay.field.issuer'), p.emetteur)}
+      ${field('reference', ui.i18n.t('pay.field.reference'), p.reference)}
     </div>
     <div class="form-row pay-fields">
-      ${field('date', 'Date', p.date, 'date')}
-      <div class="form-group"><span class="form-label">Fichier</span>
+      ${field('date', ui.i18n.t('pay.field.date'), p.date, 'date')}
+      <div class="form-group"><span class="form-label">${esc(ui.i18n.t('pay.field.file'))}</span>
         <div class="pay-file" title="${escAttr(p.nom_original)}">${micon('picture_as_pdf')} ${esc(p.nom_original) || '—'}</div></div>
     </div>
     <div class="form-group pay-notes">
-      <label class="form-label" for="pay-notes">Notes</label>
-      <textarea class="form-input" id="pay-notes" rows="2" placeholder="Ex. : écart de 5 % accepté, chèque déposé le…"
+      <label class="form-label" for="pay-notes">${esc(ui.i18n.t('pay.field.notes'))}</label>
+      <textarea class="form-input" id="pay-notes" rows="2" placeholder="${escAttr(ui.i18n.t('pay.notes_placeholder'))}"
         onchange="savePaymentField('notes', this.value)">${esc(p.notes || '')}</textarea>
     </div>
   </div></section>`;
@@ -63,16 +63,18 @@ function escomptePct(p) {
 
 function renderPaymentLedger(p) {
   const pct = escomptePct(p);
-  const line = (label, value, cls = '') => `<div class="line ${cls}"><dt>${label}</dt><dd>${value}</dd></div>`;
-  return `<section class="fac-summary pay-ledger" aria-label="Montants"><dl class="fac-lines">
-    ${p.escompte ? line('Avant escompte', payMoney(p.sous_total + p.escompte)) : ''}
-    ${p.escompte ? line(`Escompte${pct != null ? ` −${String(pct).replace('.', ',')} %` : ''}`, `− ${payMoney(p.escompte)}`, 'line-remise') : ''}
-    ${p.sous_total != null ? line('Sous-total', payMoney(p.sous_total)) : ''}
-    ${p.tps != null ? line('TPS', payMoney(p.tps)) : ''}
-    ${p.tvq != null ? line('TVQ', payMoney(p.tvq)) : ''}
+  const t = ui.i18n.t;
+  const pctText = pct != null ? ui.i18n.fmtNumber(pct) : '';
+  const line = (label, value, cls = '') => `<div class="line ${cls}"><dt>${esc(label)}</dt><dd>${value}</dd></div>`;
+  return `<section class="fac-summary pay-ledger" aria-label="${escAttr(t('pay.ledger.label'))}"><dl class="fac-lines">
+    ${p.escompte ? line(t('pay.ledger.before'), payMoney(p.sous_total + p.escompte)) : ''}
+    ${p.escompte ? line(pct != null ? t('pay.ledger.discount_pct', { pct: pctText }) : t('pay.ledger.discount'), `− ${payMoney(p.escompte)}`, 'line-remise') : ''}
+    ${p.sous_total != null ? line(t('pay.ledger.subtotal'), payMoney(p.sous_total)) : ''}
+    ${p.tps != null ? line(t('pay.ledger.gst'), payMoney(p.tps)) : ''}
+    ${p.tvq != null ? line(t('pay.ledger.qst'), payMoney(p.tvq)) : ''}
     </dl>
-    <div class="fac-total"><span>Total payé</span><strong>${payMoney(p.total)}</strong></div>
-    ${pct != null ? `<p class="pay-short">Payé ${String(pct).replace('.', ',')} % sous le montant facturé (escompte pour paiement rapide).</p>` : ''}
+    <div class="fac-total"><span>${esc(t('pay.ledger.total'))}</span><strong>${payMoney(p.total)}</strong></div>
+    ${pct != null ? `<p class="pay-short">${esc(t('pay.ledger.short', { pct: pctText }))}</p>` : ''}
   </section>`;
 }
 
@@ -80,59 +82,58 @@ function renderCoverage(lignes) {
   const n = lignes.length;
   const lies = lignes.filter(l => l.statut === 'lie').length;
   const pct = n ? Math.round((100 * lies) / n) : 0;
-  const verdict = n === 0 ? 'Aucun billet sur ce paiement.'
-    : lies === n ? 'Tous les billets sont liés à une facture.'
-    : `${n - lies} billet${n - lies > 1 ? 's' : ''} à vérifier.`;
+  const verdict = n === 0 ? ui.i18n.t('pay.coverage.none')
+    : lies === n ? ui.i18n.t('pay.coverage.all')
+    : ui.i18n.tn('pay.coverage.review', n - lies);
   return `<div class="pay-coverage">
-    <div class="pay-coverage-text"><strong>${lies} / ${n}</strong> billets liés <span>${verdict}</span></div>
-    <div class="progress pay-coverage-bar${lies === n && n ? ' is-complete' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Billets liés"><span style="width:${pct}%"></span></div>
+    <div class="pay-coverage-text"><strong>${lies} / ${n}</strong> ${esc(ui.i18n.t('pay.coverage.linked'))} <span>${esc(verdict)}</span></div>
+    <div class="progress pay-coverage-bar${lies === n && n ? ' is-complete' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${escAttr(ui.i18n.t('pay.col.linked'))}"><span style="width:${pct}%"></span></div>
   </div>`;
 }
 
 function renderLignesCard(p) {
-  return `<section class="card pay-lignes" aria-label="Billets payés">
+  return `<section class="card pay-lignes" aria-label="${escAttr(ui.i18n.t('pay.lignes.label'))}">
     ${renderCoverage(p.lignes)}
     ${p.lignes.length ? `<table class="data-table">
-      <thead><tr><th>N° billet</th><th>Date</th><th>Plaque</th><th class="num">Qté</th>
-        <th class="num">Montant</th><th>État</th><th><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th>${esc(ui.i18n.t('pay.col.ticket_no'))}</th><th>${esc(ui.i18n.t('col.date'))}</th><th>${esc(ui.i18n.t('pay.col.plate'))}</th><th class="num">${esc(ui.i18n.t('pay.col.qty'))}</th>
+        <th class="num">${esc(ui.i18n.t('col.amount'))}</th><th>${esc(ui.i18n.t('pay.col.state'))}</th><th><span class="sr-only">${esc(ui.i18n.t('col.actions'))}</span></th></tr></thead>
       <tbody>${p.lignes.map(renderLigneRow).join('')}</tbody>
     </table>` : ''}
     <form class="pay-add-ligne" onsubmit="event.preventDefault(); addLigne(${p.id})">
-      <label for="ligne-add-numero">Ajouter un billet absent du PDF</label>
-      <input class="form-input" id="ligne-add-numero" placeholder="N° de billet" maxlength="40" autocomplete="off">
-      <button type="submit" class="btn btn-ghost btn-sm" id="btn-add-ligne">${icons.plus} Ajouter</button>
+      <label for="ligne-add-numero">${esc(ui.i18n.t('pay.add_ligne'))}</label>
+      <input class="form-input" id="ligne-add-numero" placeholder="${escAttr(ui.i18n.t('pay.add_placeholder'))}" maxlength="40" autocomplete="off">
+      <button type="submit" class="btn btn-ghost btn-sm" id="btn-add-ligne">${icons.plus} ${esc(ui.i18n.t('action.add'))}</button>
     </form>
   </section>`;
 }
 
 function ligneDetailText(l) {
+  const t = ui.i18n.t;
   if (l.statut === 'lie') {
-    return `Facture <button type="button" class="pay-inline-link" onclick="editFacture(${l.facture_id})">${esc(l.facture_numero)}</button>
-      ${l.client_nom ? `— ${esc(l.client_nom)}` : ''} <span class="pay-muted">(lié ${METHODES[l.methode] || ''})</span>`;
+    return `${esc(t('pay.line.invoice'))} <button type="button" class="pay-inline-link" onclick="editFacture(${l.facture_id})">${esc(l.facture_numero)}</button>
+      ${l.client_nom ? `— ${esc(l.client_nom)}` : ''} <span class="pay-muted">${esc(t('pay.line.linked', { method: payMethod(l.methode) }))}</span>`;
   }
   if (l.statut === 'doublon') {
-    return `Déjà payé par <button type="button" class="pay-inline-link" onclick="openPayment(${l.doublon_paiement_id})">un autre paiement</button>`;
+    return `${esc(t('pay.line.dup_prefix'))} <button type="button" class="pay-inline-link" onclick="openPayment(${l.doublon_paiement_id})">${esc(t('pay.line.dup_link'))}</button>`;
   }
-  const hint = l.candidats.length
-    ? `${l.candidats.length} billet${l.candidats.length > 1 ? 's' : ''} proche${l.candidats.length > 1 ? 's' : ''} trouvé${l.candidats.length > 1 ? 's' : ''}`
-    : 'Aucun billet correspondant sur vos factures';
-  return `<span class="pay-muted">${hint}</span>`;
+  const hint = l.candidats.length ? ui.i18n.tn('pay.line.candidates', l.candidats.length) : t('pay.line.none');
+  return `<span class="pay-muted">${esc(hint)}</span>`;
 }
 
 function renderLigneRow(l) {
   const st = LIGNE_STATUTS[l.statut] || LIGNE_STATUTS.non_lie;
   const linkBtn = l.statut === 'lie'
-    ? `<button type="button" class="btn btn-ghost btn-sm" onclick="unlinkLigne(${l.id})">${micon('link_off')} Délier</button>`
-    : `<button type="button" class="btn btn-outline btn-sm btn-link-ligne" data-ligne-id="${l.id}" onclick="openLinkPicker(${l.id})">${micon('add_link')} Lier…</button>`;
+    ? `<button type="button" class="btn btn-ghost btn-sm" onclick="unlinkLigne(${l.id})">${micon('link_off')} ${esc(ui.i18n.t('pay.unlink'))}</button>`
+    : `<button type="button" class="btn btn-outline btn-sm btn-link-ligne" data-ligne-id="${l.id}" onclick="openLinkPicker(${l.id})">${micon('add_link')} ${esc(ui.i18n.t('pay.link'))}</button>`;
   const more = `<button type="button" class="btn btn-ghost btn-icon btn-sm pay-more btn-remove-ligne" data-ligne-id="${l.id}"
-      data-tip="Plus d'actions" aria-label="Actions du billet ${escAttr(l.numero_billet)}" aria-haspopup="menu">${icon('ellipsis')}</button>`;
+      data-tip="${escAttr(ui.i18n.t('pay.more_actions'))}" aria-label="${escAttr(ui.i18n.t('pay.ticket_actions', { number: l.numero_billet }))}" aria-haspopup="menu">${icon('ellipsis')}</button>`;
   return `<tr class="ligne-row ligne-${l.statut}" data-ligne-id="${l.id}">
     <td class="pay-mono">${esc(l.numero_billet) || '—'}</td>
     <td>${esc(formatDate(l.date_billet)) || '—'}</td>
     <td class="pay-mono">${esc(l.plaque) || '—'}</td>
     <td class="num">${payQty(l.quantite)}</td>
     <td class="num">${payMoney(l.montant)}</td>
-    <td><span class="ligne-status ${st.cls}">${micon(st.icon)} ${st.label}</span>
+    <td><span class="ligne-status ${st.cls}">${micon(st.icon)} ${esc(ui.i18n.t(st.labelKey))}</span>
       <div class="ligne-detail">${ligneDetailText(l)}</div></td>
     <td><div class="actions">${linkBtn}${more}</div></td>
   </tr>`;
@@ -145,14 +146,14 @@ function bindLigneMenus() {
     btn.dataset.menu = '1';
     const id = Number(btn.dataset.ligneId);
     ui.menu.attach(btn, () => [
-      { label: 'Retirer ce billet du paiement', icon: 'trash-2', destructive: true, onSelect: () => askRemoveLigne(id) },
+      { label: ui.i18n.t('pay.remove_menu'), icon: 'trash-2', destructive: true, onSelect: () => askRemoveLigne(id) },
     ]);
   });
 }
 
 function renderDeleteZone(p) {
   return `<div class="pay-delete-zone">
-    <button class="btn btn-danger-ghost btn-sm pay-delete-btn" onclick="askDeletePayment(${p.id})">${icons.trash} Supprimer ce paiement</button>
+    <button class="btn btn-danger-ghost btn-sm pay-delete-btn" onclick="askDeletePayment(${p.id})">${icons.trash} ${esc(ui.i18n.t('pay.delete_btn'))}</button>
   </div>`;
 }
 
@@ -168,7 +169,7 @@ async function savePaymentField(key, value) {
     const detail = await api('PUT', `/api/paiements/${id}`, { [key]: value });
     if (pay.detailId !== id) return; // user moved on while saving
     pay.detail = detail;
-    toast('Paiement mis à jour');
+    toast(ui.i18n.t('pay.updated'));
     render();
   } catch (e) {
     toast(e.message, 'error');
@@ -181,10 +182,10 @@ async function savePaymentField(key, value) {
 async function addLigne(paiementId) {
   const input = $('#ligne-add-numero');
   const numero = (input && input.value || '').trim();
-  if (!numero) { toast('Saisissez un numéro de billet', 'error'); return; }
+  if (!numero) { toast(ui.i18n.t('pay.enter_ticket'), 'error'); return; }
   try {
     const ligne = await api('POST', `/api/paiements/${paiementId}/lignes`, { numero_billet: numero });
-    toast(ligne.statut === 'lie' ? `Billet ${numero} ajouté et lié` : `Billet ${numero} ajouté — à vérifier`);
+    toast(ui.i18n.t(ligne.statut === 'lie' ? 'pay.ticket_added_linked' : 'pay.ticket_added_review', { number: numero }));
     await refreshAfterLinkChange();
   } catch (e) {
     toast(e.message, 'error');
@@ -194,7 +195,7 @@ async function addLigne(paiementId) {
 async function unlinkLigne(ligneId) {
   try {
     await api('PUT', `/api/paiements/lignes/${ligneId}`, { facture_id: null });
-    toast('Billet délié');
+    toast(ui.i18n.t('pay.unlinked'));
     await refreshAfterLinkChange();
   } catch (e) {
     toast(e.message, 'error');
@@ -203,9 +204,9 @@ async function unlinkLigne(ligneId) {
 
 async function askRemoveLigne(ligneId) {
   const ok = await ui.alertDialog({
-    title: 'Retirer ce billet',
-    description: 'Le billet est retiré de ce paiement. Si une facture était payée grâce à lui, elle repasse à « Non payée ».',
-    confirmLabel: 'Retirer', destructive: true,
+    title: ui.i18n.t('pay.remove.title'),
+    description: ui.i18n.t('pay.remove.desc'),
+    confirmLabel: ui.i18n.t('pay.remove.confirm'), destructive: true,
   });
   if (ok) removeLigne(ligneId);
 }
@@ -213,7 +214,7 @@ async function askRemoveLigne(ligneId) {
 async function removeLigne(ligneId) {
   try {
     await api('DELETE', `/api/paiements/lignes/${ligneId}`);
-    toast('Billet retiré du paiement');
+    toast(ui.i18n.t('pay.removed'));
     await refreshAfterLinkChange();
   } catch (e) {
     toast(e.message, 'error');
@@ -222,9 +223,9 @@ async function removeLigne(ligneId) {
 
 async function askDeletePayment(id) {
   const ok = await ui.alertDialog({
-    title: 'Supprimer ce paiement',
-    description: 'Supprimer ce paiement et son PDF ? Les factures payées automatiquement grâce à lui repasseront à « Non payée ».',
-    confirmLabel: 'Supprimer définitivement', destructive: true,
+    title: ui.i18n.t('pay.delete_btn'),
+    description: ui.i18n.t('pay.delete.desc'),
+    confirmLabel: ui.i18n.t('pay.delete.confirm'), destructive: true,
   });
   if (ok) deletePayment(id);
 }
@@ -232,7 +233,7 @@ async function askDeletePayment(id) {
 async function deletePayment(id) {
   try {
     await api('DELETE', `/api/paiements/${id}`);
-    toast('Paiement supprimé');
+    toast(ui.i18n.t('pay.deleted'));
     await loadData();
     closePayment();
   } catch (e) {
@@ -252,7 +253,8 @@ function pickerBillets(facture) {
 }
 
 function billetOptionLabel(b, i) {
-  const parts = [`Billet ${i + 1}`, b.numero_billet ? `n° ${b.numero_billet}` : '',
+  const t = ui.i18n.t;
+  const parts = [t('pay.picker.ticket', { n: i + 1 }), b.numero_billet ? t('pay.picker.no', { number: b.numero_billet }) : '',
     formatDate(b.date_billet || ''), b.plaque || '', b.quantite ? `${b.quantite} h` : ''];
   return parts.filter(Boolean).join(' — ');
 }
@@ -277,27 +279,27 @@ async function openLinkPicker(ligneId) {
   overlay.className = 'modal-overlay';
   overlay.id = 'ligne-link-picker';
   overlay.innerHTML = `<div class="modal pay-picker">
-    <div class="modal-header"><h3 id="ligne-link-title">Lier le billet ${esc(ligne.numero_billet)}</h3>
-      <button class="modal-close" onclick="closeLinkPicker()" aria-label="Fermer">${icons.x}</button></div>
+    <div class="modal-header"><h3 id="ligne-link-title">${esc(ui.i18n.t('pay.picker.title', { number: ligne.numero_billet }))}</h3>
+      <button class="modal-close" onclick="closeLinkPicker()" aria-label="${escAttr(ui.i18n.t('action.close'))}">${icons.x}</button></div>
     <div class="modal-body">
-      <p class="pay-picker-ligne">Sur le paiement : ${esc(formatDate(ligne.date_billet)) || 'date inconnue'} — ${esc(ligne.plaque) || 'plaque inconnue'} — ${payQty(ligne.quantite)} h — ${payMoney(ligne.montant)}</p>
-      ${ligne.candidats.length ? `<div class="pay-suggestions"><span class="form-label">Billets proches</span>
+      <p class="pay-picker-ligne">${esc(ui.i18n.t('pay.picker.on_payment', { date: formatDate(ligne.date_billet) || ui.i18n.t('pay.picker.unknown_date'), plate: ligne.plaque || ui.i18n.t('pay.picker.unknown_plate'), qty: payQty(ligne.quantite), amount: payMoney(ligne.montant) }))}</p>
+      ${ligne.candidats.length ? `<div class="pay-suggestions"><span class="form-label">${esc(ui.i18n.t('pay.picker.close'))}</span>
         ${ligne.candidats.map(c => `<button type="button" class="pay-suggestion" onclick="pickCandidate(${c.facture_id}, ${c.billet_index})">
           <strong>${esc(c.facture_numero)}</strong> ${esc(c.client_nom)}
-          <span>${esc(c.numero_billet) ? `n° ${esc(c.numero_billet)} — ` : ''}${esc(formatDate(c.date_billet))} — ${esc(c.plaque)}</span>
+          <span>${c.numero_billet ? `${esc(ui.i18n.t('pay.picker.no', { number: c.numero_billet }))} — ` : ''}${esc(formatDate(c.date_billet))} — ${esc(c.plaque)}</span>
         </button>`).join('')}</div>` : ''}
-      <div class="form-group"><label class="form-label" for="ligne-link-facture-select">Facture</label>
+      <div class="form-group"><label class="form-label" for="ligne-link-facture-select">${esc(ui.i18n.t('pay.picker.invoice'))}</label>
         <select class="form-select" id="ligne-link-facture-select" onchange="fillPickerBillets()">
-          <option value="">Choisir une facture…</option>
-          ${suggested.size ? `<optgroup label="Suggérées">${pay.pickerFactures.filter(f => suggested.has(f.id)).map(option).join('')}</optgroup>` : ''}
-          <optgroup label="Toutes les factures">${pay.pickerFactures.filter(f => !suggested.has(f.id)).map(option).join('')}</optgroup>
+          <option value="">${esc(ui.i18n.t('pay.picker.choose_invoice'))}</option>
+          ${suggested.size ? `<optgroup label="${escAttr(ui.i18n.t('pay.picker.suggested'))}">${pay.pickerFactures.filter(f => suggested.has(f.id)).map(option).join('')}</optgroup>` : ''}
+          <optgroup label="${escAttr(ui.i18n.t('pay.picker.all_invoices'))}">${pay.pickerFactures.filter(f => !suggested.has(f.id)).map(option).join('')}</optgroup>
         </select></div>
-      <div class="form-group"><label class="form-label" for="ligne-link-billet-select">Billet</label>
-        <select class="form-select" id="ligne-link-billet-select" disabled><option value="">Choisissez d'abord une facture</option></select></div>
+      <div class="form-group"><label class="form-label" for="ligne-link-billet-select">${esc(ui.i18n.t('pay.picker.ticket_label'))}</label>
+        <select class="form-select" id="ligne-link-billet-select" disabled><option value="">${esc(ui.i18n.t('pay.picker.invoice_first'))}</option></select></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeLinkPicker()">Annuler</button>
-      <button class="btn btn-primary" id="ligne-link-confirm" onclick="confirmLink(${ligne.id})">${micon('link')} Lier ce billet</button>
+      <button class="btn btn-ghost" onclick="closeLinkPicker()">${esc(ui.i18n.t('action.cancel'))}</button>
+      <button class="btn btn-primary" id="ligne-link-confirm" onclick="confirmLink(${ligne.id})">${micon('link')} ${esc(ui.i18n.t('pay.picker.confirm'))}</button>
     </div>
   </div>`;
   openModal(overlay, {
@@ -324,7 +326,7 @@ function fillPickerBillets(selectedIndex) {
   select.disabled = billets.length === 0;
   select.innerHTML = billets.length
     ? billets.map((b, i) => `<option value="${escAttr(i)}">${esc(billetOptionLabel(b, i))}</option>`).join('')
-    : `<option value="">${facture ? 'Aucun billet sur cette facture' : "Choisissez d'abord une facture"}</option>`;
+    : `<option value="">${esc(ui.i18n.t(facture ? 'pay.picker.no_ticket' : 'pay.picker.invoice_first'))}</option>`;
   if (selectedIndex != null) select.value = String(selectedIndex);
 }
 
@@ -341,11 +343,11 @@ function closeLinkPicker(restoreFocus = true) {
 async function confirmLink(ligneId) {
   const factureId = Number($('#ligne-link-facture-select').value);
   const billetIndex = $('#ligne-link-billet-select').value;
-  if (!factureId || billetIndex === '') { toast('Choisissez une facture et un billet', 'error'); return; }
+  if (!factureId || billetIndex === '') { toast(ui.i18n.t('pay.picker.choose_both'), 'error'); return; }
   try {
     await api('PUT', `/api/paiements/lignes/${ligneId}`, { facture_id: factureId, billet_index: Number(billetIndex) });
     closeLinkPicker(false);
-    toast('Billet lié');
+    toast(ui.i18n.t('pay.picker.linked'));
     await refreshAfterLinkChange();
     restorePickerFocus();
   } catch (e) {
@@ -370,7 +372,7 @@ if (typeof editFacture === 'function') {
       Object.assign(payBadges, { factureId: id, billets: data.billets || [], byBillet: new WeakMap(), bound: false });
     } catch (e) {
       Object.assign(payBadges, { factureId: null, billets: [], byBillet: new WeakMap(), bound: false });
-      toast(`Impossible de charger l'état de paiement des billets : ${e.message}`, 'error');
+      toast(ui.i18n.t('pay.badge_load_failed', { error: e.message }), 'error');
     }
     return editFactureWithoutPayments(id);
   };
@@ -386,7 +388,7 @@ function billetPaymentBadge(b, i) {
   if (!info || !info.paye) return '';
   return `<button type="button" class="billet-payment-badge" data-paiement-id="${info.paiement_id}"
     onclick="navigate('payments', { paiementId: ${info.paiement_id} })"
-    title="Ouvrir le paiement">${micon('check_circle', true)} Payé — Quittance ${esc(info.reference)}</button>`;
+    title="${escAttr(ui.i18n.t('pay.badge.open'))}">${micon('check_circle', true)} ${esc(ui.i18n.t('pay.badge.paid', { ref: info.reference }))}</button>`;
 }
 
 ui.hydrate.register(() => { if (document.querySelector('.pay-more')) bindLigneMenus(); });

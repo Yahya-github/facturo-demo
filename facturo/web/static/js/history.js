@@ -245,7 +245,7 @@ async function downloadFacturePdf(btn, filename) {
   try {
     const res = await fetch(
       `/api/factures/download-pdf/${encodeURIComponent(filename)}?t=${Date.now()}`,
-      { cache: 'no-store' },
+      { cache: 'no-store', headers: { 'X-Lang': ui.i18n.lang() } },
     );
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: ui.i18n.t('error.server') }));

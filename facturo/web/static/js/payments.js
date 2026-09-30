@@ -19,26 +19,28 @@ const pay = {
   pickerFactures: [],
 };
 
+// Labels are looked up at render time (pay.status.* / pay.ligne.*) so a language switch shows up.
 const PAY_STATUTS = {
-  complet: { label: 'Complet', icon: 'task_alt' },
-  partiel: { label: 'Partiel', icon: 'timelapse' },
-  a_verifier: { label: 'À vérifier', icon: 'error' },
+  complet: { icon: 'task_alt' },
+  partiel: { icon: 'timelapse' },
+  a_verifier: { icon: 'error' },
 };
+const payStatutLabel = key => ui.i18n.t(`pay.status.${key in PAY_STATUTS ? key : 'partiel'}`);
 
 const LIGNE_STATUTS = {
-  lie: { cls: 'status-lie', label: 'Lié', icon: 'link' },
-  non_lie: { cls: 'status-a-verifier', label: 'À vérifier', icon: 'help' },
-  doublon: { cls: 'status-doublon', label: 'Doublon', icon: 'content_copy' },
+  lie: { cls: 'status-lie', labelKey: 'pay.ligne.lie', icon: 'link' },
+  non_lie: { cls: 'status-a-verifier', labelKey: 'pay.status.a_verifier', icon: 'help' },
+  doublon: { cls: 'status-doublon', labelKey: 'pay.ligne.doublon', icon: 'content_copy' },
 };
 
-const METHODES = { numero: 'par n° de billet', date_plaque: 'par date, plaque et quantité', manuel: 'manuellement' };
+const payMethod = key => (['numero', 'date_plaque', 'manuel'].includes(key) ? ui.i18n.t(`pay.method.${key}`) : '');
 
 function payMoney(n) {
   return n == null ? '—' : money(Number(n));
 }
 
 function payQty(n) {
-  return n == null ? '—' : String(Number(n)).replace('.', ',');
+  return n == null ? '—' : ui.i18n.fmtNumber(Number(n));
 }
 
 // ── Navigation & loading ────────────────────────────────
@@ -119,8 +121,8 @@ function renderPayments() {
   return `<div class="page page-wide pay-page">${input}
     <header class="page-head">
       <div>
-        <h2>Paiements</h2>
-        <p>Preuves de paiement reçues de vos clients, rapprochées de vos billets.</p>
+        <h2>${esc(ui.i18n.t('nav.payments'))}</h2>
+        <p>${esc(ui.i18n.t('pay.subtitle'))}</p>
       </div>
     </header>
     ${importZone()}
@@ -137,26 +139,26 @@ function importZone() {
     return `<div class="upzone pay-zone is-busy" id="pay-dropzone" aria-live="polite">
       <span class="upzone-icon"><span class="loading-spinner"></span></span>
       <div class="pay-zone-text">
-        <strong>Import ${done + 1} sur ${total}…</strong>
-        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Import en cours"><span style="width:${Math.max(pct, 6)}%"></span></div>
+        <strong>${esc(ui.i18n.t('pay.importing', { current: done + 1, total }))}</strong>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${escAttr(ui.i18n.t('pay.importing_label'))}"><span style="width:${Math.max(pct, 6)}%"></span></div>
       </div>
-      <button class="btn btn-primary btn-loading" id="btn-import-payment" disabled>Import…</button>
+      <button class="btn btn-primary btn-loading" id="btn-import-payment" disabled>${esc(ui.i18n.t('pay.importing_btn'))}</button>
     </div>`;
   }
   return `<div class="upzone pay-zone" id="pay-dropzone">
     <span class="upzone-icon">${icon('cloud-upload')}</span>
     <div class="pay-zone-text">
-      <strong>Glissez des quittances PDF ici</strong>
-      <span>Chaque billet listé est retrouvé sur vos factures ; les factures entièrement couvertes passent à « Payée ».</span>
+      <strong>${esc(ui.i18n.t('pay.drop_title'))}</strong>
+      <span>${esc(ui.i18n.t('pay.drop_text'))}</span>
     </div>
     <button class="btn btn-primary" id="btn-import-payment"
-      onclick="document.getElementById('payment-file-input').click()">${icons.upload} Importer des PDF</button>
+      onclick="document.getElementById('payment-file-input').click()">${icons.upload} ${esc(ui.i18n.t('pay.import_btn'))}</button>
   </div>`;
 }
 
 function importButton() {
   return `<button class="btn btn-primary" id="btn-import-payment"
-    onclick="document.getElementById('payment-file-input').click()">${icons.upload} Importer des PDF</button>`;
+    onclick="document.getElementById('payment-file-input').click()">${icons.upload} ${esc(ui.i18n.t('pay.import_btn'))}</button>`;
 }
 
 function bindPaymentDrop() {
@@ -174,7 +176,7 @@ function bindPaymentDrop() {
     e.preventDefault();
     z.classList.remove('is-dragover');
     const files = [...(e.dataTransfer ? e.dataTransfer.files : [])].filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
-    if (!files.length) { toast('Déposez des fichiers PDF', 'error'); return; }
+    if (!files.length) { toast(ui.i18n.t('pay.drop_pdf'), 'error'); return; }
     importPaymentFiles(files);
   });
 }
@@ -182,16 +184,16 @@ function bindPaymentDrop() {
 function payLoadError() {
   return `<div class="card"><div class="empty-state" role="alert" id="payments-load-error">
     ${micon('error')}
-    <h3>Chargement des paiements échoué</h3>
+    <h3>${esc(ui.i18n.t('pay.load_failed'))}</h3>
     <p>${esc(pay.listError)}</p>
-    <p>Vos paiements ne sont pas perdus, ils ne sont simplement pas affichés.</p>
-    <button class="btn btn-primary" style="margin-top:16px" onclick="retryLoadPayments()">${micon('refresh')} Réessayer</button>
+    <p>${esc(ui.i18n.t('pay.load_failed_note'))}</p>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="retryLoadPayments()">${micon('refresh')} ${esc(ui.i18n.t('toast.retry'))}</button>
   </div></div>`;
 }
 
 function payListSkeleton() {
   const row = `<div class="pay-skel-row"><span class="skeleton" style="width:5rem;height:.9rem"></span><span class="skeleton" style="width:38%;height:.9rem"></span><span class="skeleton" style="width:14%;height:.9rem"></span><span class="skeleton" style="width:8rem;height:.5rem"></span><span class="skeleton" style="width:5rem;height:.9rem;margin-left:auto"></span></div>`;
-  return `<div class="card pay-skel" aria-busy="true" aria-label="Chargement">${row.repeat(5)}</div>`;
+  return `<div class="card pay-skel" aria-busy="true" aria-label="${escAttr(ui.i18n.t('a11y.loading'))}">${row.repeat(5)}</div>`;
 }
 
 function payDetailSkeleton() {
@@ -206,32 +208,32 @@ function renderPaymentsList() {
   if (pay.list.length === 0) {
     return `<div class="card" id="payments-list"><div class="empty-state">
       ${micon('payments')}
-      <h3>Aucun paiement importé</h3>
-      <p>Déposez la quittance PDF d'un client dans la zone ci-dessus pour commencer le rapprochement.</p>
+      <h3>${esc(ui.i18n.t('pay.empty.title'))}</h3>
+      <p>${esc(ui.i18n.t('pay.empty.text'))}</p>
     </div></div>`;
   }
   const counts = { '': pay.list.length };
   pay.list.forEach(p => { counts[p.statut_global] = (counts[p.statut_global] || 0) + 1; });
-  const filters = [['', 'Tous'], ['a_verifier', 'À vérifier'], ['partiel', 'Partiels'], ['complet', 'Complets']];
+  const filters = [['', 'pay.filter.all'], ['a_verifier', 'pay.status.a_verifier'], ['partiel', 'pay.filter.partiel'], ['complet', 'pay.filter.complet']];
   return `<div class="pay-toolbar">
       <label class="pay-search">${micon('search')}
-        <input type="search" id="payments-search" class="form-input" placeholder="Émetteur, n° de quittance, fichier…"
-          value="${escAttr(pay.search)}" oninput="filterPayments(this.value)" aria-label="Rechercher un paiement">
+        <input type="search" id="payments-search" class="form-input" placeholder="${escAttr(ui.i18n.t('pay.search_placeholder'))}"
+          value="${escAttr(pay.search)}" oninput="filterPayments(this.value)" aria-label="${escAttr(ui.i18n.t('pay.search_label'))}">
       </label>
-      <div class="seg pay-status-seg" role="group" aria-label="Filtrer par état">
-        ${filters.map(([key, label]) => `<button type="button"
+      <div class="seg pay-status-seg" role="group" aria-label="${escAttr(ui.i18n.t('pay.filter.label'))}">
+        ${filters.map(([key, labelKey]) => `<button type="button"
           class="seg-btn pay-status-btn${pay.statut === key ? ' active' : ''}" data-statut="${key}"
-          aria-pressed="${pay.statut === key}" onclick="setPaymentStatut('${key}')">${label}
+          aria-pressed="${pay.statut === key}" onclick="setPaymentStatut('${key}')">${esc(ui.i18n.t(labelKey))}
           <span class="pay-count">${counts[key] || 0}</span></button>`).join('')}
       </div>
     </div>
     <div class="card card-table">
       <table class="data-table pay-table" id="payments-list">
-        <thead><tr><th>Date</th><th>Émetteur</th><th>Quittance</th><th>Billets liés</th>
-          <th class="num">Total</th><th>État</th></tr></thead>
+        <thead><tr><th>${esc(ui.i18n.t('col.date'))}</th><th>${esc(ui.i18n.t('pay.col.issuer'))}</th><th>${esc(ui.i18n.t('pay.col.receipt'))}</th><th>${esc(ui.i18n.t('pay.col.linked'))}</th>
+          <th class="num">${esc(ui.i18n.t('pay.col.total'))}</th><th>${esc(ui.i18n.t('pay.col.state'))}</th></tr></thead>
         <tbody>${pay.list.map(renderPaymentRow).join('')}</tbody>
       </table>
-      <p class="pay-no-match" id="payments-no-match" hidden>Aucun paiement ne correspond à cette recherche.</p>
+      <p class="pay-no-match" id="payments-no-match" hidden>${esc(ui.i18n.t('pay.no_match'))}</p>
     </div>`;
 }
 
@@ -249,14 +251,14 @@ function renderPaymentRow(p) {
   return `<tr class="payment-row" data-id="${p.id}" ${paymentMatchesFilters(p) ? '' : 'hidden'}
       onclick="openPayment(${p.id})">
     <td class="pay-date">${esc(formatDate(p.date)) || '—'}</td>
-    <td class="pay-emetteur">${esc(p.emetteur) || '<span class="pay-muted">Émetteur inconnu</span>'}</td>
+    <td class="pay-emetteur">${esc(p.emetteur) || `<span class="pay-muted">${esc(ui.i18n.t('pay.unknown_issuer'))}</span>`}</td>
     <td><button type="button" class="pay-ref" onclick="event.stopPropagation(); openPayment(${p.id})"
-      aria-label="Ouvrir la quittance ${escAttr(p.reference)}">${esc(p.reference) || 'Sans n°'}</button></td>
-    <td><div class="pay-mini-meter pay-${p.statut_global}" data-tip="${p.nb_lignes_liees} sur ${p.nb_lignes} billets liés">
-      <span class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Billets liés"><span style="width:${pct}%"></span></span>
+      aria-label="${escAttr(ui.i18n.t('pay.open_receipt', { ref: p.reference }))}">${esc(p.reference) || esc(ui.i18n.t('pay.no_ref'))}</button></td>
+    <td><div class="pay-mini-meter pay-${p.statut_global}" data-tip="${escAttr(ui.i18n.t('pay.linked_of', { linked: p.nb_lignes_liees, total: p.nb_lignes }))}">
+      <span class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${escAttr(ui.i18n.t('pay.col.linked'))}"><span style="width:${pct}%"></span></span>
       <span class="pay-mini-count">${p.nb_lignes_liees}/${p.nb_lignes}</span></div></td>
     <td class="num">${payMoney(p.total)}</td>
-    <td><span class="pay-state pay-state-${p.statut_global}">${micon(st.icon)} ${st.label}</span></td>
+    <td><span class="pay-state pay-state-${p.statut_global}">${micon(st.icon)} ${esc(payStatutLabel(p.statut_global))}</span></td>
   </tr>`;
 }
 
@@ -298,17 +300,17 @@ async function importPaymentFiles(files) {
     const fd = new FormData();
     fd.append('file', file);
     try {
-      const res = await fetch('/api/paiements', { method: 'POST', body: fd });
+      const res = await fetch('/api/paiements', { method: 'POST', body: fd, headers: { 'X-Lang': ui.i18n.lang() } });
       const body = await res.json().catch(() => null);
       if (!res.ok) throw new Error(errorMessage(body));
       imported.push(body);
     } catch (e) {
-      toast(`${file.name} : ${networkErrorMessage(e)}`, 'error');
+      toast(ui.i18n.t('pay.file_error', { name: file.name, message: networkErrorMessage(e) }), 'error');
     }
   }
   pay.importing = null;
   if (imported.length) {
-    toast(`${imported.length} paiement${imported.length > 1 ? 's' : ''} importé${imported.length > 1 ? 's' : ''}`);
+    toast(ui.i18n.tn('pay.imported', imported.length));
     await loadData(); // invoices may have just become paid
   }
   pay.listSeq++; // a list load still in flight predates the import: drop it

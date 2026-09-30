@@ -187,6 +187,7 @@ function postScan(file, clientId, onProgress) {
     fd.append('file', file);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/scans');
+    xhr.setRequestHeader('X-Lang', ui.i18n.lang());
     xhr.upload.onprogress = ev => { if (ev.lengthComputable) onProgress(ev.loaded / ev.total); };
     xhr.onerror = () => reject(new Error(ui.i18n.t('scans.upload_failed')));
     xhr.onload = () => {
