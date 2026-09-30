@@ -98,8 +98,8 @@ All captures use the fictional data from `scripts/seed_demo.py`.
 ## Quick start (development)
 
 ```bash
-git clone https://github.com/your-github-user/facturo.git
-cd facturo
+git clone https://github.com/Yahya-github/facturo-demo.git
+cd facturo-demo
 python -m venv venv
 . venv/bin/activate                  # Windows: venv\Scripts\activate
 pip install -r requirements-dev.txt

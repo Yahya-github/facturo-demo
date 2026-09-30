@@ -13,7 +13,7 @@ Model: one device at a time, **no merging** (SQLite is binary).
 
 | Repo | Holds | Used by |
 |------|-------|---------|
-| `your-github-user/facturo` | Source code | Developer, CI |
+| `Yahya-github/facturo-demo` | Source code | Developer, CI |
 | `your-github-user/facturo-releases` | Published `Factures.exe` + `.sha256` + notes | In-app updater (`docs/UPDATES_AND_RELEASES.md`) |
 | `facturo_data` | Data only | Sync |
 

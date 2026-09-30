@@ -7,7 +7,7 @@ This guide covers dev machine setup, GitHub token creation, releasing an update,
 ### Clone & create virtual environment
 
 ```bash
-git clone https://github.com/your-github-user/facturo facturo-dev
+git clone https://github.com/Yahya-github/facturo-demo facturo-dev
 cd facturo-dev
 python -m venv venv
 
@@ -68,7 +68,7 @@ This token lets CI push new releases to `facturo-releases`.
 6. **Permissions:**
    - Contents: `Read and write`
 7. Click **Generate token**, copy immediately (shown only once)
-8. Go to **https://github.com/your-github-user/facturo/settings/secrets/actions** (this repo's Secrets)
+8. Go to **https://github.com/Yahya-github/facturo-demo/settings/secrets/actions** (this repo's Secrets)
 9. Click **New repository secret**
    - **Name:** `RELEASES_TOKEN`
    - **Secret:** Paste the token from step 7
@@ -99,7 +99,7 @@ If expired, create a new one using the same process as the updater token (steps 
 
 ### Enable Actions
 
-Go to **https://github.com/your-github-user/facturo/settings/actions** and ensure:
+Go to **https://github.com/Yahya-github/facturo-demo/settings/actions** and ensure:
 - Actions is enabled
 - Workflow permissions: "Read and write permissions" is selected
 
@@ -150,7 +150,7 @@ Push the tag:
 git push origin HEAD --tags
 ```
 
-Go to **https://github.com/your-github-user/facturo/actions** and watch the `release` workflow:
+Go to **https://github.com/Yahya-github/facturo-demo/actions** and watch the `release` workflow:
 1. Windows build
 2. Smoke test (exe boots, hits `/api/version`, exits 0)
 3. Release published with exe + SHA-256 + notes
