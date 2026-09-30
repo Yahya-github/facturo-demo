@@ -1,5 +1,5 @@
 // ── HISTORY: actions ────────────────────────────────────
-// Row "..." menu, right-click menu, deferred delete with an "Annuler" toast,
+// Row "..." menu, right-click menu, deferred delete with a Cancel toast,
 // date-range presets, header sorting, paging and the "/" search shortcut.
 
 const HIST_UNDO_MS = 6000;
@@ -11,13 +11,13 @@ const histFactureById = id => state.factures.find(f => f.id === Number(id));
 /** Actions shared by the row button and the right-click menu. */
 function histRowItems(f) {
   return [
-    { label: 'Modifier', icon: 'pencil', onSelect: () => editFacture(f.id) },
-    { label: 'Télécharger Excel', icon: 'download', onSelect: () => downloadFacture(f.fichier) },
-    { label: 'Télécharger PDF', icon: 'file-text', onSelect: () => downloadFacturePdf(document.createElement('button'), f.fichier) },
+    { label: ui.i18n.t('action.edit'), icon: 'pencil', onSelect: () => editFacture(f.id) },
+    { label: ui.i18n.t('action.download_excel'), icon: 'download', onSelect: () => downloadFacture(f.fichier) },
+    { label: ui.i18n.t('action.download_pdf'), icon: 'file-text', onSelect: () => downloadFacturePdf(document.createElement('button'), f.fichier) },
     { separator: true },
-    { label: f.paye ? 'Marquer non payée' : 'Marquer payée', icon: 'circle-check', onSelect: () => togglePaid(f.id, !f.paye) },
+    { label: ui.i18n.t(f.paye ? 'action.mark_unpaid' : 'action.mark_paid'), icon: 'circle-check', onSelect: () => togglePaid(f.id, !f.paye) },
     { separator: true },
-    { label: 'Supprimer', icon: 'trash-2', destructive: true, onSelect: () => histDeleteFacture(f.id) },
+    { label: ui.i18n.t('action.delete'), icon: 'trash-2', destructive: true, onSelect: () => histDeleteFacture(f.id) },
   ];
 }
 
@@ -73,9 +73,9 @@ async function histDeleteFacture(id) {
   const f = histFactureById(id);
   if (!f) return;
   const ok = await ui.alertDialog({
-    title: 'Supprimer la facture',
-    description: `Supprimer la facture ${f.numero} ? Le fichier Excel/PDF généré sera aussi supprimé.`,
-    confirmLabel: 'Supprimer', destructive: true,
+    title: ui.i18n.t('history.delete.title'),
+    description: ui.i18n.t('history.delete.desc', { number: f.numero }),
+    confirmLabel: ui.i18n.t('action.delete'), destructive: true,
   });
   if (!ok) return;
   const index = Math.max(0, state.factures.indexOf(f));
@@ -93,10 +93,10 @@ async function histDeleteFacture(id) {
   }, HIST_UNDO_MS);
   histPendingDeletes.set(f.id, { timer, restore });
   histRefreshViews();
-  handle = toast(`Facture ${f.numero} supprimée`, 'info', {
+  handle = toast(ui.i18n.t('history.deleted', { number: f.numero }), 'info', {
     duration: HIST_UNDO_MS + 1000,
     action: {
-      label: 'Annuler',
+      label: ui.i18n.t('action.cancel'),
       onClick() { clearTimeout(timer); histPendingDeletes.delete(f.id); restore(); },
     },
   });
@@ -129,9 +129,7 @@ function histPresetRange(kind, now = new Date()) {
   return { du: '', au: '' };
 }
 
-const HIST_PRESETS = [
-  ['month', 'Ce mois'], ['30d', '30 derniers jours'], ['year', 'Cette année'], ['clear', 'Toute la période'],
-];
+const HIST_PRESETS = ['month', '30d', 'year', 'clear'];
 
 function histApplyPreset(kind) {
   const { du, au } = histPresetRange(kind);
@@ -145,10 +143,10 @@ function histOpenPresets(btn) {
   let layer = null;
   const pick = kind => { histApplyPreset(kind); if (layer) layer.close(true); };
   const content = ui.h('div', { class: 'flt-preset-list' },
-    HIST_PRESETS.map(([kind, label]) => ui.h('button', {
+    HIST_PRESETS.map(kind => ui.h('button', {
       type: 'button', class: 'flt-preset', 'data-preset': kind, onclick: () => pick(kind),
-    }, label)));
-  layer = ui.popover.toggle(btn, { content, side: 'bottom', align: 'end', label: 'Périodes prédéfinies', className: 'flt-preset-pop' });
+    }, ui.i18n.t(`history.preset.${kind}`))));
+  layer = ui.popover.toggle(btn, { content, side: 'bottom', align: 'end', label: ui.i18n.t('history.filter.presets'), className: 'flt-preset-pop' });
 }
 
 // ── Sorting, paging, shortcut ───────────────────────────

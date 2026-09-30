@@ -241,15 +241,15 @@ function downloadFacture(filename) {
 async function downloadFacturePdf(btn, filename) {
   const origHTML = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<span class="loading-spinner"></span> PDF...';
+  btn.innerHTML = `<span class="loading-spinner"></span> ${esc(ui.i18n.t('history.pdf_busy'))}`;
   try {
     const res = await fetch(
       `/api/factures/download-pdf/${encodeURIComponent(filename)}?t=${Date.now()}`,
       { cache: 'no-store' },
     );
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Erreur serveur' }));
-      throw new Error(err.detail || 'Erreur lors de la conversion PDF');
+      const err = await res.json().catch(() => ({ detail: ui.i18n.t('error.server') }));
+      throw new Error(err.detail || ui.i18n.t('history.pdf_error'));
     }
     const blob = await res.blob();
     const pdfName = filename.replace(/\.xlsx$/i, '.pdf');
@@ -261,7 +261,7 @@ async function downloadFacturePdf(btn, filename) {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    toast('PDF téléchargé !');
+    toast(ui.i18n.t('history.pdf_done'));
   } catch (e) {
     toast(e.message, 'error');
   } finally {
