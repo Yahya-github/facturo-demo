@@ -222,6 +222,10 @@ async function removeLogo() {
 }
 
 
+// The language card is rebuilt on every render, after the DOMContentLoaded pass
+// that binds the switchers, so its buttons are wired here (idempotent).
+ui.hydrate.register(() => { if (ui.i18n) ui.i18n.mountSwitchers(); });
+
 // Remember the selected tab across re-renders, and load the AI status lazily.
 ui.hydrate.register(scope => {
   const host = scope.querySelector('#settings-tabs');
