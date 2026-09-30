@@ -16,45 +16,46 @@ function renderClientRow(c, totals) {
   const t = totals.get(c.id) || { count: 0, cents: 0 };
   const id = Number(c.id);
   const next = `${c.prefix || ''}${String(c.next_numero).padStart(3, '0')}`;
-  const rate = Number(c.taux_defaut) > 0 ? money(Number(c.taux_defaut)).replace(/,00(?= )/, '') + '/h' : '—';
+  const rate = Number(c.taux_defaut) > 0 ? money(Number(c.taux_defaut)).replace(/[.,]00(?= )/, '') + '/h' : '—';
   return `<tr data-client-id="${id}">
     <td><div class="cell-client">${ui.avatar(c.nom)}<div class="client-id-cell">
       <span class="cell-name" title="${escAttr(c.nom)}">${esc(c.nom)}</span>
-      <span class="cell-sub" title="${escAttr(c.adresse)}">${esc(c.adresse) || 'Aucune adresse'}</span>
+      <span class="cell-sub" title="${escAttr(c.adresse)}">${esc(c.adresse) || esc(ui.i18n.t('clients.no_address'))}</span>
     </div></div></td>
     <td><span class="badge badge-blue">${esc(c.ref)}</span></td>
-    <td class="client-next"><span class="client-next-num">${esc(next)}</span><span class="cell-sub">préfixe ${esc(c.prefix)}</span></td>
+    <td class="client-next"><span class="client-next-num">${esc(next)}</span><span class="cell-sub">${esc(ui.i18n.t('clients.prefix_label', { prefix: c.prefix }))}</span></td>
     <td class="num hide-sm">${esc(rate)}</td>
     <td class="num hide-sm">${t.count}</td>
     <td class="num">${t.count ? money(t.cents / 100) : '—'}</td>
-    <td class="row-menu-cell"><button type="button" class="btn btn-quiet btn-icon btn-sm" data-client-menu="${id}" aria-label="Actions pour ${escAttr(c.nom)}">${icon('ellipsis')}</button></td>
+    <td class="row-menu-cell"><button type="button" class="btn btn-quiet btn-icon btn-sm" data-client-menu="${id}" aria-label="${escAttr(ui.i18n.t('clients.aria_actions', { name: c.nom }))}">${icon('ellipsis')}</button></td>
   </tr>`;
 }
 
 function renderClientsEmpty() {
   return `<div class="card"><div class="empty-state clients-empty">
     <span class="empty-orb" aria-hidden="true">${icon('users')}</span>
-    <h3>Aucun client pour le moment</h3>
-    <p>Ajoutez votre premier client : il apparaîtra dans le sélecteur de facture, avec son préfixe et son taux habituel.</p>
-    <button type="button" class="btn btn-primary" onclick="openClientModal()">${icons.plus} Ajouter un client</button>
+    <h3>${esc(ui.i18n.t('clients.empty_title'))}</h3>
+    <p>${esc(ui.i18n.t('clients.empty_desc'))}</p>
+    <button type="button" class="btn btn-primary" onclick="openClientModal()">${icons.plus} ${esc(ui.i18n.t('clients.add'))}</button>
   </div></div>`;
 }
 
 function renderClients() {
+  const t = ui.i18n.t;
   const n = state.clients.length;
   const totals = clientTotals();
   const table = `<div class="card card-table"><div class="table-scroll"><table class="data-table clients-table">
-      <thead><tr><th>Client</th><th>Réf</th><th>Prochain N°</th><th class="num hide-sm">Taux</th><th class="num hide-sm">Factures</th><th class="num">Facturé</th><th><span class="sr-only">Actions</span></th></tr></thead>
+      <thead><tr><th>${esc(t('clients.col.client'))}</th><th>${esc(t('clients.col.ref'))}</th><th>${esc(t('clients.col.next'))}</th><th class="num hide-sm">${esc(t('clients.col.rate'))}</th><th class="num hide-sm">${esc(t('clients.col.invoices'))}</th><th class="num">${esc(t('clients.col.billed'))}</th><th><span class="sr-only">${esc(t('clients.col.actions'))}</span></th></tr></thead>
       <tbody>${state.clients.map(c => renderClientRow(c, totals)).join('')}</tbody>
     </table></div></div>`;
   return `<div class="page page-wide clients">
     <div class="page-head">
       <div>
-        <h2>Clients</h2>
-        <p>${n ? `${n} client${n > 1 ? 's' : ''} : coordonnées, préfixe de facture et taux horaire habituel` : 'Gérez vos clients et leurs informations de facturation'}</p>
+        <h2>${esc(t('clients.title'))}</h2>
+        <p>${esc(n ? ui.i18n.tn('clients.subtitle', n) : t('clients.subtitle_empty'))}</p>
       </div>
       <div class="page-head-actions">
-        <button type="button" class="btn btn-primary" onclick="openClientModal()">${icons.plus} Ajouter un client</button>
+        <button type="button" class="btn btn-primary" onclick="openClientModal()">${icons.plus} ${esc(t('clients.add'))}</button>
       </div>
     </div>
     ${n === 0 ? renderClientsEmpty() : table}
@@ -67,9 +68,9 @@ const clientById = id => state.clients.find(c => c.id === Number(id));
 
 function clientRowItems(c) {
   return [
-    { label: 'Modifier', icon: 'pencil', onSelect: () => openClientModal(c.id) },
+    { label: ui.i18n.t('action.edit'), icon: 'pencil', onSelect: () => openClientModal(c.id) },
     { separator: true },
-    { label: 'Supprimer', icon: 'trash-2', destructive: true, onSelect: () => confirmDeleteClient(c.id) },
+    { label: ui.i18n.t('action.delete'), icon: 'trash-2', destructive: true, onSelect: () => confirmDeleteClient(c.id) },
   ];
 }
 
@@ -96,10 +97,12 @@ ui.hydrate.register(bindClientRows);
 
 // ── Client dialog ───────────────────────────────────────
 
+// Messages are read when a field is checked, not when the file loads, so they
+// follow the language.
 const CLIENT_RULES = {
-  'cm-nom': v => (v ? '' : "Indiquez le nom de l'entreprise"),
-  'cm-ref': v => (v ? '' : 'La référence est requise'),
-  'cm-prefix': v => (!v ? 'Le préfixe est requis' : /\s/.test(v) ? 'Sans espaces' : ''),
+  'cm-nom': v => (v ? '' : ui.i18n.t('clients.field.name_required')),
+  'cm-ref': v => (v ? '' : ui.i18n.t('clients.field.ref_required')),
+  'cm-prefix': v => (!v ? ui.i18n.t('clients.field.prefix_required') : /\s/.test(v) ? ui.i18n.t('clients.field.prefix_spaces') : ''),
 };
 
 /** Show or clear the inline message of one field; returns true when it is valid. */
@@ -127,16 +130,17 @@ function clientField(o) {
 }
 
 function clientDialogBody(client) {
-  const nom = clientField({ id: 'cm-nom', label: "Nom de l'entreprise", required: true,
-    control: `<input class="form-input" id="cm-nom" autocomplete="off" placeholder="ex: Sample Client Ltd." value="${escAttr(client?.nom)}">` });
-  const ref = clientField({ id: 'cm-ref', label: 'Référence', required: true, hint: 'Identifiant court pour ce client',
-    control: `<input class="form-input" id="cm-ref" autocomplete="off" placeholder="ex: sample" value="${escAttr(client?.ref)}">` });
-  const prefix = clientField({ id: 'cm-prefix', label: 'Préfixe facture', required: true,
-    hint: '<span id="cm-prefix-preview">Préfixe du numéro de facture</span>',
-    control: `<input class="form-input" id="cm-prefix" autocomplete="off" placeholder="ex: smpl" maxlength="10" value="${escAttr(client?.prefix)}">` });
-  const adresse = clientField({ id: 'cm-adresse', label: 'Adresse',
-    control: `<input class="form-input" id="cm-adresse" autocomplete="off" placeholder="ex: 123 rue Exemple, Villefictive, QC J0J 0J0" value="${escAttr(client?.adresse)}">` });
-  const taux = clientField({ id: 'cm-taux-defaut', label: 'Taux horaire habituel', hint: 'Prérempli sur les nouveaux billets de ce client (facultatif)',
+  const t = ui.i18n.t;
+  const nom = clientField({ id: 'cm-nom', label: t('clients.field.name'), required: true,
+    control: `<input class="form-input" id="cm-nom" autocomplete="off" placeholder="${escAttr(t('clients.field.name_ph'))}" value="${escAttr(client?.nom)}">` });
+  const ref = clientField({ id: 'cm-ref', label: t('clients.field.ref'), required: true, hint: esc(t('clients.field.ref_hint')),
+    control: `<input class="form-input" id="cm-ref" autocomplete="off" placeholder="${escAttr(t('clients.field.ref_ph'))}" value="${escAttr(client?.ref)}">` });
+  const prefix = clientField({ id: 'cm-prefix', label: t('clients.field.prefix'), required: true,
+    hint: `<span id="cm-prefix-preview">${esc(t('clients.field.prefix_hint'))}</span>`,
+    control: `<input class="form-input" id="cm-prefix" autocomplete="off" placeholder="${escAttr(t('clients.field.prefix_ph'))}" maxlength="10" value="${escAttr(client?.prefix)}">` });
+  const adresse = clientField({ id: 'cm-adresse', label: t('clients.field.address'),
+    control: `<input class="form-input" id="cm-adresse" autocomplete="off" placeholder="${escAttr(t('clients.field.address_ph'))}" value="${escAttr(client?.adresse)}">` });
+  const taux = clientField({ id: 'cm-taux-defaut', label: t('clients.field.rate'), hint: esc(t('clients.field.rate_hint')),
     control: `<div class="input-group-box"><span class="addon" aria-hidden="true">$</span>
       <input class="form-input" id="cm-taux-defaut" type="number" step="1" min="0" placeholder="65" value="${numAttr(client?.taux_defaut || '')}">
       <span class="addon" aria-hidden="true">/ h</span></div>` });
@@ -145,8 +149,8 @@ function clientDialogBody(client) {
       <input type="checkbox" id="cm-separer" ${client && client.separer_chantiers ? 'checked' : ''}>
       <span class="switch-track"></span>
       <span class="switch-text">
-        <span class="switch-title">Séparer les factures par chantier</span>
-        <span class="switch-desc">Génère une facture distincte pour chaque « Chantier / Client » des billets, toutes au nom de ce client.</span>
+        <span class="switch-title">${esc(t('clients.field.split_title'))}</span>
+        <span class="switch-desc">${esc(t('clients.field.split_desc'))}</span>
       </span>
     </label>`;
 }
@@ -159,7 +163,10 @@ function wireClientDialog(client) {
   const paint = () => {
     const p = prefix.value.trim();
     const n = client ? String(client.next_numero).padStart(3, '0') : '001';
-    preview.textContent = p ? `Ex. : ${p}${n}, ${p}${String(Number(n) + 1).padStart(3, '0')}…` : 'Préfixe du numéro de facture';
+    const text = p
+      ? ui.i18n.t('clients.field.prefix_preview', { a: `${p}${n}`, b: `${p}${String(Number(n) + 1).padStart(3, '0')}` })
+      : ui.i18n.t('clients.field.prefix_hint');
+    if (preview.textContent !== text) preview.textContent = text;
   };
   ref.addEventListener('input', () => {
     if (!client && ref.value.length >= 4 && !prefix.dataset.manual) { prefix.value = ref.value.slice(0, 4).toLowerCase(); paint(); }
@@ -190,10 +197,10 @@ async function saveClient(client, dialog) {
   try {
     if (client) {
       await api('PUT', `/api/clients/${client.id}`, readClientForm());
-      toast('Client modifié');
+      toast(ui.i18n.t('clients.toast.updated'));
     } else {
       await api('POST', '/api/clients', readClientForm());
-      toast('Client ajouté');
+      toast(ui.i18n.t('clients.toast.added'));
     }
     dialog.close(true);
     await loadData();
@@ -207,11 +214,11 @@ async function saveClient(client, dialog) {
 function openClientModal(clientId) {
   const client = clientId ? clientById(clientId) : null;
   const dialog = ui.dialog.show({
-    title: client ? 'Modifier le client' : 'Nouveau client',
-    description: client ? 'Les factures déjà générées ne changent pas.' : 'Ces informations apparaissent sur chaque facture de ce client.',
+    title: ui.i18n.t(client ? 'clients.dialog.edit_title' : 'clients.dialog.new_title'),
+    description: ui.i18n.t(client ? 'clients.dialog.edit_desc' : 'clients.dialog.new_desc'),
     body: `<form class="client-form" onsubmit="return false" novalidate>${clientDialogBody(client)}</form>`,
-    footer: `<button type="button" class="btn btn-ghost" id="cm-cancel">Annuler</button>
-      <button type="button" class="btn btn-primary" id="cm-save">${client ? 'Enregistrer' : 'Ajouter'}</button>`,
+    footer: `<button type="button" class="btn btn-ghost" id="cm-cancel">${esc(ui.i18n.t('action.cancel'))}</button>
+      <button type="button" class="btn btn-primary" id="cm-save">${esc(ui.i18n.t(client ? 'action.save' : 'action.add'))}</button>`,
     initialFocus: '#cm-nom',
   });
   wireClientDialog(client);
@@ -224,16 +231,16 @@ function openClientModal(clientId) {
 
 async function confirmDeleteClient(id) {
   const client = clientById(id);
-  if (!client) { toast('Client introuvable', 'error'); return; }
+  if (!client) { toast(ui.i18n.t('clients.not_found'), 'error'); return; }
   const ok = await ui.alertDialog({
-    title: 'Supprimer le client',
-    description: `Voulez-vous vraiment supprimer ${client.nom} et toutes ses factures ? Cette action est irréversible.`,
-    confirmLabel: 'Supprimer', destructive: true,
+    title: ui.i18n.t('clients.delete_title'),
+    description: ui.i18n.t('clients.delete_desc', { name: client.nom }),
+    confirmLabel: ui.i18n.t('action.delete'), destructive: true,
   });
   if (!ok) return;
   try {
     await api('DELETE', `/api/clients/${id}`);
-    toast('Client supprimé');
+    toast(ui.i18n.t('clients.toast.deleted'));
     await loadData();
     render();
   } catch (e) { toast(e.message, 'error'); }
