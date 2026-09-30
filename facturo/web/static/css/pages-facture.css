@@ -322,7 +322,7 @@
 }
 .fac-summary-who { display: flex; flex-direction: column; min-width: 0; }
 .fac-summary-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-base); font-weight: 600; letter-spacing: -0.015em; }
-.fac-summary-who span { font-size: var(--text-xs); color: rgba(250, 250, 250, 0.65); }
+.fac-summary-who span { font-size: var(--text-xs); color: rgba(250, 250, 250, 0.78); }
 .fac-lines { margin: 0; padding-top: 0.9rem; border-top: 1px solid rgba(255, 255, 255, 0.14); }
 .fac-lines .line { display: flex; justify-content: space-between; gap: 1rem; padding: 0.28rem 0; font-size: var(--text-sm); }
 .fac-lines dt { color: rgba(250, 250, 250, 0.78); }
@@ -331,7 +331,7 @@
 .fac-lines .line-sub { margin-top: 0.45rem; padding-top: 0.6rem; border-top: 1px dashed rgba(255, 255, 255, 0.2); }
 .fac-lines .line-sub dd { font-weight: 600; }
 .fac-lines .line-remise dt, .fac-lines .line-remise dd { color: var(--gold-light); }
-.fac-lines .line-empty dt { font-size: var(--text-xs); color: rgba(250, 250, 250, 0.55); }
+.fac-lines .line-empty dt { font-size: var(--text-xs); color: rgba(250, 250, 250, 0.75); }
 .fac-total {
   display: flex;
   flex-direction: column;
@@ -350,8 +350,8 @@
 }
 .fac-checks { display: flex; flex-direction: column; gap: 0.3rem; margin: 0; padding: 0.9rem 0 0; border-top: 1px solid rgba(255, 255, 255, 0.14); list-style: none; }
 .fac-checks li { display: flex; align-items: center; gap: 0.45rem; font-size: var(--text-xs); }
-.fac-checks .is-ok { color: var(--gold-light); }
-.fac-checks .is-todo { color: rgba(250, 250, 250, 0.5); }
+.fac-checks .is-ok { color: color-mix(in srgb, var(--gold-light) 65%, #fff); }
+.fac-checks .is-todo { color: rgba(250, 250, 250, 0.88); }
 
 /* ── Sticky action bar ────────────────────────────────── */
 .fac-actionbar {
