@@ -8,6 +8,8 @@ overridable with `FACTURO_COMPANY_NAME`).
 
 ```bash
 python -m pytest                                   # unit + integration + e2e (Playwright)
+# On a machine with the pytest-django plugin installed, add `-p no:django`,
+# or the live-server e2e tests are skipped silently.
 python -m pytest --ignore=tests/e2e                # without a browser
 python -m pytest --cov=facturo --cov-report=term   # with coverage
 node --test tests/js/*.mjs                         # JS/Python parity checks
@@ -32,16 +34,20 @@ The e2e suite needs `playwright install chromium` once.
 
 ## Figures (Linux, Python 3.12+)
 
-- 647 pytest tests collected. 624 pass, and 14 are skipped when optional real
+- 717 pytest tests collected. 703 pass, and 14 are skipped when optional real
   sample PDFs are missing (they are gitignored) or the machine isn't Windows
-  (DPAPI).
+  (DPAPI). About 100 of them are Playwright e2e tests (`tests/e2e/`), which
+  cover the interface: accessibility, overflow at 390/768 px, offline
+  loading, command palette, dialogs and toasts.
 - `test_release_tooling.py` (9 tests) clones the working tree with git, so
   it needs the project to be a git checkout.
-- Line coverage is about 79% overall. `discounts.py` 99%, `matcher.py` 100%,
+- Backend line coverage is about 79% overall (Python only; the JavaScript UI
+  is covered by the e2e and node tests). `discounts.py` 99%, `matcher.py` 100%,
   `pdf_text.py` 100%, `store.py` 99%, `parser.py` 96%, `updater.py` 95%,
   `known_values.py` 93%, `billet_fields.py` 92%, `excel_generator.py` 82%,
   `services/sync.py` 57% (its network paths are mocked).
-- JS: 2 node test files, all passing.
+- JS: 6 node test files (9 tests: discount and money parity, chart data,
+  fuzzy matcher, floating placement, utilities), all passing.
 
 ## Billet extraction bench (manual)
 

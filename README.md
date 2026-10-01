@@ -4,6 +4,8 @@
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)
 
+![Facturo dashboard](docs/screenshots/01-accueil.webp)
+
 Facturo is a local-first invoicing app for a small Québec trucking company.
 Drivers hand in paper work tickets ("billets": hours worked by a truck at a
 renter's worksite). Facturo turns them into tax-correct invoices, reads the
@@ -58,7 +60,14 @@ Releases, rolling back automatically if an update fails.
   In the app, the update is checked against that hash, the new exe is swapped
   in, and a health check triggers a rollback on failure. See
   [docs/UPDATES_AND_RELEASES.md](docs/UPDATES_AND_RELEASES.md).
-- **Tests and CI:** about 650 pytest tests (unit, API, Playwright e2e) plus
+- **Modern interface:** a shadcn/ui-style design system with light, dark and
+  system themes, a Ctrl+K command palette (fuzzy, accent-insensitive search
+  over pages, actions, clients and invoices), a collapsible sidebar, SVG
+  charts on the home page, row menus and right-click context menus, sonner-style
+  toasts, and accessible dialogs, sheets, tabs and tooltips (focus trap, roving
+  tabindex, reduced-motion support). Fonts (Geist) and icons (Lucide) are
+  bundled, so the whole UI works offline. See [docs/UI.md](docs/UI.md).
+- **Tests and CI:** about 700 pytest tests (unit, API, Playwright e2e) plus
   node parity tests, run with ruff on every push. See
   [docs/TESTING.md](docs/TESTING.md).
 
@@ -76,7 +85,15 @@ Releases, rolling back automatically if an update fails.
 
 ## Screenshots
 
-Screenshots will go in [`docs/screenshots/`](docs/screenshots/) (to be added).
+All captures use the fictional data from `scripts/seed_demo.py`.
+
+| | |
+|---|---|
+| ![Home](docs/screenshots/01-accueil.webp) **Home:** KPIs, charts | ![Dark theme](docs/screenshots/07-accueil-sombre.webp) **Dark theme** |
+| ![History](docs/screenshots/02-historique.webp) **History:** filters, status, row actions | ![New invoice](docs/screenshots/03-nouvelle-facture.webp) **New invoice:** live totals |
+| ![Payments](docs/screenshots/04-paiements.webp) **Payments:** proof-of-payment detail | ![Clients](docs/screenshots/10-clients.webp) **Clients** |
+| ![Settings](docs/screenshots/05-parametres.webp) **Settings** | ![Command palette](docs/screenshots/06-palette.webp) **Command palette** (Ctrl+K) |
+| ![Collapsed sidebar](docs/screenshots/08-menu-reduit.webp) **Collapsed sidebar** | ![Mobile](docs/screenshots/09-mobile.webp) **Mobile** (390 px) |
 
 ## Quick start (development)
 
@@ -100,6 +117,14 @@ then a random free port. Flags: `--port N` (strict, no fallback),
 `FACTURO_DATA_DIR` to use another folder and `FACTURO_COMPANY_NAME` to invoice
 under a different company name.
 
+To look around with realistic content, start the app on a throwaway data
+folder and fill it with fictional clients, 25 invoices and three payments:
+
+```bash
+FACTURO_DATA_DIR=/tmp/facturo-demo python -m facturo --port 8000 --no-browser &
+python scripts/seed_demo.py --base http://127.0.0.1:8000    # safe to run twice
+```
+
 AI extraction is optional and needs an Ollama server, local or cloud,
 configured in the app's settings. Everything else works without it.
 
@@ -118,7 +143,7 @@ facturo/
   extraction/      Ollama client and prompts, scan rendering
   payments/        PDF text, parser, matcher, store
   services/        sync.py (GitHub data sync), updater.py (in-app updates)
-  web/             index.html + static CSS/JS
+  web/             templates/index.html + static/ (css, js, js/ui, fonts, img)
 packaging/         PyInstaller spec, build and package scripts, release notes
 scripts/           release.sh, start/stop helpers
 .github/workflows/ ci.yml (every push/PR), release.yml (v* tags)
@@ -148,6 +173,18 @@ sync, updates, Windows install, testing and French user guide docs.
 Facturo was built privately for a real transport company, from June 2026 onward. This repository is a **sanitized public snapshot**: every client name, address, plate, tax number and document has been replaced with fictional data, and the company name is a setting (`Demo Transport Inc.` by default).
 
 The commit history here is a **condensed replay**, not the original log. Each commit adds the files that first appeared in the private project at that moment, and the commit dates and times are the real ones. Files carry their final sanitized content, so an intermediate commit may not run on its own. The original private history is not published because it contains client data.
+
+## Credits
+
+- Design language: [shadcn/ui](https://ui.shadcn.com) (MIT). Only the visual
+  language is followed (tokens, radii, component anatomy); the components here
+  are hand-written vanilla JavaScript.
+- Icons: [Lucide](https://lucide.dev) (ISC), inlined as SVG.
+- Font: [Geist](https://vercel.com/font) and Geist Mono by Vercel
+  (SIL Open Font License 1.1, see `facturo/web/static/fonts/OFL.txt`), bundled
+  as woff2.
+- Layout patterns (bento dashboard, command palette, sonner-style toasts) are
+  inspired by the [21st.dev](https://21st.dev) community. No code was copied.
 
 ## License
 

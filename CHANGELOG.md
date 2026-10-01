@@ -27,3 +27,16 @@ what the snapshot contains.
 - Release tooling: `scripts/release.sh` (semver check, tests, lint, migration dry run, version bump, CHANGELOG roll, tag), plus CI and release workflows on GitHub Actions.
 - Security: listens on loopback only, a local guard middleware rejects foreign `Host` headers and cross-site writes, and tokens are encrypted at rest on Windows (DPAPI) or stored with 0600 permissions elsewhere.
 - Tests: pytest unit/API suites, Playwright e2e, node parity tests for the shared discount math.
+
+### Interface
+- New design system in the shadcn/ui style: CSS custom-property tokens for light, dark and system themes (`css/tokens.css`), Geist and Geist Mono fonts, Lucide icons, and a restyled shell (floating panel, animated backdrop, breadcrumb header).
+- Collapsible sidebar (icon rail on desktop, drawer on mobile) with a workspace switcher and a theme toggle that follows the system by default.
+- Command palette on Ctrl/Cmd+K: fuzzy, accent-insensitive search over pages, actions, clients and invoices.
+- Accueil redesigned: welcome banner, KPI cards with count-up, and SVG charts (invoiced per month, paid vs unpaid donut, top clients) with tooltips and accessible data tables.
+- Row menus and right-click context menus, sonner-style toasts (stacked, pausable, with actions), and accessible dialogs, alert dialogs, sheets, tabs, popovers and tooltips built on one focus-trapping core.
+- Redesigned Nouvelle facture (live summary card, per-billet cards, sticky action bar), Historique, Clients, Paiements, Factures scannées and Paramètres pages.
+- Everything is self-hosted (fonts, icons, scripts), so the interface works with no network.
+- Accessibility: skip link, one `h1` per page, labelled landmarks, named icon buttons, focus rings, reduced-motion support, and colour contrast checked with axe-core in both themes (no serious or critical violations at 1440 and 390 px).
+- No horizontal overflow at 390, 768 and 1440 px.
+- `scripts/seed_demo.py` fills a running server with fictional clients, invoices and payments; ten screenshots added under `docs/screenshots/`; `docs/UI.md` documents the design system.
+- About 70 new tests (mostly Playwright e2e) and 3 new node test files cover the interface (overlays, palette, charts, overflow, offline, accessibility).
